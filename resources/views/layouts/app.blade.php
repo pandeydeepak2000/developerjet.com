@@ -6,6 +6,8 @@
     <meta name="theme-color" content="#f5f4ef">
     <meta name="description" content="@yield('meta_description', 'DeveloperJet makes powerful developer tools feel effortless. Discover managed Hermes and n8n plans, backed by people who are here to help.')">
     <title>@yield('title', 'DeveloperJet') · DeveloperJet</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-mark.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-[#f5f4ef] text-slate-900 antialiased">
@@ -18,14 +20,7 @@
     <header class="site-header">
         <nav class="nav-shell" aria-label="Main navigation">
             <a class="brand" href="{{ route('home') }}" aria-label="DeveloperJet home">
-                <span class="brand-mark" aria-hidden="true">
-                    <svg viewBox="0 0 32 32" fill="none">
-                        <path d="M17.3 3.5c4.4 3.4 7.3 8.2 8.6 14.2l-7.5 7.5c-6-1.3-10.8-4.2-14.2-8.6C8.5 8.7 13.4 5.2 17.3 3.5Z" fill="currentColor"/>
-                        <path d="m9.3 19.5-4 7.2 7.2-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="19.3" cy="12.7" r="2.4" fill="#fff"/>
-                    </svg>
-                </span>
-                <span class="brand-word">developer<span>jet</span></span>
+                <img src="{{ asset('images/logo.png') }}" alt="DeveloperJet" class="brand-logo" width="166" height="45">
             </a>
 
             <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-menu" data-menu-toggle>
@@ -74,14 +69,7 @@
             <div class="footer-main">
                 <div class="footer-brand-block">
                     <a class="brand brand-footer" href="{{ route('home') }}" aria-label="DeveloperJet home">
-                        <span class="brand-mark" aria-hidden="true">
-                            <svg viewBox="0 0 32 32" fill="none">
-                                <path d="M17.3 3.5c4.4 3.4 7.3 8.2 8.6 14.2l-7.5 7.5c-6-1.3-10.8-4.2-14.2-8.6C8.5 8.7 13.4 5.2 17.3 3.5Z" fill="currentColor"/>
-                                <path d="m9.3 19.5-4 7.2 7.2-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="19.3" cy="12.7" r="2.4" fill="#fff"/>
-                            </svg>
-                        </span>
-                        <span class="brand-word">developer<span>jet</span></span>
+                        <img src="{{ asset('images/logo.png') }}" alt="DeveloperJet" class="brand-logo brand-logo-footer" width="166" height="45">
                     </a>
                     <p>Managed developer tools, VPS plans for Hermes and n8n, and helpful people—so your team can spend more time building.</p>
                 </div>
