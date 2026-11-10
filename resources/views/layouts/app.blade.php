@@ -20,7 +20,13 @@
     <header class="site-header">
         <nav class="nav-shell" aria-label="Main navigation">
             <a class="brand" href="{{ route('home') }}" aria-label="DeveloperJet home">
-                <img src="{{ asset('images/logo.png') }}" alt="DeveloperJet" class="brand-logo" width="166" height="45">
+                <span class="brand-badge" aria-hidden="true">
+                    <img src="{{ asset('images/logo-mark.png') }}" alt="" class="brand-avatar" width="44" height="44">
+                </span>
+                <span class="brand-text">
+                    <span class="brand-title">Developer<span class="brand-jet">Jet<svg class="brand-swoosh" viewBox="0 0 38 6" fill="none" aria-hidden="true"><path d="M1 4.5C8 1.5 22 1 37 3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span></span>
+                    <span class="brand-sub">Hermes · n8n · OpenClaw</span>
+                </span>
             </a>
 
             <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-menu" data-menu-toggle>
@@ -69,7 +75,13 @@
             <div class="footer-main">
                 <div class="footer-brand-block">
                     <a class="brand brand-footer" href="{{ route('home') }}" aria-label="DeveloperJet home">
-                        <img src="{{ asset('images/logo.png') }}" alt="DeveloperJet" class="brand-logo brand-logo-footer" width="166" height="45">
+                        <span class="brand-badge" aria-hidden="true">
+                            <img src="{{ asset('images/logo-mark.png') }}" alt="" class="brand-avatar" width="44" height="44">
+                        </span>
+                        <span class="brand-text">
+                            <span class="brand-title">Developer<span class="brand-jet">Jet<svg class="brand-swoosh" viewBox="0 0 38 6" fill="none" aria-hidden="true"><path d="M1 4.5C8 1.5 22 1 37 3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span></span>
+                            <span class="brand-sub">Hermes · n8n · OpenClaw</span>
+                        </span>
                     </a>
                     <p>Managed developer tools, VPS plans for Hermes and n8n, and helpful people—so your team can spend more time building.</p>
                 </div>
