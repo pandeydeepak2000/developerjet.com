@@ -49,12 +49,12 @@
                     <a href="{{ route('n8n') }}" @if (request()->routeIs('n8n')) aria-current="page" @endif>n8n</a>
                     <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>About</a>
                     <a href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif>Contact</a>
-                    <a href="{{ route('login') }}" @if (request()->routeIs('login')) aria-current="page" @endif>Login</a>
+                    {{-- <a href="{{ route('login') }}" @if (request()->routeIs('login')) aria-current="page" @endif>Login</a> --}}
                 </div>
-                <a class="nav-cta" href="{{ route('register') }}">
+                {{-- <a class="nav-cta" href="{{ route('register') }}">
                     Get started
                     <span aria-hidden="true">↗</span>
-                </a>
+                </a> --}}
             </div>
         </nav>
     </header>
