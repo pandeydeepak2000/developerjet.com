@@ -11,11 +11,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-[#f5f4ef] text-slate-900 antialiased">
-    <div class="announcement-bar">
+    {{-- <div class="announcement-bar">
         <span class="announcement-dot"></span>
         More flow. Less setup. Meet your new developer toolkit.
         <a href="{{ route('hermes.cli') }}#pricing">Explore plans <span aria-hidden="true">→</span></a>
-    </div>
+    </div> --}}
 
     <header class="site-header">
         <nav class="nav-shell" aria-label="Main navigation">
