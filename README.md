@@ -40,3 +40,7 @@ Prices shown on the product pages are illustrative INR amounts; confirm final pr
 php artisan test
 npm run build
 ```
+
+## Local development notes
+
+See `PROJECT_CONTEXT.md`, `CLAUDE.md` and `docs/02_PROJECT_STATUS.md`. Local mail uses the `log` mailer (OTP codes appear in `storage/logs/laravel.log`); SMTP is not configured yet.

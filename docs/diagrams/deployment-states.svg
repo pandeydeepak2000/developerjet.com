@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 346" width="1060" height="346" font-family="Segoe UI, Arial, sans-serif">
+<defs><marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#555"/></marker></defs>
+<rect width="1060" height="346" fill="#ffffff"/>
+<text x="30" y="34" font-size="20" font-weight="700" fill="#1d2032">Deployment states and safe retry</text>
+<path d="M260,115 L300,115" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M510,115 L550,115" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="512" y="97" width="36" height="17" rx="4" fill="#fff"/><text x="530" y="110" font-size="12" text-anchor="middle" fill="#333">pass</text>
+<path d="M760,115 L800,115" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="735" y="97" width="89" height="17" rx="4" fill="#fff"/><text x="780" y="110" font-size="12" text-anchor="middle" fill="#333">all steps ok</text>
+<path d="M155,147 L155,193" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="127" y="152" width="56" height="17" rx="4" fill="#fff"/><text x="155" y="165" font-size="12" text-anchor="middle" fill="#333">dry run</text>
+<path d="M405,147 L655,193" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="512" y="152" width="36" height="17" rx="4" fill="#fff"/><text x="530" y="165" font-size="12" text-anchor="middle" fill="#333">fail</text>
+<path d="M655,147 L655,193" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="617" y="152" width="76" height="17" rx="4" fill="#fff"/><text x="655" y="165" font-size="12" text-anchor="middle" fill="#333">step fails</text>
+<path d="M550,225 L510,225" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M405,193 L405,170 L155,170 L155,147" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="114" y="152" width="83" height="17" rx="4" fill="#fff"/><text x="155" y="165" font-size="12" text-anchor="middle" fill="#333">new attempt</text>
+<rect x="50" y="83" width="210" height="64" rx="12" fill="#ffffff" stroke="#6649d1" stroke-width="2"/>
+<text x="155" y="119" font-size="13.5" text-anchor="middle" fill="#1d2032">queued</text>
+<rect x="300" y="83" width="210" height="64" rx="12" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/>
+<text x="405" y="111" font-size="13.5" text-anchor="middle" fill="#1d2032">preflight (resources, host</text>
+<text x="405" y="127" font-size="13.5" text-anchor="middle" fill="#1d2032">key, OS, arch, disk)</text>
+<rect x="550" y="83" width="210" height="64" rx="12" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/>
+<text x="655" y="119" font-size="13.5" text-anchor="middle" fill="#1d2032">running recipe steps</text>
+<rect x="800" y="83" width="210" height="64" rx="12" fill="#ece9f8" stroke="#4b32ad" stroke-width="2"/>
+<text x="905" y="119" font-size="13.5" text-anchor="middle" fill="#1d2032">succeeded: service active</text>
+<rect x="50" y="193" width="210" height="64" rx="12" fill="#f3f3f3" stroke="#666666" stroke-width="2"/>
+<text x="155" y="221" font-size="13.5" text-anchor="middle" fill="#1d2032">dry_run_ok (simulation</text>
+<text x="155" y="237" font-size="13.5" text-anchor="middle" fill="#1d2032">only)</text>
+<rect x="550" y="193" width="210" height="64" rx="12" fill="#fde8e8" stroke="#a12a2a" stroke-width="2"/>
+<text x="655" y="221" font-size="13.5" text-anchor="middle" fill="#1d2032">failed at step X (service</text>
+<text x="655" y="237" font-size="13.5" text-anchor="middle" fill="#1d2032">inactive)</text>
+<rect x="300" y="193" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="405" y="213" font-size="13.5" text-anchor="middle" fill="#1d2032">admin retry: new attempt</text>
+<text x="405" y="229" font-size="13.5" text-anchor="middle" fill="#1d2032">resumes after confirmed</text>
+<text x="405" y="245" font-size="13.5" text-anchor="middle" fill="#1d2032">steps</text>
+<rect x="30" y="316" width="16" height="16" rx="4" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/><text x="52" y="329" font-size="12.5" fill="#333">System</text>
+<rect x="112" y="316" width="16" height="16" rx="4" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/><text x="134" y="329" font-size="12.5" fill="#333">Admin action</text>
+<rect x="236" y="316" width="16" height="16" rx="4" fill="#fde8e8" stroke="#a12a2a" stroke-width="2"/><text x="258" y="329" font-size="12.5" fill="#333">Failure</text>
+<rect x="325" y="316" width="16" height="16" rx="4" fill="#f3f3f3" stroke="#666666" stroke-width="2"/><text x="347" y="329" font-size="12.5" fill="#333">Not an install</text>
+</svg>

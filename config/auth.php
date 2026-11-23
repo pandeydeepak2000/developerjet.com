@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 return [
 
     /*
@@ -40,6 +42,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // Staff portal: a separate session guard over the same users table. Signing in to the customer
+        // area never grants the admin area (see App\Http\Middleware\EnsureStaff).
+        'staff' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -62,7 +70,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => env('AUTH_MODEL', User::class),
         ],
 
         // 'users' => [
@@ -95,6 +103,13 @@ return [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
+            'throttle' => 60,
+        ],
+        // Separate token table: a staff reset token can never be redeemed through the customer form.
+        'staff' => [
+            'provider' => 'users',
+            'table' => 'staff_password_reset_tokens',
+            'expire' => 30,
             'throttle' => 60,
         ],
     ],

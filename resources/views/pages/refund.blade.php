@@ -27,7 +27,7 @@
     </section>
 
     <section class="refund-help-section section-shell">
-        <div><span class="eyebrow">Something doesn’t look right?</span><h2>We’re happy to<br><span>look into it.</span></h2></div>
+        <div><span class="eyebrow">Something doesn’t look right?</span><h2>We’re happy to <span>look into it.</span></h2></div>
         <div class="refund-help-copy"><p>If you believe you were charged in error or have an issue with activation or VPS setup, contact us as soon as possible. We’ll review the details and help resolve the issue. This does not create an exception to the non-refundable policy for activated digital services or provisioned VPS plans.</p><div class="refund-contact-actions"><a class="button-primary" href="https://wa.me/917688855600?text={{ rawurlencode('Hi DeveloperJet, I need help with a billing or activation issue.') }}" target="_blank" rel="noopener noreferrer">Message our team <span aria-hidden="true">↗</span></a></div></div>
     </section>
 

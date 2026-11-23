@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 676" width="1060" height="676" font-family="Segoe UI, Arial, sans-serif">
+<defs><marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#555"/></marker></defs>
+<rect width="1060" height="676" fill="#ffffff"/>
+<text x="30" y="34" font-size="20" font-weight="700" fill="#1d2032">Admin provisioning flow (new paid hosting order)</text>
+<path d="M260,115 L300,115" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M510,115 L550,115" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M655,147 L655,193" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M550,225 L510,225" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="515" y="207" width="30" height="17" rx="4" fill="#fff"/><text x="530" y="220" font-size="12" text-anchor="middle" fill="#333">yes</text>
+<path d="M760,225 L800,225" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="768" y="207" width="23" height="17" rx="4" fill="#fff"/><text x="780" y="220" font-size="12" text-anchor="middle" fill="#333">no</text>
+<path d="M905,257 L905,303" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M800,335 L510,335" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M405,257 L405,303" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M300,335 L260,335" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="259" y="317" width="43" height="17" rx="4" fill="#fff"/><text x="280" y="330" font-size="12" text-anchor="middle" fill="#333">fails</text>
+<path d="M405,367 L405,413" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="380" y="372" width="50" height="17" rx="4" fill="#fff"/><text x="405" y="385" font-size="12" text-anchor="middle" fill="#333">passes</text>
+<path d="M510,445 L550,445" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M760,445 L800,445" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M905,477 L905,523" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="893" y="482" width="23" height="17" rx="4" fill="#fff"/><text x="905" y="495" font-size="12" text-anchor="middle" fill="#333">ok</text>
+<path d="M905,477 L655,523" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="759" y="482" width="43" height="17" rx="4" fill="#fff"/><text x="780" y="495" font-size="12" text-anchor="middle" fill="#333">error</text>
+<path d="M550,555 L510,555" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M405,523 L405,500 L655,500 L655,477" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="634" y="482" width="43" height="17" rx="4" fill="#fff"/><text x="655" y="495" font-size="12" text-anchor="middle" fill="#333">retry</text>
+<path d="M300,555 L260,555" fill="none" stroke="#555" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="50" y="83" width="210" height="64" rx="12" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/>
+<text x="155" y="111" font-size="13.5" text-anchor="middle" fill="#1d2032">Alert: VPS assignment</text>
+<text x="155" y="127" font-size="13.5" text-anchor="middle" fill="#1d2032">required</text>
+<rect x="300" y="83" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="405" y="111" font-size="13.5" text-anchor="middle" fill="#1d2032">Open order: confirm</text>
+<text x="405" y="127" font-size="13.5" text-anchor="middle" fill="#1d2032">payment verified</text>
+<rect x="550" y="83" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="655" y="111" font-size="13.5" text-anchor="middle" fill="#1d2032">Check plan: resources,</text>
+<text x="655" y="127" font-size="13.5" text-anchor="middle" fill="#1d2032">managed / unmanaged</text>
+<rect x="550" y="193" width="210" height="64" rx="12" fill="#f3f3f3" stroke="#666666" stroke-width="2"/>
+<text x="655" y="221" font-size="13.5" text-anchor="middle" fill="#1d2032">Existing unallocated</text>
+<text x="655" y="237" font-size="13.5" text-anchor="middle" fill="#1d2032">server fits?</text>
+<rect x="300" y="193" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="405" y="229" font-size="13.5" text-anchor="middle" fill="#1d2032">Yes: assign server</text>
+<rect x="800" y="193" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="905" y="221" font-size="13.5" text-anchor="middle" fill="#1d2032">No: buy VPS from approved</text>
+<text x="905" y="237" font-size="13.5" text-anchor="middle" fill="#1d2032">supplier</text>
+<rect x="800" y="303" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="905" y="331" font-size="13.5" text-anchor="middle" fill="#1d2032">Record server in inventory</text>
+<text x="905" y="347" font-size="13.5" text-anchor="middle" fill="#1d2032">(cost, renewal, host key)</text>
+<rect x="300" y="303" width="210" height="64" rx="12" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/>
+<text x="405" y="331" font-size="13.5" text-anchor="middle" fill="#1d2032">System validates fit,</text>
+<text x="405" y="347" font-size="13.5" text-anchor="middle" fill="#1d2032">access model, cost limits</text>
+<rect x="50" y="303" width="210" height="64" rx="12" fill="#fde8e8" stroke="#a12a2a" stroke-width="2"/>
+<text x="155" y="339" font-size="13.5" text-anchor="middle" fill="#1d2032">Rejected: fix and retry</text>
+<rect x="300" y="413" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="405" y="449" font-size="13.5" text-anchor="middle" fill="#1d2032">Dry run (simulation)</text>
+<rect x="550" y="413" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="655" y="441" font-size="13.5" text-anchor="middle" fill="#1d2032">Start deployment (live:</text>
+<text x="655" y="457" font-size="13.5" text-anchor="middle" fill="#1d2032">gated)</text>
+<rect x="800" y="413" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="905" y="449" font-size="13.5" text-anchor="middle" fill="#1d2032">Watch progress and logs</text>
+<rect x="800" y="523" width="210" height="64" rx="12" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/>
+<text x="905" y="551" font-size="13.5" text-anchor="middle" fill="#1d2032">Success: service active,</text>
+<text x="905" y="567" font-size="13.5" text-anchor="middle" fill="#1d2032">customer notified</text>
+<rect x="550" y="523" width="210" height="64" rx="12" fill="#fde8e8" stroke="#a12a2a" stroke-width="2"/>
+<text x="655" y="551" font-size="13.5" text-anchor="middle" fill="#1d2032">Failure: service stays</text>
+<text x="655" y="567" font-size="13.5" text-anchor="middle" fill="#1d2032">inactive</text>
+<rect x="300" y="523" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="405" y="551" font-size="13.5" text-anchor="middle" fill="#1d2032">Fix cause, retry (resumes</text>
+<text x="405" y="567" font-size="13.5" text-anchor="middle" fill="#1d2032">at failed step)</text>
+<rect x="50" y="523" width="210" height="64" rx="12" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/>
+<text x="155" y="559" font-size="13.5" text-anchor="middle" fill="#1d2032">Escalate per runbook</text>
+<rect x="30" y="646" width="16" height="16" rx="4" fill="#e3f4ea" stroke="#1c7a43" stroke-width="2"/><text x="52" y="659" font-size="12.5" fill="#333">Automatic (system)</text>
+<rect x="196" y="646" width="16" height="16" rx="4" fill="#fff3d9" stroke="#b9770e" stroke-width="2"/><text x="218" y="659" font-size="12.5" fill="#333">Manual (admin / human)</text>
+<rect x="390" y="646" width="16" height="16" rx="4" fill="#ffffff" stroke="#6649d1" stroke-width="2"/><text x="412" y="659" font-size="12.5" fill="#333">Customer action</text>
+<rect x="535" y="646" width="16" height="16" rx="4" fill="#f3f3f3" stroke="#666666" stroke-width="2"/><text x="557" y="659" font-size="12.5" fill="#333">Gated / not live</text>
+</svg>

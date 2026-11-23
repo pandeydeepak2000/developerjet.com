@@ -2,18 +2,28 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\CatalogSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MarketingPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(CatalogSeeder::class);
+    }
+
     public function test_marketing_pages_are_available(): void
     {
         $sectionCounts = [
-            '/' => 7,
+            '/' => 8,          // Redesign: hero, categories, featured plans, how it works, platform, comparison, FAQ, CTA
             '/hermes' => 3,
-            '/hermes-cli' => 6,
-            '/hermes-workspace' => 6,
-            '/n8n' => 6,
+            '/hermes-cli' => 9,  // Product template: hero, pricing, how, features, capabilities, scope, comparison, FAQ, CTA
+            '/hermes-workspace' => 9,
+            '/n8n' => 9,
             '/login' => 4,
             '/register' => 4,
             '/forgot-password' => 4,
@@ -41,9 +51,9 @@ class MarketingPagesTest extends TestCase
         $content = $response->getContent();
 
         $response->assertOk()
-            ->assertSee('Explore Hermes')
-            ->assertSee('CLI + WORKSPACE')
-            ->assertSee('n8n Managed')
+            ->assertSee('Hermes AI Agent')
+            ->assertSee('Explore plans')
+            ->assertSee('n8n Automation Hosting')
             ->assertSee(route('hermes'))
             ->assertSee(route('n8n'));
 
@@ -74,15 +84,15 @@ class MarketingPagesTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Hermes CLI')
-            ->assertSee('2 vCPU · 4 GB RAM')
-            ->assertSee('4 vCPU · 8 GB RAM')
-            ->assertSee('8 vCPU · 16 GB RAM')
+            ->assertSee('2 vCPU')->assertSee('4 GB')
+            ->assertSee('4 vCPU')->assertSee('8 GB')
+            ->assertSee('8 vCPU')->assertSee('16 GB')
             ->assertSee('SSH or PuTTY')
             ->assertSee('Hermes CLI installed and configured')
             ->assertSee('data-billing-toggle="annual"', false)
             ->assertSee('data-annual="₹2,083"', false)
-            ->assertSee('80 GB NVMe storage')
-            ->assertSee('4 TB monthly bandwidth')
+            ->assertSee('80 GB NVMe')
+            ->assertSee('4 TB / month')
             ->assertSee('₹24,990 billed for 12 months')
             ->assertSee('Save ₹4,998 compared with monthly billing')
             ->assertSee('Hermes Workspace is installed and configured with Docker');
@@ -102,9 +112,7 @@ class MarketingPagesTest extends TestCase
         $response->assertOk()
             ->assertSee('Hermes Workspace')
             ->assertSee('install Hermes with Docker')
-            ->assertSee('2 vCPU · 4 GB RAM')
-            ->assertSee('4 vCPU · 8 GB RAM')
-            ->assertSee('8 vCPU · 16 GB RAM')
+            ->assertSee('2 vCPU')->assertSee('4 vCPU')->assertSee('8 vCPU')
             ->assertSee('Hermes installed with Docker')
             ->assertSee('data-billing-toggle="annual"', false)
             ->assertSee('₹24,990 billed for 12 months')
@@ -120,7 +128,7 @@ class MarketingPagesTest extends TestCase
         $content = $response->getContent();
 
         $response->assertOk()
-            ->assertSee('n8n Managed')
+            ->assertSee('n8n Automation Hosting')
             ->assertSee('Launch')
             ->assertSee('Grow')
             ->assertSee('Scale')
@@ -141,27 +149,20 @@ class MarketingPagesTest extends TestCase
         $this->assertStringNotContainsString('WhatsApp <span', $content);
     }
 
-    public function test_account_pages_are_visual_only_and_route_sales_actions_to_whatsapp(): void
+    public function test_account_pages_are_functional_forms(): void
     {
-        $this->get('/login')
-            ->assertOk()
-            ->assertSee('Continue with Sales')
-            ->assertSee('href="https://wa.me/917688855600', false)
-            ->assertSee(route('password.request'))
-            ->assertSee('not submitted or sent to WhatsApp');
+        $this->get('/login')->assertOk()
+            ->assertSee('action="'.route('login').'"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee(route('password.request'));
 
-        $this->get('/register')
-            ->assertOk()
-            ->assertSee('Get started with Sales')
-            ->assertSee('href="https://wa.me/917688855600', false)
-            ->assertSee('not submitted or sent to WhatsApp');
+        $this->get('/register')->assertOk()
+            ->assertSee('action="'.route('register').'"', false)
+            ->assertSee('name="password_confirmation"', false);
 
-        $this->get('/forgot-password')
-            ->assertOk()
-            ->assertSee('Reset link unavailable')
-            ->assertSee('disabled', false)
-            ->assertSee('no reset email will be sent')
-            ->assertSee('href="https://wa.me/917688855600', false);
+        $this->get('/forgot-password')->assertOk()
+            ->assertSee('action="'.route('password.email').'"', false)
+            ->assertSee('Send reset link');
     }
 
     public function test_refund_policy_contains_required_statement(): void

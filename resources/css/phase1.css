@@ -1,0 +1,107 @@
+/* Phase 1: accounts, cart, dashboard, UX polish */
+
+.skip-link { position: absolute; left: -999px; top: 8px; z-index: 100; padding: 10px 16px; border-radius: 10px; background: #0b1736; color: #fff; font-size: 15px; }
+.skip-link:focus { left: 12px; }
+
+:focus-visible { outline: 3px solid rgba(37, 99, 235, .55); outline-offset: 2px; border-radius: 6px; }
+
+/* Header account area */
+.nav-account { display: flex; align-items: center; gap: 14px; }
+.nav-cart, .nav-link-quiet { display: inline-flex; align-items: center; gap: 7px; padding: 8px 4px; border: 0; background: none; color: #3b3d52; font-size: 15px; font-weight: 700; cursor: pointer; }
+.nav-cart:hover, .nav-link-quiet:hover { color: var(--violet-dark); }
+.nav-cart-count { display: inline-grid; min-width: 19px; height: 19px; place-items: center; padding: 0 5px; border-radius: 99px; background: var(--violet); color: #fff; font-size: 13px; font-weight: 800; }
+@media (max-width: 900px) { .nav-account { flex-direction: column; align-items: stretch; gap: 0; margin-top: 10px; } .nav-account > * { padding: 12px 2px; } }
+
+/* Flash messages */
+.flash-wrap { padding-top: 18px; display: grid; gap: 8px; }
+.flash { padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.5; animation: rise .35s ease both; }
+.flash-success { background: #e6f5ec; color: #1d6b3e; border: 1px solid #bfe3cd; }
+.flash-error { background: #fdecec; color: #a12727; border: 1px solid #f3c2c2; }
+.flash-info { background: #eff6ff; color: #1e3a8a; border: 1px solid #dbeafe; margin: 14px 0; }
+
+/* Forms */
+.field-error { margin: -2px 0 6px; color: #b42323; font-size: 14px; font-weight: 600; }
+.auth-fields input[aria-invalid="true"] { border-color: #d64545; }
+.auth-fields input, .auth-fields label { font-size: 15px; }
+.auth-card-intro, .auth-switch, .auth-secondary-action { font-size: 14px; }
+.otp-input { font-size: 26px !important; letter-spacing: .5em; text-align: center; font-variant-numeric: tabular-nums; }
+.auth-remember { display: flex; align-items: center; gap: 8px; font-weight: 500 !important; margin-top: 4px; }
+.auth-remember input { width: auto; min-height: 0; margin: 0; }
+.auth-link-button { width: 100%; border: 0; background: none; cursor: pointer; }
+.link-button { border: 0; background: none; color: #a12727; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: underline; }
+
+/* Loading state for buttons in forms (JS adds .is-loading on submit) */
+.btn-spinner { display: none; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+.is-loading .btn-spinner { display: inline-block; }
+.is-loading { pointer-events: none; opacity: .8; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Plan card cart button */
+.plan-cart-form { margin-top: 14px; }
+.plan-add-to-cart { display: flex; width: 100%; min-height: 46px; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 6px 8px 15px rgba(37, 99, 235, .22); transition: transform .2s ease, box-shadow .2s ease; }
+.plan-add-to-cart:hover { transform: translateY(-2px); }
+
+/* Cart / checkout / plans */
+.shop-page { padding-top: 48px; padding-bottom: 72px; }
+.shop-title { margin: 8px 0 22px; color: #17243b; font-size: clamp(32px, 5vw, 48px); font-weight: 750; letter-spacing: -.05em; }
+.shop-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+.shop-lines { display: grid; gap: 14px; }
+.shop-line, .shop-summary, .plans-list-card, .stat-card, .empty-state { border: 1px solid rgba(255, 255, 255, .9); border-radius: 18px; background: linear-gradient(150deg, #f8fafc, #e6ebf2); box-shadow: var(--lift); }
+.shop-line { display: flex; justify-content: space-between; gap: 16px; padding: 20px; animation: rise .4s ease both; }
+.shop-line h2 { margin: 2px 0; font-size: 20px; }
+.shop-line.is-unavailable { opacity: .7; }
+.shop-line-side { display: grid; justify-items: end; gap: 10px; align-content: space-between; }
+.shop-line-side strong { font-size: 20px; }
+.shop-meta { margin: 4px 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.shop-summary { padding: 22px; position: sticky; top: 100px; }
+.shop-summary h2 { margin: 0 0 12px; font-size: 18px; }
+.shop-summary dl > div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.shop-summary dt { color: var(--muted); }
+.shop-checkout { width: 100%; margin-top: 14px; }
+.empty-state { padding: 40px 24px; text-align: center; }
+.empty-state h2 { margin: 0 0 6px; font-size: 20px; }
+.empty-state p { margin: 0 auto 16px; max-width: 460px; color: var(--muted); font-size: 15px; line-height: 1.7; }
+.plans-group { margin-top: 34px; }
+.plans-group h2 { font-size: 22px; font-weight: 750; }
+.plans-group h2 small { margin-left: 8px; color: var(--muted); font-size: 14px; font-weight: 600; }
+.plans-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 12px; }
+.plans-list-card { padding: 18px; display: grid; gap: 6px; align-content: start; transition: transform .2s ease; }
+.plans-list-card:hover { transform: translateY(-3px); }
+.plans-list-card h3 { margin: 0; font-size: 17px; }
+.plans-price { margin: 6px 0; font-size: 22px; font-weight: 800; }
+.plans-price small { color: var(--muted); font-size: 14px; font-weight: 600; }
+.plans-price-pending { color: var(--violet-dark); font-size: 16px; }
+@media (max-width: 860px) { .shop-grid { grid-template-columns: 1fr; } .shop-summary { position: static; } }
+
+/* Customer dashboard */
+.dash { display: grid; grid-template-columns: 220px 1fr; gap: 28px; padding-top: 40px; padding-bottom: 72px; }
+.dash-nav { position: sticky; top: 100px; align-self: start; padding: 16px; border-radius: 18px; background: linear-gradient(150deg, #f8fafc, #e6ebf2); box-shadow: var(--lift); }
+.dash-user { display: grid; margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.dash-user small { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.dash-nav nav { display: grid; gap: 4px; }
+.dash-nav a { padding: 10px 12px; border-radius: 10px; font-size: 15px; font-weight: 700; color: #45475a; transition: background .15s ease; }
+.dash-nav a:hover { background: #eff6ff; }
+.dash-nav a[aria-current="page"] { background: #dbeafe; color: var(--violet-dark); }
+.dash-head h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 750; letter-spacing: -.04em; }
+.dash-head p { margin: 4px 0 22px; color: var(--muted); font-size: 15px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.stat-card { display: grid; gap: 4px; padding: 18px; transition: transform .2s ease; }
+a.stat-card:hover { transform: translateY(-3px); }
+.stat-card span { color: var(--muted); font-size: 14px; font-weight: 700; }
+.stat-card strong { font-size: 28px; letter-spacing: -.03em; }
+.stat-card small { color: var(--muted); font-size: 14px; }
+.data-table-wrap { overflow-x: auto; border-radius: 16px; box-shadow: var(--lift); background: #f8fafc; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+.data-table th { color: var(--muted); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+@media (max-width: 860px) { .dash { grid-template-columns: 1fr; } .dash-nav { position: static; } .dash-nav nav { grid-auto-flow: column; overflow-x: auto; } .dash-nav a { white-space: nowrap; } }
+
+/* Scroll reveal (progressive enhancement; JS adds .reveal-ready to <html>) */
+.reveal-ready [data-reveal] { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+.reveal-ready [data-reveal].is-visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    .reveal-ready [data-reveal] { opacity: 1; transform: none; }
+}

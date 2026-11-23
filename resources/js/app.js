@@ -1,50 +1,111 @@
 import './bootstrap';
 
+// Mobile drawer. The drawer is a sibling of <header> (see layouts/app) so the header's backdrop-filter
+// cannot become its containing block. One listener set per page; state lives in aria-expanded.
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const menu = document.querySelector('[data-menu]');
+const menuBackdrop = document.querySelector('[data-menu-backdrop]');
+const isDrawerOpen = () => menuToggle?.getAttribute('aria-expanded') === 'true';
+const focusableIn = (root) => Array.from(root.querySelectorAll('a[href], button:not([disabled]), summary, input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+    .filter((el) => el.getClientRects().length > 0);
+
+const setDrawer = (open, { restoreFocus = false } = {}) => {
+    if (!menuToggle || !menu) return;
+    menuToggle.setAttribute('aria-expanded', String(open));
+    menuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    menu.hidden = !open;
+    if (menuBackdrop) menuBackdrop.hidden = !open;
+    menu.classList.toggle('is-open', open);
+    document.body.classList.toggle('dj-drawer-open', open);
+    if (open) {
+        // Keep the drawer exactly below the real header height (the header can be taller than the token).
+        const header = document.querySelector('[data-header]');
+        if (header) document.documentElement.style.setProperty('--dj-drawer-top', `${Math.round(header.getBoundingClientRect().bottom)}px`);
+        focusableIn(menu)[0]?.focus({ preventScroll: true });
+    } else if (restoreFocus) {
+        menuToggle.focus({ preventScroll: true });
+    }
+};
 
 if (menuToggle && menu) {
-    menuToggle.addEventListener('click', () => {
-        const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-
-        menuToggle.setAttribute('aria-expanded', String(!isOpen));
-        menu.classList.toggle('is-open', !isOpen);
+    menuToggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        setDrawer(!isDrawerOpen());
     });
-
-    menu.querySelectorAll('a').forEach((link) => {
-        link.addEventListener('click', () => {
-            menuToggle.setAttribute('aria-expanded', 'false');
-            menu.classList.remove('is-open');
-        });
+    menu.addEventListener('click', (event) => {
+        if (event.target instanceof Element && event.target.closest('a[href]')) setDrawer(false);
     });
-}
-
-const hermesDropdown = document.querySelector('[data-hermes-dropdown]');
-const hermesDropdownToggle = hermesDropdown?.querySelector('[data-hermes-dropdown-toggle]');
-
-if (hermesDropdown && hermesDropdownToggle) {
-    hermesDropdownToggle.addEventListener('click', () => {
-        const isOpen = hermesDropdownToggle.getAttribute('aria-expanded') === 'true';
-
-        hermesDropdownToggle.setAttribute('aria-expanded', String(!isOpen));
-        hermesDropdown.classList.toggle('is-open', !isOpen);
-    });
-
+    menuBackdrop?.addEventListener('click', () => setDrawer(false, { restoreFocus: true }));
     document.addEventListener('click', (event) => {
-        if (event.target instanceof Node && !hermesDropdown.contains(event.target)) {
-            hermesDropdownToggle.setAttribute('aria-expanded', 'false');
-            hermesDropdown.classList.remove('is-open');
+        if (!isDrawerOpen() || !(event.target instanceof Node)) return;
+        if (!menu.contains(event.target) && !menuToggle.contains(event.target)) setDrawer(false);
+    });
+    document.addEventListener('keydown', (event) => {
+        if (!isDrawerOpen()) return;
+        if (event.key === 'Escape') {
+            setDrawer(false, { restoreFocus: true });
+        } else if (event.key === 'Tab') {
+            // Focus trap: cycle between the toggle (close button) and the drawer's controls.
+            const items = [menuToggle, ...focusableIn(menu)];
+            const first = items[0];
+            const last = items[items.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+            else if (!items.includes(document.activeElement)) { event.preventDefault(); first.focus(); }
         }
+    });
+    window.matchMedia('(min-width: 1080px)').addEventListener('change', (e) => { if (e.matches) setDrawer(false); });
+    // Back/forward cache can restore a page with the drawer open: always start closed.
+    window.addEventListener('pageshow', () => setDrawer(false));
+}
+
+// Products mega menu (attribute names kept for backwards compatibility with existing markup/tests).
+const dropdowns = Array.from(document.querySelectorAll('[data-hermes-dropdown]'));
+const hoverCapable = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+const setDropdown = (dropdown, open) => {
+    dropdown.querySelector('[data-hermes-dropdown-toggle]')?.setAttribute('aria-expanded', String(open));
+    dropdown.classList.toggle('is-open', open);
+};
+
+dropdowns.forEach((dropdown) => {
+    const toggle = dropdown.querySelector('[data-hermes-dropdown-toggle]');
+    let closeTimer;
+
+    toggle?.addEventListener('click', (event) => {
+        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+        // A mouse click on a hover-opened menu keeps it open; keyboard activation (detail 0) toggles.
+        const next = hoverCapable.matches && event.detail > 0 ? true : !isOpen;
+        dropdowns.forEach((d) => setDropdown(d, false));
+        setDropdown(dropdown, next);
     });
 
-    hermesDropdown.addEventListener('keydown', (event) => {
+    dropdown.addEventListener('mouseenter', () => {
+        if (!hoverCapable.matches) return;
+        clearTimeout(closeTimer);
+        setDropdown(dropdown, true);
+    });
+    dropdown.addEventListener('mouseleave', () => {
+        if (!hoverCapable.matches) return;
+        closeTimer = setTimeout(() => setDropdown(dropdown, false), 200);
+    });
+
+    dropdown.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            hermesDropdownToggle.setAttribute('aria-expanded', 'false');
-            hermesDropdown.classList.remove('is-open');
-            hermesDropdownToggle.focus();
+            setDropdown(dropdown, false);
+            toggle?.focus();
         }
     });
-}
+    dropdown.addEventListener('focusout', (event) => {
+        if (event.relatedTarget instanceof Node && !dropdown.contains(event.relatedTarget)) setDropdown(dropdown, false);
+    });
+});
+
+document.addEventListener('click', (event) => {
+    dropdowns.forEach((dropdown) => {
+        if (event.target instanceof Node && !dropdown.contains(event.target)) setDropdown(dropdown, false);
+    });
+});
 
 const billingButtons = document.querySelectorAll('[data-billing-toggle]');
 
@@ -86,3 +147,275 @@ billingButtons.forEach((button) => {
         });
     });
 });
+
+// Phase 1 UX: keep the cart form's billing interval in sync with the pricing toggle.
+document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const interval = button.dataset.billingToggle === 'annual' ? 'yearly' : 'monthly';
+        document.querySelectorAll('[data-billing-input]').forEach((input) => {
+            input.value = interval;
+        });
+    });
+});
+
+// Loading state: disable double submits and show a spinner on form buttons.
+document.querySelectorAll('form[data-loading-form]').forEach((form) => {
+    form.addEventListener('submit', () => {
+        form.querySelectorAll('button[type="submit"]').forEach((btn) => {
+            btn.classList.add('is-loading');
+            btn.setAttribute('aria-busy', 'true');
+        });
+    });
+});
+
+// Scroll reveal (respects reduced motion; content stays visible without JS).
+if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const items = document.querySelectorAll('[data-reveal]');
+    if (items.length) {
+        document.documentElement.classList.add('reveal-ready');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        items.forEach((el) => observer.observe(el));
+    }
+}
+
+// Customer dashboard: collapsible section menu on small screens.
+const dashToggle = document.querySelector('[data-dash-toggle]');
+const dashSections = document.querySelector('[data-dash-sections]');
+if (dashToggle && dashSections) {
+    dashToggle.addEventListener('click', () => {
+        const open = !dashSections.classList.contains('is-open');
+        dashSections.classList.toggle('is-open', open);
+        dashToggle.setAttribute('aria-expanded', String(open));
+    });
+    dashSections.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            dashSections.classList.remove('is-open');
+            dashToggle.setAttribute('aria-expanded', 'false');
+            dashToggle.focus();
+        }
+    });
+}
+
+// Admin: off-canvas sidebar below 961px (overlay, Escape, outside click, focus management) and persisted theme.
+const adminMenuButton = document.querySelector('[data-admin-menu]');
+const adminSidebar = document.getElementById('admin-sidebar');
+const adminOverlay = document.querySelector('[data-admin-overlay]');
+if (adminMenuButton && adminSidebar) {
+    const setAdminNav = (open, restoreFocus = false) => {
+        adminSidebar.classList.toggle('is-open', open);
+        adminMenuButton.setAttribute('aria-expanded', String(open));
+        adminMenuButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+        if (adminOverlay) adminOverlay.hidden = !open;
+        document.body.classList.toggle('admin-nav-open', open);
+        if (open) {
+            (adminSidebar.querySelector('[aria-current="page"]') || adminSidebar.querySelector('a'))?.focus({ preventScroll: true });
+        } else if (restoreFocus) {
+            adminMenuButton.focus({ preventScroll: true });
+        }
+    };
+    adminMenuButton.addEventListener('click', () => setAdminNav(!adminSidebar.classList.contains('is-open')));
+    adminOverlay?.addEventListener('click', () => setAdminNav(false, true));
+    adminSidebar.querySelector('[data-admin-close]')?.addEventListener('click', () => setAdminNav(false, true));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && adminSidebar.classList.contains('is-open')) setAdminNav(false, true);
+    });
+    window.matchMedia('(min-width: 961px)').addEventListener('change', (e) => { if (e.matches) setAdminNav(false); });
+    window.addEventListener('pageshow', () => setAdminNav(false));
+}
+
+document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('dj-admin-theme', next); } catch (e) { /* storage unavailable */ }
+});
+
+// Responsive tables: copy header text into data-label so CSS can render rows as cards on small screens.
+document.querySelectorAll('.data-table, .admin-table').forEach((table) => {
+    const heads = [...table.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+    if (!heads.length) return;
+    table.querySelectorAll('tbody tr').forEach((row) => {
+        [...row.children].forEach((cell, i) => {
+            if (!cell.hasAttribute('data-label') && heads[i] && row.children.length === heads.length) {
+                cell.setAttribute('data-label', heads[i]);
+            }
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Documentation centre: instant search, collapsed mobile nav, code copy buttons and "On this page" highlighting.
+// Everything is progressive enhancement — the search form, <details> navigation and anchors work without JS.
+// ---------------------------------------------------------------------------------------------------------------
+document.querySelectorAll('[data-doc-search]').forEach((form) => {
+    const input = form.querySelector('input[type=search]');
+    const list = form.querySelector('[role=listbox]');
+    let index = [];
+    try { index = JSON.parse(form.querySelector('[data-doc-index]')?.textContent || '[]'); } catch (e) { index = []; }
+    if (!input || !list || !index.length) return;
+
+    let active = -1;
+    const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); active = -1; };
+    const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const render = () => {
+        const words = input.value.toLowerCase().split(/\s+/).filter((w) => w.length > 1);
+        list.innerHTML = '';
+        active = -1;
+        if (!words.length) { close(); return; }
+        const hits = index
+            .map((a) => {
+                const hay = `${a.t} ${a.e} ${a.c}`.toLowerCase();
+                if (!words.every((w) => hay.includes(w))) return null;
+                return { a, score: words.reduce((s, w) => s + (a.t.toLowerCase().includes(w) ? 10 : 1), 0) };
+            })
+            .filter(Boolean).sort((x, y) => y.score - x.score).slice(0, 7);
+
+        if (!hits.length) {
+            list.innerHTML = '<li class="is-empty">No quick matches — press Enter to search full article text.</li>';
+        } else {
+            hits.forEach(({ a }, i) => {
+                const li = document.createElement('li');
+                li.setAttribute('role', 'option');
+                li.id = `${list.id}-${i}`;
+                li.innerHTML = `<a href="${escapeHtml(a.u)}" tabindex="-1"><small>${escapeHtml(a.c)}</small><strong>${escapeHtml(a.t)}</strong>${a.e ? `<span>${escapeHtml(a.e)}</span>` : ''}</a>`;
+                list.appendChild(li);
+            });
+        }
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+    };
+
+    const move = (step) => {
+        const options = [...list.querySelectorAll('[role=option]')];
+        if (!options.length) return;
+        active = (active + step + options.length) % options.length;
+        options.forEach((o, i) => o.setAttribute('aria-selected', String(i === active)));
+        input.setAttribute('aria-activedescendant', options[active].id);
+        options[active].scrollIntoView({ block: 'nearest' });
+    };
+
+    input.addEventListener('input', render);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden) render(); move(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+        else if (e.key === 'Escape') { close(); }
+        else if (e.key === 'Enter' && active >= 0) {
+            const link = list.querySelectorAll('[role=option] a')[active];
+            if (link) { e.preventDefault(); window.location.href = link.href; }
+        }
+    });
+    document.addEventListener('click', (e) => { if (!form.contains(e.target)) close(); });
+    form.addEventListener('focusout', (e) => { if (!form.contains(e.relatedTarget)) close(); });
+});
+
+// "/" focuses the docs search (unless typing in a field).
+if (document.querySelector('[data-doc-search]')) {
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== '/' || e.target.closest('input, textarea, select, [contenteditable]')) return;
+        e.preventDefault();
+        document.querySelector('[data-doc-search] input[type=search]')?.focus();
+    });
+}
+
+// On article pages, collapse the category navigation on small screens so the article comes first.
+document.querySelectorAll('[data-doc-nav]').forEach((nav) => {
+    if (nav.querySelector('[aria-current=page]:not(.dj-doc-nav__home)') && window.matchMedia('(max-width: 899px)').matches) {
+        nav.open = false;
+    }
+});
+
+// Copy buttons on code blocks.
+document.querySelectorAll('.dj-doc-body pre').forEach((pre) => {
+    if (!navigator.clipboard) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dj-doc-copy';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy code to clipboard');
+    btn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(pre.querySelector('code')?.innerText ?? pre.innerText);
+            btn.textContent = 'Copied';
+        } catch (e) { btn.textContent = 'Press Ctrl+C'; }
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+    });
+    pre.appendChild(btn);
+});
+
+// Highlight the current section in "On this page".
+const docToc = document.querySelector('[data-doc-toc]');
+if (docToc && 'IntersectionObserver' in window) {
+    const links = new Map([...docToc.querySelectorAll('a')].map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
+    const headings = [...links.keys()].map((id) => document.getElementById(id)).filter(Boolean);
+    const setActive = (id) => links.forEach((a, key) => a.classList.toggle('is-active', key === id));
+    const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length) setActive(visible[0].target.id);
+    }, { rootMargin: '-80px 0px -65% 0px' });
+    headings.forEach((h) => observer.observe(h));
+}
+
+// Admin redesign: desktop sidebar collapse (persisted), '/' focuses admin search, bell closes on outside click.
+const adminCollapseBtn = document.querySelector('[data-admin-collapse]');
+try { if (localStorage.getItem('dj-admin-sidebar-collapsed') === '1') document.body.classList.add('admin-nav-collapsed'); } catch (e) {}
+adminCollapseBtn?.addEventListener('click', () => { const collapsed = document.body.classList.toggle('admin-nav-collapsed'); adminCollapseBtn.setAttribute('aria-expanded', String(!collapsed)); try { localStorage.setItem('dj-admin-sidebar-collapsed', collapsed ? '1' : '0'); } catch (e) {} });
+document.addEventListener('keydown', (e) => { if (e.key === '/' && !e.target.closest('input, textarea, select, [contenteditable]')) { const s = document.querySelector('.admin-search input'); if (s) { e.preventDefault(); s.focus(); } } });
+const adminBell = document.querySelector('.admin-bell');
+document.addEventListener('click', (e) => { if (adminBell && adminBell.open && !adminBell.contains(e.target)) adminBell.open = false; });
+
+// Customer service setup timeline: poll the DB-backed progress endpoint until the setup reaches a terminal state.
+// No WebSocket server — plain fetch every 5s, paused implicitly when the tab is hidden (fetch on refocus).
+const setupStages = document.querySelector('[data-setup-stages][data-poll-url]');
+if (setupStages) {
+    const pollUrl = setupStages.dataset.pollUrl;
+    const summaryEl = document.querySelector('[data-setup-summary]');
+    const barEl = document.querySelector('[data-setup-bar]');
+    const barWrap = barEl?.parentElement;
+    let timer = null;
+
+    const applyProgress = (data) => {
+        let done = 0;
+        (data.stages || []).forEach((stage) => {
+            const li = setupStages.querySelector(`[data-stage-key="${stage.key}"]`);
+            if (!li) return;
+            li.dataset.stageState = stage.state;
+            if (stage.state === 'done') done += 1;
+            let detail = li.querySelector('.setup-detail');
+            if (stage.detail) {
+                if (!detail) { detail = document.createElement('span'); detail.className = 'setup-detail'; li.appendChild(detail); }
+                detail.textContent = stage.detail;
+            } else if (detail) {
+                detail.remove();
+            }
+        });
+        if (summaryEl && typeof data.summary === 'string') summaryEl.textContent = data.summary;
+        if (barEl && barWrap && setupStages.children.length) {
+            barEl.style.width = `${Math.round((done / setupStages.children.length) * 100)}%`;
+            barWrap.setAttribute('aria-valuenow', String(done));
+        }
+        if (!data.poll && timer) {
+            clearInterval(timer);
+            timer = null;
+            // Ready: reload once so the full active panel (application link, controls, invoices) renders server-side.
+            if (data.ready) window.location.reload();
+        }
+    };
+
+    const poll = async () => {
+        try {
+            const res = await fetch(pollUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+            if (res.ok) applyProgress(await res.json());
+        } catch (e) { /* transient network error: next tick retries */ }
+    };
+
+    timer = setInterval(poll, 5000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && timer) poll(); });
+}
+

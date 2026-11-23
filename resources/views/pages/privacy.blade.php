@@ -12,7 +12,7 @@
     </section>
 
     <section class="privacy-principles section-shell">
-        <div class="privacy-note"><span class="privacy-note-icon">◉</span><span>OUR SIMPLE RULE</span><h2>Only what helps us<br>help you.</h2><p>We aim to collect the minimum information needed to respond, provide a service, and make the experience better.</p></div>
+        <div class="privacy-note"><span class="privacy-note-icon">◉</span><span>OUR SIMPLE RULE</span><h2>Only what helps us help you.</h2><p>We aim to collect the minimum information needed to respond, provide a service, and make the experience better.</p></div>
         <div class="privacy-list">
             <article><span>01</span><div><h3>What you share</h3><p>If you contact us, we may receive your phone number, message, and any details you choose to share about your needs.</p></div></article>
             <article><span>02</span><div><h3>Why we use it</h3><p>We use information to reply to questions, discuss requested services, provide support, and maintain or improve our website.</p></div></article>
@@ -22,7 +22,7 @@
     </section>
 
     <section class="legal-content privacy-details section-shell">
-        <div class="legal-content-heading"><span class="eyebrow">A little more detail</span><h2>Keep it clear.<br><span>Keep it secure.</span></h2></div>
+        <div class="legal-content-heading"><span class="eyebrow">A little more detail</span><h2>Keep it clear. <span>Keep it secure.</span></h2></div>
         <div class="legal-copy">
             <h3>Cookies and site data</h3>
             <p>Our website may use essential technologies needed for basic operation. If analytics or other optional technologies are introduced, this policy should be updated to explain them and any choices available to visitors.</p>

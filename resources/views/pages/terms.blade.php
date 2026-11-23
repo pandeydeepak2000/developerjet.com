@@ -18,7 +18,7 @@
     </section>
 
     <section class="legal-content section-shell">
-        <div class="legal-content-heading"><span class="eyebrow">The details</span><h2>A few more<br><span>important things.</span></h2></div>
+        <div class="legal-content-heading"><span class="eyebrow">The details</span><h2>A few more <span>important things.</span></h2></div>
         <div class="legal-copy">
             <h3>Accounts and access</h3>
             <p>You are responsible for providing accurate information and keeping your account credentials secure. Please let us know promptly if you believe access to your account has been compromised.</p>

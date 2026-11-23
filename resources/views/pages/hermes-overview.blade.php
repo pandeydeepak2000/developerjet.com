@@ -4,69 +4,70 @@
 @section('meta_description', 'Choose Hermes CLI installed on a VPS or Hermes Workspace installed with Docker. Compare three plans for each.')
 
 @section('content')
-    <section class="product-page-hero section-shell hermes-page-hero">
-        <div class="product-page-copy">
-            <span class="eyebrow"><span class="eyebrow-spark">⌘</span> TWO WAYS TO RUN HERMES</span>
-            <h1>Choose your<br><span>Hermes setup.</span></h1>
-            <p>Get Hermes CLI installed on a VPS and connect with SSH or PuTTY, or choose Hermes Workspace, installed and configured with Docker on a VPS. Three plans are available for each.</p>
-            <div class="hero-actions">
-                <a class="button-primary" href="{{ route('hermes.cli') }}">Explore Hermes CLI <span aria-hidden="true">↗</span></a>
-                <a class="button-secondary" href="{{ route('hermes.workspace') }}">Explore Workspace</a>
-            </div>
-            <div class="product-hero-proof"><span>3 CLI PLANS</span><i></i><span>3 WORKSPACE PLANS</span><i></i><span>SETUP INCLUDED</span></div>
-        </div>
-        <div class="product-hero-art hermes-hero-art" aria-hidden="true">
-            <div class="product-art-orbit"></div><div class="product-art-glow"></div>
-            <div class="product-terminal">
-                <div class="terminal-top"><span class="terminal-dots"><i></i><i></i><i></i></span><span>hermes · choose setup</span><span>⌑</span></div>
-                <div class="terminal-body">
-                    <p><span class="terminal-prompt">➜</span> hermes plan</p>
-                    <p class="terminal-muted">Choose how to connect...</p>
-                    <p><span class="terminal-check">✓</span> CLI · SSH or PuTTY</p>
-                    <p><span class="terminal-check">✓</span> Workspace · Docker</p>
-                    <div class="terminal-ready"><span></span> Setup handled for you</div>
+    <section class="dj-phero" aria-labelledby="hermes-title">
+        <div class="dj-container dj-phero__grid">
+            <div class="dj-phero__copy">
+                <p class="dj-eyebrow"><span class="dj-eyebrow__icon"><x-icon name="spark" :size="16" /></span>AI HOSTING · HERMES</p>
+                <h1 id="hermes-title">Two ways to run the Hermes agent on your own server.</h1>
+                <p class="dj-lede">Get Hermes CLI installed on a VPS and connect with SSH or PuTTY, or choose Hermes Workspace, installed and configured with Docker on a VPS and used from your browser. Three plans are available for each.</p>
+                <div class="dj-actions">
+                    <a class="dj-btn dj-btn--primary dj-btn--lg" href="{{ route('hermes.cli') }}">Explore Hermes CLI <x-icon name="arrow-right" :size="18" /></a>
+                    <a class="dj-btn dj-btn--secondary dj-btn--lg" href="{{ route('hermes.workspace') }}">Explore Workspace</a>
+                </div>
+                <div class="dj-badges">
+                    <span class="dj-badge dj-badge--blue"><x-icon name="shield" :size="15" /> Managed hosting</span>
+                    <span class="dj-badge"><x-icon name="server" :size="15" /> A VPS dedicated to you</span>
                 </div>
             </div>
-            <div class="product-art-tag hermes-art-tag"><span>YOUR HERMES SETUP</span><strong>READY TO RUN ✳</strong></div>
+            <figure class="dj-phero__art">
+                @include('illustrations.hermes-workspace', ['alt' => 'Hermes Workspace in a browser, running with Docker on a dedicated VPS.'])
+            </figure>
         </div>
     </section>
 
-    <section class="home-products section-shell">
-        <div class="section-heading">
-            <div><span class="eyebrow">Pick your Hermes product</span><h2>CLI or Workspace.<br><span>Both set up for you.</span></h2></div>
-            <p class="home-products-intro">Choose the terminal-based CLI setup or a Docker-based Workspace deployment. Each has three VPS configurations.</p>
-        </div>
-        <div class="home-product-grid">
-            <a class="home-product-card home-product-hermes" href="{{ route('hermes.cli') }}">
-                <div class="home-product-top"><span class="product-icon product-icon-hermes">⌘</span><span class="product-group-label">3 CLI PLANS</span></div>
-                <span class="home-product-kicker">CONNECT WITH SSH OR PUTTY</span>
-                <h3>Hermes CLI</h3>
-                <p>We install and configure Hermes CLI on your VPS. Connect from your computer and use it in the server terminal.</p>
-                <span class="home-product-cta">Compare CLI plans <span aria-hidden="true">↗</span></span>
-                <span class="home-product-art hermes-product-art" aria-hidden="true">⌘</span>
-            </a>
-            <a class="home-product-card home-product-n8n" href="{{ route('hermes.workspace') }}">
-                <div class="home-product-top"><span class="product-icon product-icon-hermes">▦</span><span class="product-group-label">3 WORKSPACE PLANS</span></div>
-                <span class="home-product-kicker">DOCKER SETUP ON YOUR VPS</span>
-                <h3>Hermes Workspace</h3>
-                <p>We install Hermes with Docker, configure it on a VPS, and hand over your Workspace setup.</p>
-                <span class="home-product-cta">Compare Workspace plans <span aria-hidden="true">↗</span></span>
-                <span class="home-product-art n8n-product-art" aria-hidden="true">▦</span>
-            </a>
+    <section class="dj-section dj-section--surface" aria-labelledby="choose-title">
+        <div class="dj-container">
+            <div class="dj-section-head dj-section-head--center">
+                <p class="dj-eyebrow">Pick your Hermes product</p>
+                <h2 id="choose-title">CLI or Workspace — both set up for you</h2>
+                <p class="dj-section-head__text">Choose the terminal-based CLI setup or the Docker-based browser Workspace. Each has three VPS configurations.</p>
+            </div>
+            <div class="dj-grid-2">
+                <a class="dj-linkcard" href="{{ route('hermes.cli') }}">
+                    <span class="dj-card__icon"><x-icon name="terminal" :size="22" /></span>
+                    <span class="dj-cat__tag">3 CLI PLANS · SSH OR PUTTY</span>
+                    <h3>Hermes CLI</h3>
+                    <p>We install and configure Hermes CLI on your VPS. Connect from your computer and use it in the server terminal.</p>
+                    <ul class="dj-checks"><li><x-icon name="check" :size="18" /> No domain needed</li><li><x-icon name="check" :size="18" /> Best for terminal users</li></ul>
+                    <span class="dj-cat__cta">Compare CLI plans <x-icon name="arrow-right" :size="16" /></span>
+                </a>
+                <a class="dj-linkcard" href="{{ route('hermes.workspace') }}">
+                    <span class="dj-card__icon"><x-icon name="browser" :size="22" /></span>
+                    <span class="dj-cat__tag">3 WORKSPACE PLANS · DOCKER</span>
+                    <h3>Hermes Workspace</h3>
+                    <p>We install Hermes with Docker, configure it on a VPS, and hand over your Workspace for use in the browser.</p>
+                    <ul class="dj-checks"><li><x-icon name="check" :size="18" /> Default address or your verified domain</li><li><x-icon name="check" :size="18" /> Best for a graphical workspace</li></ul>
+                    <span class="dj-cat__cta">Compare Workspace plans <x-icon name="arrow-right" :size="16" /></span>
+                </a>
+            </div>
         </div>
     </section>
 
-    <section class="faq-section section-shell">
-        <div class="faq-heading">
-            <span class="eyebrow">Not sure which one?</span>
-            <h2>Find the setup<br><span>that fits.</span></h2>
-            <p>Both options include installation and configuration on a VPS.</p>
-            <a class="button-secondary" href="{{ route('contact') }}">Talk to Sales</a>
-        </div>
-        <div class="faq-list">
-            <details class="faq-item" open><summary>What is included with Hermes CLI?</summary><p>We install and configure Hermes CLI on a VPS. You connect using SSH or PuTTY and use Hermes from the server terminal.</p></details>
-            <details class="faq-item"><summary>What is Hermes Workspace?</summary><p>We install Hermes using Docker, configure it on a VPS, and provide you the Workspace setup.</p></details>
-            <details class="faq-item"><summary>How many plans are available?</summary><p>There are three resource tiers for Hermes CLI and three for Hermes Workspace, with matching proposed VPS configurations and indicative INR pricing.</p></details>
+    <section class="dj-section" aria-labelledby="hermes-faq-title">
+        <div class="dj-container dj-faq-layout">
+            <div class="dj-faq-layout__aside">
+                <p class="dj-eyebrow">Not sure which one?</p>
+                <h2 id="hermes-faq-title">Find the setup that fits</h2>
+                <p class="dj-section-head__text">Both options include installation and configuration on a VPS dedicated to you.</p>
+                <div class="dj-actions">
+                    <a class="dj-btn dj-btn--secondary" href="{{ route('compare.show', 'hermes-cli-vs-hermes-workspace') }}">Read the comparison</a>
+                </div>
+            </div>
+            <div class="dj-faq">
+                <details class="dj-faq__item" open><summary>What is included with Hermes CLI? <x-icon name="chevron-down" :size="20" /></summary><p>We install and configure Hermes CLI on a VPS. You connect using SSH or PuTTY and use Hermes from the server terminal.</p></details>
+                <details class="dj-faq__item"><summary>What is Hermes Workspace? <x-icon name="chevron-down" :size="20" /></summary><p>We install Hermes using Docker, configure it on a VPS, and provide you the Workspace setup to use from a browser.</p></details>
+                <details class="dj-faq__item"><summary>How many plans are available? <x-icon name="chevron-down" :size="20" /></summary><p>There are three resource tiers for Hermes CLI and three for Hermes Workspace, with matching VPS configurations and indicative INR pricing.</p></details>
+            </div>
         </div>
     </section>
 @endsection
