@@ -47,6 +47,8 @@ class DocsSeeder extends Seeder
         // v0.3: customer docs before internal supplier wording was removed.
         'df933ed78c6d8ed12ea42a6fc2c995c398c1dfd1', '6c35208305897825ea9e619afd8ac6757e265e4d', '1d0c3e00c10b90aefee5cc84ceb4888534b7e2a2',
         '591d963717b2e23e0af9c6a95017df9593ac50b2',
+        // v0.6: ssh-and-security before the everyday-commands table and the UFW walkthrough were added.
+        '07ab39eaa81800b113819b3b2b355979dcb1b42d',
     ];
 
     /** @var array{created: int, updated: int, kept: int} */
