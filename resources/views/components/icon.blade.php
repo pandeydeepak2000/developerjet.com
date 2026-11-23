@@ -24,6 +24,7 @@
     @case('arrow-right')<path d="M5 12h14M13 6l6 6-6 6"/>@break
     @case('chevron-down')<path d="m6 9 6 6 6-6"/>@break
     @case('menu')<path d="M4 7h16M4 12h16M4 17h16"/>@break
+    @case('eye')<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>@break
     @case('lock')<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>@break
     @case('card')<rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/>@break
     @case('activity')<path d="M3 12h4l2.5-6 5 12 2.5-6h4"/>@break

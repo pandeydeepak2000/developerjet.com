@@ -487,6 +487,18 @@ body.dj-drawer-open { overflow: hidden; }
 .dj-page-hero--center .dj-page-hero__inner { margin-inline: auto; text-align: center; }
 .dj-page-hero--center .dj-actions { justify-content: center; }
 .dj-page-hero .dj-actions { margin-top: 28px; }
+
+/* Password visibility toggle on auth pages */
+.auth-fields .password-wrapper { position: relative; }
+.auth-fields .password-wrapper input { padding-right: 44px; }
+.auth-fields .password-toggle {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; padding: 0; border: 0; background: transparent;
+    color: var(--dj-muted); cursor: pointer;
+}
+.auth-fields .password-toggle:hover { color: var(--dj-blue-700); }
+.auth-fields .password-toggle .dj-icon { stroke-width: 1.6; }
 .dj-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .dj-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .dj-linkcard { display: flex; flex-direction: column; padding: 28px; border: 1px solid var(--dj-line); border-radius: var(--dj-radius-lg); background: #fff; color: inherit; text-decoration: none; transition: border-color .15s ease, box-shadow .15s ease; }

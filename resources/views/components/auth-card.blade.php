@@ -23,11 +23,21 @@
 
             @include('partials.phone-field', ['idPrefix' => 'register', 'value' => null])
             <label for="register-password">Create a password</label>
-            <input id="register-password" type="password" name="password" autocomplete="new-password" required minlength="8" placeholder="8+ characters, letters and numbers" @error('password') aria-invalid="true" aria-describedby="err-password" @enderror>
+            <div class="password-wrapper">
+                <input id="register-password" type="password" name="password" autocomplete="new-password" required minlength="8" placeholder="8+ characters, letters and numbers" @error('password') aria-invalid="true" aria-describedby="err-password" @enderror>
+                <button type="button" class="password-toggle" data-password-toggle="register-password" aria-label="Show password">
+                    <x-icon name="eye" size="18" />
+                </button>
+            </div>
             @error('password')<p class="field-error" id="err-password">{{ $message }}</p>@enderror
 
             <label for="register-password-confirm">Confirm password</label>
-            <input id="register-password-confirm" type="password" name="password_confirmation" autocomplete="new-password" required minlength="8">
+            <div class="password-wrapper">
+                <input id="register-password-confirm" type="password" name="password_confirmation" autocomplete="new-password" required minlength="8">
+                <button type="button" class="password-toggle" data-password-toggle="register-password-confirm" aria-label="Show password">
+                    <x-icon name="eye" size="18" />
+                </button>
+            </div>
 
             <button class="auth-submit" type="submit"><span class="btn-label">Create account</span><span class="btn-spinner" aria-hidden="true"></span></button>
         </form>
@@ -56,10 +66,20 @@
             <input id="rp-email" type="email" name="email" value="{{ old('email', $email) }}" autocomplete="email" required>
             @error('email')<p class="field-error">{{ $message }}</p>@enderror
             <label for="rp-password">New password</label>
-            <input id="rp-password" type="password" name="password" autocomplete="new-password" required minlength="8">
+            <div class="password-wrapper">
+                <input id="rp-password" type="password" name="password" autocomplete="new-password" required minlength="8">
+                <button type="button" class="password-toggle" data-password-toggle="rp-password" aria-label="Show password">
+                    <x-icon name="eye" size="18" />
+                </button>
+            </div>
             @error('password')<p class="field-error">{{ $message }}</p>@enderror
             <label for="rp-password-confirm">Confirm new password</label>
-            <input id="rp-password-confirm" type="password" name="password_confirmation" autocomplete="new-password" required minlength="8">
+            <div class="password-wrapper">
+                <input id="rp-password-confirm" type="password" name="password_confirmation" autocomplete="new-password" required minlength="8">
+                <button type="button" class="password-toggle" data-password-toggle="rp-password-confirm" aria-label="Show password">
+                    <x-icon name="eye" size="18" />
+                </button>
+            </div>
             <button class="auth-submit" type="submit"><span class="btn-label">Reset password</span><span class="btn-spinner" aria-hidden="true"></span></button>
         </form>
     @elseif ($mode === 'verify')
@@ -91,7 +111,12 @@
             <input id="login-email" type="email" name="email" value="{{ old('email') }}" autocomplete="email" required @error('email') aria-invalid="true" aria-describedby="err-email" @enderror>
             @error('email')<p class="field-error" id="err-email">{{ $message }}</p>@enderror
             <div class="auth-password-label"><label for="login-password">Password</label><a href="{{ route('password.request') }}">Forgot password?</a></div>
-            <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+            <div class="password-wrapper">
+                <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+                <button type="button" class="password-toggle" data-password-toggle="login-password" aria-label="Show password">
+                    <x-icon name="eye" size="18" />
+                </button>
+            </div>
             <label class="auth-remember"><input type="checkbox" name="remember" value="1"> Keep me signed in</label>
             <button class="auth-submit" type="submit"><span class="btn-label">Log in</span><span class="btn-spinner" aria-hidden="true"></span></button>
         </form>
