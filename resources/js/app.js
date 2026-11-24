@@ -214,6 +214,17 @@ if (dashToggle && dashSections) {
     });
 }
 
+// Checkout: Razorpay shows the total with GST, wallet shows the GST-free total.
+const payOptions = document.querySelector('[data-pay-options]');
+if (payOptions) {
+    const syncReview = () => {
+        const route = payOptions.querySelector('input[name=payment_method]:checked')?.dataset.payRoute || 'online';
+        document.querySelectorAll('[data-review]').forEach((dl) => { dl.hidden = dl.dataset.review !== route; });
+    };
+    payOptions.addEventListener('change', syncReview);
+    syncReview();
+}
+
 // Customer app shell: off-canvas sidebar on small screens (menu button, overlay, close button, Escape).
 const appMenu = document.querySelector('[data-app-menu]');
 const appSide = document.getElementById('app-side');

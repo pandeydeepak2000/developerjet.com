@@ -48,7 +48,7 @@ class SettingsController extends Controller
                 ['sales.notify_email_verified', 'An administrator has confirmed this mailbox receives mail', 'checkbox', 'nullable|boolean', null, false],
                 ['automation.customer_ack', 'Email customers an acknowledgement with their request reference', 'checkbox', 'nullable|boolean', null, true],
             ]],
-            'tax' => ['title' => 'Tax (pending professional review)', 'note' => 'Rates are percentages, e.g. 18. Leave blank when not yet decided — customers will see “tax not configured” rather than an assumed zero.', 'fields' => [
+            'tax' => ['title' => 'Tax / GST', 'note' => 'Rates are percentages, e.g. 18. The standard rate defaults to 18% GST and applies to orders paid online (Razorpay). Orders paid fully from the customer wallet carry no GST. Enter a value here to override the default.', 'fields' => [
                 ['tax.rate.standard', 'Standard rate (%)', 'text', 'nullable|numeric|between:0,100'],
                 ['tax.rate.reduced', 'Reduced rate (%)', 'text', 'nullable|numeric|between:0,100'],
                 ['tax.rate.wallet_topup', 'Wallet deposit rate (%)', 'text', 'nullable|numeric|between:0,100'],

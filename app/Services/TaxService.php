@@ -15,7 +15,7 @@ class TaxService
 
     public function configured(string $class): bool
     {
-        return $class === 'exempt' || Setting::has('tax.rate.'.$class);
+        return $class === 'exempt' || Setting::has('tax.rate.'.$class) || $this->ownerDefault($class) !== null;
     }
 
     /** Rate in basis points (18% = 1800). */
@@ -25,7 +25,24 @@ class TaxService
             return 0;
         }
 
-        return (int) round(((float) Setting::get('tax.rate.'.$class, 0)) * 100);
+        return (int) round(((float) Setting::get('tax.rate.'.$class, $this->ownerDefault($class) ?? 0)) * 100);
+    }
+
+    /** Percentage shown to customers for the standard class (e.g. 18). */
+    public function standardPercent(): float
+    {
+        return $this->basisPoints('standard') / 100;
+    }
+
+    /**
+     * Owner decision (2026-11-24): 18% GST on the standard class for online payments. Overridable in
+     * Admin → Settings → Tax; other classes have no default and stay "not configured" until set.
+     */
+    private function ownerDefault(string $class): ?float
+    {
+        $percent = config('payments.gst_percent');
+
+        return $class === 'standard' && $percent !== null && $percent !== '' ? (float) $percent : null;
     }
 
     public function compute(int $netMinor, string $class): int

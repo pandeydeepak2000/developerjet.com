@@ -40,7 +40,7 @@ class OrderService
      *
      * @return array{lines: array<int, array<string, mixed>>, subtotal: int, discount: int, tax: int, total: int, tax_configured: bool}
      */
-    public function computeLines(array $summary): array
+    public function computeLines(array $summary, bool $taxExempt = false): array
     {
         $lines = [];
         $sub = $disc = $tax = $total = 0;
@@ -54,7 +54,8 @@ class OrderService
             $discountPct = (int) (array_key_exists('discount_percent', $line) ? $line['discount_percent'] : $plan->discount_percent);
             $discount = intdiv(($unit + $setup) * $discountPct, 100);
             $net = $unit + $setup - $discount;
-            $lineTax = $this->taxes->compute($net, $line['tax_class'] ?? $plan->tax_class);
+            // Owner rule: GST applies to online (Razorpay) payments; an order paid fully from the wallet carries no GST.
+            $lineTax = $taxExempt ? 0 : $this->taxes->compute($net, $line['tax_class'] ?? $plan->tax_class);
 
             $addonRows = [];
             $sub += $unit + $setup;
@@ -63,7 +64,7 @@ class OrderService
             $total += $net + $lineTax;
 
             foreach ($line['addons'] as $addon) {
-                $addonTax = $this->taxes->compute((int) $addon->price_minor, 'standard');
+                $addonTax = $taxExempt ? 0 : $this->taxes->compute((int) $addon->price_minor, 'standard');
                 $addonRows[] = [
                     'plan_id' => null, 'name' => $addon->name, 'billing_interval' => $line['interval'],
                     'unit_minor' => $addon->price_minor, 'tax_minor' => $addonTax,
@@ -89,7 +90,7 @@ class OrderService
             ];
         }
 
-        return ['lines' => $lines, 'subtotal' => $sub, 'discount' => $disc, 'tax' => $tax, 'total' => $total, 'tax_configured' => $this->taxes->configured('standard')];
+        return ['lines' => $lines, 'subtotal' => $sub, 'discount' => $disc, 'tax' => $tax, 'total' => $total, 'tax_configured' => $taxExempt || $this->taxes->configured('standard'), 'tax_exempt' => $taxExempt];
     }
 
     /**
@@ -112,7 +113,12 @@ class OrderService
         }
 
         try {
-            $order = DB::transaction(function () use ($user, $summary, $billing, $key, $renewalOf, $setup) {
+            // Paying the whole order from the wallet means no GST (owner rule); only when the wallet covers the
+            // GST-free total. A partial wallet payment is completed online, so that order is taxed as an online one.
+            $walletOnly = $useWallet && $renewalOf === null
+                && $this->wallets->walletFor($user)->balance_minor >= $this->computeLines($summary, true)['total'];
+
+            $order = DB::transaction(function () use ($user, $summary, $billing, $key, $renewalOf, $setup, $walletOnly) {
                 $order = Order::create([
                     'user_id' => $user->id,
                     'number' => 'TMP-'.Str::random(12),
@@ -121,7 +127,7 @@ class OrderService
                     'customer_snapshot' => array_filter(['name' => $user->name, 'email' => $user->email, 'phone' => $user->phone]) + $billing,
                 ]);
 
-                $priced = $this->computeLines($summary);
+                $priced = $this->computeLines($summary, $walletOnly);
 
                 foreach ($priced['lines'] as $row) {
                     // Setup choices from checkout (app address, AI provider; key already encrypted) travel with the item.
@@ -136,7 +142,9 @@ class OrderService
                     'number' => 'DJ'.now()->format('ym').str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                     'subtotal_minor' => $priced['subtotal'], 'discount_minor' => $priced['discount'],
                     'tax_minor' => $priced['tax'], 'total_minor' => $priced['total'],
-                    'snapshot' => ['tax_configured' => $priced['tax_configured'], 'placed_at' => now()->toIso8601String()] + ($renewalOf ? ['renewal_subscription_id' => $renewalOf] : []),
+                    'snapshot' => ['tax_configured' => $priced['tax_configured'], 'placed_at' => now()->toIso8601String()]
+                        + ($walletOnly ? ['payment_route' => 'wallet', 'tax_note' => 'Paid from wallet: no GST charged.'] : ['payment_route' => 'online'])
+                        + ($renewalOf ? ['renewal_subscription_id' => $renewalOf] : []),
                 ]);
 
                 $this->event($order, 'status', null, S::PENDING_PAYMENT, 'Order placed.', $user->id);

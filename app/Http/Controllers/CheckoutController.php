@@ -8,6 +8,7 @@ use App\Services\CartService;
 use App\Services\OrderException;
 use App\Services\OrderService;
 use App\Services\Payments\GatewayManager;
+use App\Services\TaxService;
 use App\Services\WalletService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,11 +33,18 @@ class CheckoutController extends Controller
         // One token per checkout page load: a double-click or resubmit maps to the same order.
         $request->session()->put('checkout_token', Str::uuid()->toString());
 
+        $wallet = $wallets->walletFor($request->user());
+        $walletPricing = $summary['unavailable'] === 0 ? $orders->computeLines($summary, true) : null;
+
         return view('pages.checkout', [
             'summary' => $summary,
             'pricing' => $summary['unavailable'] === 0 ? $orders->computeLines($summary) : null,
+            // Wallet route: no GST, offered only when the balance covers the whole GST-free total.
+            'walletPricing' => $walletPricing,
+            'walletCovers' => $walletPricing !== null && $wallet->balance_minor >= $walletPricing['total'],
+            'gstPercent' => app(TaxService::class)->standardPercent(),
             'gateways' => $gateways->available(),
-            'wallet' => $wallets->walletFor($request->user()),
+            'wallet' => $wallet,
             'approved' => collect($summary['lines'])->every(fn ($l) => $l['plan']->isApproved()),
         ]);
     }
@@ -48,7 +56,7 @@ class CheckoutController extends Controller
             'billing_address' => ['nullable', 'string', 'max:500'],
             'gstin' => ['nullable', 'string', 'regex:/^[0-9A-Z]{15}$/'],
             'use_wallet' => ['nullable', 'boolean'],
-            'payment_method' => ['nullable', 'string', 'in:razorpay'],
+            'payment_method' => ['nullable', 'string', 'in:razorpay,wallet'],
             'accept_terms' => ['accepted'],
         ], ['accept_terms.accepted' => 'Please accept the Terms and Refund Policy to continue.']);
 
@@ -64,7 +72,7 @@ class CheckoutController extends Controller
                 'billing_name' => $data['billing_name'] ?? null,
                 'billing_address' => $data['billing_address'] ?? null,
                 'gstin' => $data['gstin'] ?? null,
-            ], $token, $request->boolean('use_wallet'), null, $setup);
+            ], $token, $request->boolean('use_wallet') || ($data['payment_method'] ?? null) === 'wallet', null, $setup);
         } catch (OrderException $e) {
             return back()->withInput($request->except('setup'))->with('error', $e->getMessage());
         }
@@ -74,7 +82,7 @@ class CheckoutController extends Controller
 
         return redirect()->route('dashboard.orders.show', $order)
             ->with('success', 'Order placed. Complete payment to start provisioning.')
-            ->with('preferred_gateway', $data['payment_method'] ?? null);
+            ->with('preferred_gateway', ($data['payment_method'] ?? null) === 'razorpay' ? 'razorpay' : null);
     }
 
     /** Which setup questions a plan asks at checkout: ['domain' => bool, 'ai' => bool]. */

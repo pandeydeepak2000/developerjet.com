@@ -30,6 +30,8 @@
         <env name="SESSION_DRIVER" value="array"/>
         <!-- Mandatory Super Admin MFA is ON by default; StaffPortalTest switches it on explicitly. -->
         <env name="STAFF_ENFORCE_PRIVILEGED_MFA" value="false"/>
+        <!-- Existing tests assume "tax not configured"; GST behaviour is covered explicitly in CheckoutGstTest. -->
+        <env name="GST_PERCENT" value=""/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

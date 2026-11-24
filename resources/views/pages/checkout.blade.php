@@ -86,30 +86,52 @@
 
                 <div class="panel">
                     <h2>Payment method</h2>
-                    @if ($gateways)
-                        <div class="choice-list">
-                            @foreach ($gateways as $key => $gateway)
-                                <label class="choice"><input type="radio" name="payment_method" value="{{ $key }}" @checked($loop->first)> <span>{{ $gateway->label() }}@if ($gateway->mode() === 'test') <span class="badge badge-warn">Test mode</span>@endif</span></label>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="flash flash-info" role="note">No online payment method is enabled yet. You can still place the order; it stays unpaid until a payment method is available or you use your wallet balance.</div>
-                    @endif
-                    @if ($wallet->balance_minor > 0)
-                        <label class="choice"><input type="checkbox" name="use_wallet" value="1"> <span>Apply wallet balance ({{ \App\Support\Money::inr($wallet->balance_minor) }} available)</span></label>
-                    @endif
+                    @php($gstLabel = $gstPercent > 0 ? '+ '.rtrim(rtrim(number_format($gstPercent, 2), '0'), '.').'% GST' : null)
+                    <div class="pay-options" data-pay-options>
+                        @foreach ($gateways as $key => $gateway)
+                            <label class="pay-option">
+                                <input type="radio" name="payment_method" value="{{ $key }}" data-pay-route="online" @checked($loop->first)>
+                                <span class="pay-option__body">
+                                    <strong>{{ $gateway->label() }}@if ($gateway->mode() === 'test') <span class="badge badge-warn">Test mode</span>@endif</strong>
+                                    <small>UPI, cards and netbanking · Powered by {{ config('payments.razorpay_powered_by', 'JixPay') }}</small>
+                                </span>
+                                @if ($gstLabel)<span class="pay-option__tag">{{ $gstLabel }}</span>@endif
+                            </label>
+                        @endforeach
+                        <label class="pay-option {{ $walletCovers ? '' : 'is-disabled' }}">
+                            <input type="radio" name="payment_method" value="wallet" data-pay-route="wallet" @disabled(! $walletCovers) @checked(! $gateways && $walletCovers)>
+                            <span class="pay-option__body">
+                                <strong>Wallet balance</strong>
+                                <small>{{ \App\Support\Money::inr($wallet->balance_minor) }} available
+                                    @unless ($walletCovers) · not enough for this order — <a href="{{ route('dashboard.wallet') }}">add funds</a>@endunless</small>
+                            </span>
+                            <span class="pay-option__tag is-good">No GST</span>
+                        </label>
+                    </div>
+                    @unless ($gateways)
+                        <div class="flash flash-info" role="note">Online payment is not enabled yet. Pay from your wallet, or place the order and pay it later.</div>
+                    @endunless
                 </div>
             </div>
 
             <aside class="shop-summary" aria-label="Checkout summary">
                 <h2>Review</h2>
                 @if ($pricing)
-                    <dl>
+                    {{-- Two price views: online (with GST) and wallet (no GST). The selected payment method decides which is shown. --}}
+                    <dl data-review="online" @if (! $gateways && $walletCovers) hidden @endif>
                         <div><dt>Subtotal</dt><dd>{{ \App\Support\Money::inr($pricing['subtotal']) }}</dd></div>
                         @if ($pricing['discount'])<div><dt>Discount</dt><dd>− {{ \App\Support\Money::inr($pricing['discount']) }}</dd></div>@endif
-                        <div><dt>Tax</dt><dd>{{ $pricing['tax_configured'] ? \App\Support\Money::inr($pricing['tax']) : 'Not configured' }}</dd></div>
+                        <div><dt>{{ $gstPercent > 0 ? 'GST ('.rtrim(rtrim(number_format($gstPercent, 2), '0'), '.').'%)' : 'Tax' }}</dt><dd>{{ $pricing['tax_configured'] ? \App\Support\Money::inr($pricing['tax']) : 'Not configured' }}</dd></div>
                         <div><dt><strong>Total</strong></dt><dd><strong>{{ \App\Support\Money::inr($pricing['total']) }}</strong></dd></div>
                     </dl>
+                    @if ($walletPricing)
+                        <dl data-review="wallet" @unless (! $gateways && $walletCovers) hidden @endunless>
+                            <div><dt>Subtotal</dt><dd>{{ \App\Support\Money::inr($walletPricing['subtotal']) }}</dd></div>
+                            @if ($walletPricing['discount'])<div><dt>Discount</dt><dd>− {{ \App\Support\Money::inr($walletPricing['discount']) }}</dd></div>@endif
+                            <div><dt>GST</dt><dd>₹0 <small class="muted">(wallet)</small></dd></div>
+                            <div><dt><strong>Total</strong></dt><dd><strong>{{ \App\Support\Money::inr($walletPricing['total']) }}</strong></dd></div>
+                        </dl>
+                    @endif
                     @unless ($pricing['tax_configured'])
                         <p class="muted small">Tax rules are pending configuration; the final tax will be shown before you pay.</p>
                     @endunless
