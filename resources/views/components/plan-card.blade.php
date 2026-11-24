@@ -82,10 +82,14 @@
                 @unless ($plan->isApproved())<span class="dj-plan__tag" title="Confirmed with you before you order">Indicative</span>@endunless
             </div>
             @if ($hasYearly && $toggle)
-                <span class="dj-plan__compare" data-monthly-compare hidden>₹{{ number_format($monthly) }} / month on monthly billing</span>
+                @if ($annualMonthly !== $monthly)
+                    <span class="dj-plan__compare" data-monthly-compare hidden>₹{{ number_format($monthly) }} / month on monthly billing</span>
+                @endif
                 <p class="dj-plan__billing" data-billing-note>Billed monthly</p>
                 <p class="dj-plan__annual" data-annual-total-note hidden>₹{{ number_format($annualTotal) }} billed for 12 months</p>
-                <p class="dj-plan__save" data-annual-savings-note hidden>Save ₹{{ number_format(($monthly * 12) - $annualTotal) }} compared with monthly billing</p>
+                @if (($monthly * 12) - $annualTotal > 0)
+                    <p class="dj-plan__save" data-annual-savings-note hidden>Save ₹{{ number_format(($monthly * 12) - $annualTotal) }} compared with monthly billing</p>
+                @endif
             @else
                 <p class="dj-plan__billing">Billed monthly{{ $hasYearly ? ' · yearly available' : '' }}</p>
             @endif

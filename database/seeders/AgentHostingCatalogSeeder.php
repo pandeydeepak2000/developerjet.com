@@ -16,8 +16,8 @@ use Illuminate\Database\Seeder;
  *    there), so the "Setup n8n / Hermes / OpenClaw" links on AmbitionHost land on the same plan here.
  *  - Docker VPS uses a selection of the owner's ambitionhost.in/vps-hosting prices with DeveloperJet names.
  *
- * The owner supplied these prices, so they are stored as approved. Only monthly prices exist; other billing
- * periods stay blank until set in Admin → Products & plans. Plans are created once and never overwritten,
+ * The owner supplied these prices, so they are stored as approved. Yearly = 12 × monthly (no discount, owner
+ * decision); other billing periods stay blank until set in Admin → Products & plans. Plans are created once and never overwritten,
  * so later admin edits survive re-running this seeder. The earlier placeholder plans (Launch/Grow/Scale,
  * Starter/Pro/Business, Docker drafts) are hidden only if nobody has ordered them.
  *
@@ -47,6 +47,52 @@ class AgentHostingCatalogSeeder extends Seeder
         'openclaw' => ['OpenClaw Managed Hosting', 'Standalone OpenClaw assistant hosting.', 5],
     ];
 
+    /**
+     * Which VPS tiers each product is sold on, with its own plan names (2026-11-24 owner request: different
+     * names per product, sizes chosen per workload). Slugs stay "{family}-{tier}" so AmbitionHost deep links
+     * keep working. Sizing rationale:
+     *  - Hermes CLI is a terminal agent that calls an AI API: light, 4–16 GB is plenty.
+     *  - Hermes Workspace runs Docker + a web UI + database: starts at 6 GB.
+     *  - n8n: 4 GB is a comfortable single-instance minimum; bigger tiers for many/heavy workflows.
+     *  - OpenClaw drives a headless browser for its tools: starts at 4 GB, grows with concurrent tasks.
+     *
+     * family => [tier slug => [plan name, tagline]]
+     */
+    public const FAMILY_PLANS = [
+        'hermes-cli' => [
+            'maple' => ['Spark', 'Personal Hermes CLI for one developer'],
+            'aurora' => ['Pulse', 'Room for longer agent sessions'],
+            'edge' => ['Drive', 'Daily driver for regular projects'],
+            'rise' => ['Surge', 'Parallel sessions and bigger repos'],
+            'boost' => ['Turbo', 'Heavy local tooling and builds'],
+        ],
+        'hermes-workspace' => [
+            'aurora' => ['Desk', 'Workspace for one person'],
+            'edge' => ['Studio', 'Comfortable for a small team'],
+            'rise' => ['Team', 'More projects and users'],
+            'boost' => ['Agency', 'Busy teams with many workspaces'],
+            'prime' => ['Office', 'Large teams and long histories'],
+            'power' => ['Enterprise', 'Maximum memory for big workspaces'],
+        ],
+        'n8n' => [
+            'maple' => ['Trigger', 'First automations and small workflows'],
+            'aurora' => ['Node', 'A growing set of daily workflows'],
+            'edge' => ['Flow', 'Business workflows with room to spare'],
+            'rise' => ['Pipeline', 'Many active workflows and webhooks'],
+            'boost' => ['Engine', 'Heavy data processing workflows'],
+            'prime' => ['Orchestra', 'High-volume automation for teams'],
+            'power' => ['Nexus', 'Large automation estates'],
+        ],
+        'openclaw' => [
+            'maple' => ['Scout', 'Personal assistant, light browsing tasks'],
+            'aurora' => ['Ranger', 'More tools and longer tasks'],
+            'edge' => ['Hunter', 'Regular browser automation'],
+            'rise' => ['Guardian', 'Several assistants side by side'],
+            'boost' => ['Sentinel', 'Heavy browser and tool use'],
+            'prime' => ['Commander', 'Team-scale assistant workloads'],
+        ],
+    ];
+
     /** slug => [name, tagline, vCPU, RAM GB, disk GB, disk type, bandwidth TB|null, monthly INR] */
     public const DOCKER_PLANS = [
         'docker-vps-nano' => ['Nano', 'Containers for side projects', 1, 2, 40, 'SSD', 4, 428],
@@ -73,10 +119,19 @@ class AgentHostingCatalogSeeder extends Seeder
             $category = ProductCategory::firstOrCreate(['slug' => $categorySlug], [
                 'name' => $categoryName, 'description' => $description, 'sort_order' => $order, 'is_active' => true,
             ]);
+            $offered = self::FAMILY_PLANS[$categorySlug];
             $i = 0;
-            foreach (self::AGENT_TIERS as $tier => [$name, $tagline, $vcpu, $ram, $disk, $diskType, $monthly]) {
-                $profile = $this->profile("agent-{$tier}", $name, $vcpu, $ram, $disk, $diskType, null);
-                $this->plan($category, "{$categorySlug}-{$tier}", $name, [
+            foreach (self::AGENT_TIERS as $tier => [$tierName, , $vcpu, $ram, $disk, $diskType, $monthly]) {
+                $slug = "{$categorySlug}-{$tier}";
+                if (! isset($offered[$tier])) {
+                    // This product is not sold on this VPS size (e.g. a 96 GB tier for Hermes CLI).
+                    $this->retire($slug);
+
+                    continue;
+                }
+                [$name, $tagline] = $offered[$tier];
+                $profile = $this->profile("agent-{$tier}", $tierName, $vcpu, $ram, $disk, $diskType, null);
+                $this->plan($category, $slug, $name, [
                     'tagline' => $tagline,
                     'highlight' => $profile->summary(),
                     'features' => [],
@@ -84,7 +139,7 @@ class AgentHostingCatalogSeeder extends Seeder
                     'is_featured' => $tier === 'edge',
                     'sort_order' => 10 + (++$i),
                     'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'managed',
-                ], $monthly);
+                ], $monthly, $tierName);
             }
         }
 
@@ -106,10 +161,17 @@ class AgentHostingCatalogSeeder extends Seeder
             ], $monthly);
         }
 
-        foreach (Plan::whereIn('slug', self::RETIRED)->where('is_active', true)->get() as $old) {
-            if (! $old->orderItemsExist() && ! Service::where('plan_id', $old->id)->exists()) {
-                $old->forceFill(['is_active' => false, 'is_purchasable' => false])->save();
-            }
+        foreach (self::RETIRED as $slug) {
+            $this->retire($slug);
+        }
+    }
+
+    /** Hide a plan nobody has ordered; plans with orders or services are left alone. */
+    private function retire(string $slug): void
+    {
+        $plan = Plan::where('slug', $slug)->where('is_active', true)->first();
+        if ($plan && ! $plan->orderItemsExist() && ! Service::where('plan_id', $plan->id)->exists()) {
+            $plan->forceFill(['is_active' => false, 'is_purchasable' => false])->save();
         }
     }
 
@@ -123,7 +185,12 @@ class AgentHostingCatalogSeeder extends Seeder
         ]);
     }
 
-    private function plan(ProductCategory $category, string $slug, string $name, array $attributes, int $monthlyRupees): void
+    /**
+     * Create the plan once. If an earlier run created it with the generic tier name (e.g. "Maple") and nobody has
+     * renamed it since, switch it to the product-specific name. Monthly and yearly prices are added only when
+     * missing; yearly = 12 × monthly (owner: no yearly discount). Admin edits are never overwritten.
+     */
+    private function plan(ProductCategory $category, string $slug, string $name, array $attributes, int $monthlyRupees, ?string $previousName = null): void
     {
         $plan = Plan::firstOrCreate(['slug' => $slug], $attributes + [
             'product_category_id' => $category->id,
@@ -133,8 +200,15 @@ class AgentHostingCatalogSeeder extends Seeder
             'price_status' => 'approved',
         ]);
 
-        if ($plan->prices()->doesntExist()) {
+        if ($previousName !== null && $plan->name === $previousName && $name !== $previousName) {
+            $plan->forceFill(['name' => $name, 'tagline' => $attributes['tagline'], 'sort_order' => $attributes['sort_order'], 'is_active' => true, 'is_purchasable' => true])->save();
+        }
+
+        if (! $plan->prices()->where('billing_interval', 'monthly')->exists()) {
             $plan->prices()->create(['billing_interval' => 'monthly', 'amount_minor' => $monthlyRupees * 100, 'currency' => 'INR']);
+        }
+        if (! $plan->prices()->where('billing_interval', 'yearly')->exists()) {
+            $plan->prices()->create(['billing_interval' => 'yearly', 'amount_minor' => $monthlyRupees * 12 * 100, 'currency' => 'INR']);
         }
     }
 }

@@ -127,23 +127,16 @@ billingButtons.forEach((button) => {
             const annualSavings = card.querySelector('[data-annual-savings-note]');
             const monthlyCompare = card.querySelector('[data-monthly-compare]');
 
-            if (!price || !billingNote || !annualTotal || !annualSavings || !monthlyCompare) {
+            if (!price || !billingNote || !annualTotal) {
                 return;
             }
-
-            if (billing === 'annual') {
-                price.textContent = price.dataset.annual;
-                billingNote.textContent = 'Billed for 12 months upfront';
-                annualTotal.hidden = false;
-                annualSavings.hidden = false;
-                monthlyCompare.hidden = false;
-            } else {
-                price.textContent = price.dataset.monthly;
-                billingNote.textContent = 'Billed monthly';
-                annualTotal.hidden = true;
-                annualSavings.hidden = true;
-                monthlyCompare.hidden = true;
-            }
+            // Savings / comparison lines exist only when yearly is actually cheaper than 12 × monthly.
+            const annual = billing === 'annual';
+            price.textContent = annual ? price.dataset.annual : price.dataset.monthly;
+            billingNote.textContent = annual ? 'Billed for 12 months upfront' : 'Billed monthly';
+            annualTotal.hidden = !annual;
+            if (annualSavings) annualSavings.hidden = !annual;
+            if (monthlyCompare) monthlyCompare.hidden = !annual;
         });
     });
 });
