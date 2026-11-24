@@ -923,3 +923,10 @@ body.dj-drawer-open { overflow: hidden; }
 }
 .dj-access-note { display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 0; padding: 12px 14px; border: 1px solid var(--dj-line); border-radius: 12px; background: var(--dj-surface); color: var(--dj-text-2); font-size: .9375rem; line-height: 1.5; }
 .dj-access-note .dj-icon { flex: 0 0 auto; margin-top: 3px; color: var(--dj-blue-700); }
+
+/* Customer dashboard tables: headers, dates, money and status stay on one line on desktop. */
+@media (min-width:761px){
+  .dash .data-table th{white-space:nowrap}
+  .dash .data-table td:has(> .badge),.dash .data-table td:has(> .status-badge){white-space:nowrap}
+}
+.dash .data-table td small{display:block;color:#7d7f8d;font-size:12px}
