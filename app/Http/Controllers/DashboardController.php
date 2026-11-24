@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\PaymentAttempt;
 use App\Models\Subscription;
+use App\Models\Ticket;
 use App\Models\TopupRequest;
 use App\Models\Wallet;
 use App\Services\Provisioning\RecipeRegistry;
@@ -27,6 +28,8 @@ class DashboardController extends Controller
                 ->whereIn('status', SubscriptionStatus::OPEN_STATES)->whereNotNull('next_due_at')
                 ->where('next_due_at', '<=', now()->addDays(30))->orderBy('next_due_at')->limit(5)->get(),
             'unpaidCount' => $user->invoices()->where('type', 'invoice')->where('status', 'unpaid')->count(),
+            'recentServices' => $user->services()->with('plan.category')->latest()->limit(4)->get(),
+            'openTickets' => Ticket::where('user_id', $user->id)->where('status', '!=', 'closed')->count(),
         ]);
     }
 

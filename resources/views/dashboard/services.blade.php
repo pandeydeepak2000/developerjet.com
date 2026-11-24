@@ -4,27 +4,44 @@
 @section('heading', 'Services')
 @section('subheading', 'Your hosted services, their setup stage and their renewals.')
 
+@section('dash-actions')
+    <a class="button-primary dash-btn" href="{{ route('plans') }}"><x-icon name="spark" :size="18" /> New service</a>
+@endsection
+
 @section('dash')
     @if ($services->isEmpty())
-        <x-empty-state title="No active services" text="Services appear here after an order is paid and the VPS has been set up by our team." action="Browse plans" :action-url="route('plans')" />
+        <x-empty-state icon="server" title="No active services" text="Services appear here after an order is paid and the VPS has been set up by our team." action="Browse plans" :action-url="route('plans')" />
     @else
-        <div class="data-table-wrap"><table class="data-table">
-            <thead><tr><th scope="col">Service</th><th scope="col">Product / plan</th><th scope="col">Billing</th><th scope="col">Next renewal</th><th scope="col">Setup</th><th scope="col">Status</th></tr></thead>
-            <tbody>
+        <div class="dash-service-list">
             @foreach ($services as $service)
-                @php $sub = $service->subscription; $open = $sub?->invoices->first(fn ($i) => $i->isUnpaid()); @endphp
-                <tr>
-                    <td><a href="{{ route('dashboard.services.show', $service) }}">{{ $service->label }}</a><br><small class="muted">Service #{{ $service->id }}</small></td>
-                    <td>{{ $registry->recipe($service->kind)['label'] ?? $service->kind }}<br><small class="muted">{{ $service->plan?->name ?? 'Plan to be confirmed' }}</small></td>
-                    <td>{{ $sub?->cycleLabel() ?? '—' }}</td>
-                    <td>@if ($sub && in_array($sub->status, ['cancelled', 'expired'], true))—@else{{ $service->renews_at?->format('d M Y') ?? '—' }}@endif
-                        @if ($open && $open->order_id)<br><small class="muted"><a href="{{ route('dashboard.orders.show', $open->order_id) }}">Invoice {{ $open->number }} due</a></small>@endif</td>
-                    <td>{{ \App\Support\DeploymentProgress::stageLabel($service) }}</td>
-                    <td><x-status-badge :status="$service->status" /></td>
-                </tr>
+                @php
+                    $sub = $service->subscription;
+                    $open = $sub?->invoices->first(fn ($i) => $i->isUnpaid());
+                    $ended = $sub && in_array($sub->status, ['cancelled', 'expired'], true);
+                    $profile = $service->plan?->resourceProfile;
+                @endphp
+                <article class="dash-service-card">
+                    <div class="dash-service-card__top">
+                        <span class="dash-service__icon"><x-icon name="server" :size="20" /></span>
+                        <div class="dash-service-card__title">
+                            <a href="{{ route('dashboard.services.show', $service) }}">{{ $service->label }}</a>
+                            <small>{{ $registry->recipe($service->kind)['label'] ?? $service->kind }} · {{ $service->plan?->name ?? 'Plan to be confirmed' }} · Service #{{ $service->id }}</small>
+                        </div>
+                        <x-status-badge :status="$service->status" />
+                    </div>
+                    <dl class="dash-service-card__meta">
+                        <div><dt>Setup</dt><dd>{{ \App\Support\DeploymentProgress::stageLabel($service) }}</dd></div>
+                        <div><dt>Billing</dt><dd>{{ $sub?->cycleLabel() ?? '—' }}</dd></div>
+                        <div><dt>Next renewal</dt><dd>{{ $ended ? '—' : ($service->renews_at?->format('d M Y') ?? '—') }}</dd></div>
+                        <div><dt>Size</dt><dd>{{ $profile?->vcpu ? $profile->vcpu.' vCPU · '.$profile->ram_gb.' GB' : '—' }}</dd></div>
+                    </dl>
+                    <div class="dash-service-card__actions">
+                        @if ($open && $open->order_id)<a class="dash-chip-link is-warn" href="{{ route('dashboard.orders.show', $open->order_id) }}">Invoice {{ $open->number }} due · Pay now</a>@endif
+                        <a class="dash-chip-link" href="{{ route('dashboard.services.show', $service) }}">Manage <x-icon name="arrow-right" :size="16" /></a>
+                    </div>
+                </article>
             @endforeach
-            </tbody>
-        </table></div>
+        </div>
         {{ $services->links() }}
     @endif
 @endsection
