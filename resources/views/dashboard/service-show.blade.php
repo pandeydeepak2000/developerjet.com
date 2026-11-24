@@ -9,7 +9,7 @@
         $p = $service->plan; $rp = $p?->resourceProfile;
         $srv = $service->server;
         $active = $service->status === 'active';
-        $unmanaged = ($p?->access_model ?? 'managed') === 'unmanaged';
+        $unmanaged = ($p?->access_model ?? 'unmanaged') === 'unmanaged';
         $sub = $service->subscription;
         $openInvoice = $sub?->invoices->first(fn ($i) => $i->isUnpaid());
         $doneStages = collect($progress['stages'])->where('state', 'done')->count();
@@ -69,17 +69,17 @@
 
     <div class="panel"><h2>Server</h2>
         <dl class="kv">
-            <div><dt>Service type</dt><dd>{{ $registry->recipe($service->kind)['label'] ?? $service->kind }} · {{ $unmanaged ? 'Unmanaged developer VPS' : 'Managed AI hosting' }}</dd></div>
+            <div><dt>Service type</dt><dd>{{ $registry->recipe($service->kind)['label'] ?? $service->kind }} · {{ $unmanaged ? 'Self-hosted VPS · full root access' : 'Restricted access (legacy plan)' }}</dd></div>
             <div><dt>Server status</dt><dd>@if ($active)<span class="badge badge-good">Active — setup complete</span>@elseif ($srv)<span class="badge badge-warn">Server assigned — setup pending</span>@else<span class="badge badge-warn">Awaiting VPS assignment</span>@endif</dd></div>
             <div><dt>IP address</dt><dd>{{ $active && $srv ? $srv->ip_address : 'Shown once your service is active' }}</dd></div>
             <div><dt>Region</dt><dd>{{ $srv?->location ?? 'Assigned with your server' }}</dd></div>
             <div><dt>CPU / RAM / storage</dt><dd>{{ $srv ? "{$srv->cpu_capacity} vCPU · {$srv->ram_capacity_gb} GB RAM · {$srv->storage_capacity_gb} GB" : ($rp ? $rp->summary() : 'To be confirmed') }}</dd></div>
             <div><dt>Operating system</dt><dd>{{ $srv?->os_name ?? 'Set during setup' }}</dd></div>
-            <div><dt>Access</dt><dd>@if ($unmanaged) You receive SSH/root access to your own server and are responsible for what you install. @else DeveloperJet manages the server and security. Root access is restricted by service policy. @endif</dd></div>
+            <div><dt>Access</dt><dd>@if ($unmanaged) You receive full SSH/root access to your own server. After handover you are responsible for the server and your data. @else Root access is restricted on this legacy plan. @endif</dd></div>
             <div><dt>Installed applications</dt><dd>{{ $active ? ($registry->recipe($service->kind)['label'] ?? '—') : 'None yet' }}</dd></div>
         </dl>
         @if ($service->kind === 'claude_code')<p class="muted small">Claude Code needs your own eligible Claude subscription or API credentials. DeveloperJet does not provide or resell Claude access.</p>@endif
-        @if ($unmanaged)<p class="muted small">Unmanaged means we hand over the server and keep it running as infrastructure; operating system updates, firewall rules and your containers are yours to manage.</p>@endif
+        @if ($unmanaged)<p class="muted small">We set up the server and install your software, then hand it over. Operating system updates, firewall rules, your data and anything you install are yours to look after. <strong>Backups are not included</strong> — contact our sales team if you want a backup plan.</p>@endif
     </div>
 
     <div class="panel"><h2>Controls</h2>

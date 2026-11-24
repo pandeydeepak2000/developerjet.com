@@ -7,7 +7,7 @@
     <section class="legal-hero refund-hero section-shell">
         <span class="eyebrow">Clear from the start</span>
         <h1>Our refund <span>policy.</span></h1>
-        <p>We want you to know what to expect before choosing a digital service or managed plan.</p>
+        <p>We want you to know what to expect before choosing a digital service or VPS plan.</p>
         <span class="legal-updated">Last updated: October 2026</span>
     </section>
 

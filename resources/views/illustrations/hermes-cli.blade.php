@@ -23,7 +23,7 @@
         <rect x="18" y="46" width="44" height="20" rx="4" fill="none" stroke="#60A5FA" stroke-width="2"/>
         <circle cx="27" cy="30" r="2.5" fill="#60A5FA"/><circle cx="27" cy="56" r="2.5" fill="#60A5FA"/>
         <text x="80" y="42" font-size="15" font-weight="700" fill="#fff">Dedicated VPS</text>
-        <text x="80" y="62" font-size="12" fill="#B6C3D6">Managed by DeveloperJet</text>
+        <text x="80" y="62" font-size="12" fill="#B6C3D6">Set up by DeveloperJet</text>
     </g>
 
     {{-- Connection --}}

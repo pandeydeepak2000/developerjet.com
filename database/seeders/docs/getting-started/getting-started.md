@@ -20,7 +20,7 @@ You need:
 
 1. **Create an account** at **Register** and verify your email with the 6-digit code. See [Account registration](/docs/account-registration) and [Email verification](/docs/email-verification).
 2. **Choose a plan.** Compare products on **Pricing** or a product page. Only plans with an approved price can be ordered online. See [Plan selection](/docs/plan-selection).
-3. **Add it to your cart and check out.** Checkout confirms the access model (managed or unmanaged) and how the order is delivered. See [Cart and checkout](/docs/cart-and-checkout).
+3. **Add it to your cart and check out.** Checkout confirms that the server is handed over with full root access and how the order is delivered. See [Cart and checkout](/docs/cart-and-checkout).
 4. **Pay.** Your payment is confirmed on our servers — never just by returning from a payment page. See [Payment methods](/docs/payment-methods).
 5. **Wait for VPS assignment.** Your order shows **Awaiting VPS assignment** while our team assigns a server. This is a manual step, so delivery is not instant. See [How orders are delivered](/docs/how-orders-are-delivered).
 6. **Configure your service.** Add your AI provider key and, for supported apps, connect your own domain. See [API provider configuration](/docs/api-provider-configuration) and [Custom domain setup](/docs/custom-domain-setup).

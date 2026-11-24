@@ -26,9 +26,9 @@ class CatalogSeeder extends Seeder
         foreach ([
             ['hermes-cli', 'Hermes CLI', 'Hermes CLI installed and configured on a VPS for SSH or PuTTY access.', 1],
             ['hermes-workspace', 'Hermes Workspace', 'Hermes Workspace installed with Docker on a VPS.', 2],
-            ['n8n', 'n8n Managed', 'n8n installed on a managed VPS.', 3],
+            ['n8n', 'n8n Hosting', 'Self-hosted n8n installed on your own VPS.', 3],
             ['ai-complete-bundle', 'AI Complete Bundle', 'Hermes CLI + Workspace + n8n together.', 4],
-            ['openclaw', 'OpenClaw Managed Hosting', 'Standalone OpenClaw assistant hosting.', 5],
+            ['openclaw', 'OpenClaw Hosting', 'OpenClaw installed on your own VPS.', 5],
         ] as [$slug, $name, $description, $order]) {
             $categories[$slug] = ProductCategory::updateOrCreate(
                 ['slug' => $slug],
@@ -93,9 +93,9 @@ class CatalogSeeder extends Seeder
 
         // n8n: displayed plans describe workflow limits only; VPS size is "confirmed before purchase".
         foreach ([
-            'launch' => ['Launch', 'Automate the small things first.', 'Up to 5 active workflows', ['n8n installed on a managed VPS', 'Backups and updates'], 2499, 24990, false, 1],
-            'grow' => ['Grow', 'For workflows that are going places.', 'Up to 25 active workflows', ['n8n installed on a managed VPS', 'Priority support'], 5999, 59990, true, 2],
-            'scale' => ['Scale', 'More headroom for bigger ideas.', 'Up to 100 active workflows', ['n8n installed on a managed VPS', 'Guided workflow onboarding'], 11999, 119990, false, 3],
+            'launch' => ['Launch', 'Automate the small things first.', 'Up to 5 active workflows', ['n8n installed on your own VPS', 'Full root access'], 2499, 24990, false, 1],
+            'grow' => ['Grow', 'For workflows that are going places.', 'Up to 25 active workflows', ['n8n installed on your own VPS', 'Priority support'], 5999, 59990, true, 2],
+            'scale' => ['Scale', 'More headroom for bigger ideas.', 'Up to 100 active workflows', ['n8n installed on your own VPS', 'Guided workflow onboarding'], 11999, 119990, false, 3],
         ] as $tierSlug => [$name, $tagline, $highlight, $features, $monthly, $yearly, $featured, $order]) {
             $this->plan($categories['n8n'], "n8n-{$tierSlug}", $name, [
                 'tagline' => $tagline, 'highlight' => $highlight, 'features' => $features,
@@ -105,7 +105,7 @@ class CatalogSeeder extends Seeder
 
         // Pending plans: no price, no resources, not purchasable.
         $this->plan($categories['ai-complete-bundle'], 'ai-complete-bundle', 'AI Complete Bundle', [
-            'tagline' => 'Hermes CLI, Hermes Workspace and n8n together on a planned managed configuration.',
+            'tagline' => 'Hermes CLI, Hermes Workspace and n8n together on one server of your own.',
             'highlight' => 'Pricing and resources to be confirmed',
             'features' => ['Hermes CLI', 'Hermes Workspace', 'n8n'],
             'is_featured' => true, 'sort_order' => 1,
@@ -145,6 +145,7 @@ class CatalogSeeder extends Seeder
             'product_category_id' => $category->id,
             'name' => $name,
             'is_active' => true,
+            'access_model' => 'unmanaged',
             'is_purchasable' => $priced,
             'price_status' => $priced ? 'illustrative' : 'pending',
         ]);

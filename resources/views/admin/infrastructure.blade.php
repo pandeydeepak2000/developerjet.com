@@ -16,7 +16,7 @@
         <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Order</th><th>Customer</th><th>Plan</th><th>Needs</th><th>Access</th></tr></thead><tbody>
             @forelse ($queue as $s)
                 <tr><td data-label="Order">@if ($s->order)<a href="{{ route('admin.orders.show', $s->order) }}">{{ $s->order->number }}</a>@endif</td><td data-label="Customer">{{ $s->user->email }}</td><td data-label="Plan">{{ $s->plan?->name }}</td>
-                    <td data-label="Needs">{{ $s->plan?->resourceProfile?->summary() ?? 'Resources not confirmed' }}</td><td data-label="Access">{{ ucfirst($s->plan?->access_model ?? 'managed') }}</td></tr>
+                    <td data-label="Needs">{{ $s->plan?->resourceProfile?->summary() ?? 'Resources not confirmed' }}</td><td data-label="Access">{{ ($s->plan?->access_model ?? 'unmanaged') === 'unmanaged' ? 'Self-hosted (root)' : 'Restricted (legacy)' }}</td></tr>
             @empty<tr><td colspan="5" class="muted">Nothing is waiting for a server.</td></tr>@endforelse
         </tbody></table></div>
         @can('servers.create')<p><a class="admin-btn" href="{{ route('admin.resource.create', 'servers') }}">Record a newly purchased VPS</a></p>@endcan

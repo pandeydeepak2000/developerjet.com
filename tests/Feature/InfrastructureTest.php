@@ -84,7 +84,7 @@ class InfrastructureTest extends TestCase
 
     public function test_new_families_exist_as_unpriced_unpurchasable_draft_slots(): void
     {
-        foreach (['claude-code' => 'managed', 'docker-vps' => 'unmanaged'] as $cat => $access) {
+        foreach (['claude-code' => 'unmanaged', 'docker-vps' => 'unmanaged'] as $cat => $access) {
             $plans = Plan::whereHas('category', fn ($q) => $q->where('slug', $cat))->get();
             $this->assertCount(3, $plans);
             foreach ($plans as $plan) {
@@ -320,10 +320,10 @@ class InfrastructureTest extends TestCase
     public function test_access_model_mismatch_blocks_assignment(): void
     {
         $service = $this->paidService();
-        $server = $this->server(['access_model' => 'unmanaged']);
+        $server = $this->server(['access_model' => 'managed']); // legacy restricted server vs self-hosted plan
 
         $this->expectException(OrderException::class);
-        $this->expectExceptionMessage('unmanaged access but the plan is managed');
+        $this->expectExceptionMessage('managed access but the plan is unmanaged');
         app(DeploymentService::class)->assign($service, $server, $this->staff());
     }
 
@@ -540,7 +540,7 @@ class InfrastructureTest extends TestCase
         $service->update(['server_id' => $server->id, 'status' => 'active']);
 
         $this->actingAs($service->user)->get(route('dashboard.services.show', $service))
-            ->assertOk()->assertSee('203.0.113.50')->assertSee('Managed AI hosting')->assertSee('Web console')->assertSee('Unavailable')
+            ->assertOk()->assertSee('203.0.113.50')->assertSee('Self-hosted VPS · full root access')->assertSee('Web console')->assertSee('Unavailable')
             ->assertDontSee('TOPSECRETKEY')->assertDontSee('DesiVPS')->assertDontSee('Awaiting VPS assignment');
 
         // Customer isolation.

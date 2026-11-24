@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'About DeveloperJet')
-@section('meta_description', 'DeveloperJet, powered by AmbitionHost Pvt. Ltd., runs AI agents, automation and developer tools on dedicated VPS servers with managed setup and clear billing.')
+@section('meta_description', 'DeveloperJet, powered by AmbitionHost Pvt. Ltd., runs AI agents, automation and developer tools on dedicated VPS servers with setup done for you and clear billing.')
 
 @section('content')
     <section class="dj-phero" aria-labelledby="about-title">
@@ -29,7 +29,7 @@
             </div>
             <div class="dj-prose">
                 <p class="dj-intro__text">The best technology does not ask for all your attention. It gives some of it back.</p>
-                <p>We bring together useful developer products and a managed experience: careful server setup, clear plan choices and people you can actually reach.</p>
+                <p>We bring together useful developer products and a done-for-you setup: careful server preparation, clear plan choices and people you can actually reach.</p>
                 <p>We work for solo builders finding their rhythm, teams connecting their workflows, and anyone who would rather spend the afternoon shipping than sorting out infrastructure.</p>
             </div>
         </div>
@@ -50,12 +50,12 @@
     </section>
 
     <x-page-details
-        eyebrow="Products, managed by DeveloperJet"
+        eyebrow="Products, set up by DeveloperJet"
         title="Practical tools for modern teams"
         description="We make it easier to choose useful software and get a VPS prepared for it."
         :items="[
             ['label' => 'AI HOSTING', 'title' => 'Hermes, OpenClaw and n8n', 'description' => 'AI agents and workflow automation installed on a VPS dedicated to you.'],
-            ['label' => 'DEVELOPER HOSTING', 'title' => 'Claude Code and Docker', 'description' => 'A managed server for Claude Code, or an unmanaged Docker VPS with full SSH/root access.'],
+            ['label' => 'DEVELOPER HOSTING', 'title' => 'Claude Code and Docker', 'description' => 'A server ready for Claude Code, or a Docker VPS — both with full SSH/root access.'],
             ['label' => 'DIGITAL SERVICES', 'title' => 'Web, Laravel and SEO', 'description' => 'Project-based services, quoted from your requirements before any work starts.'],
         ]"
         cta-title="Want to learn more about a product?"

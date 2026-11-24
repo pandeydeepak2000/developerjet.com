@@ -114,7 +114,7 @@ class SettingsController extends Controller
             'provisioning' => ['title' => 'Provisioning & gating', 'fields' => [
                 ['provisioning.mode', 'Provisioning mode', 'select', 'nullable|in:manual,automatic', ['manual' => 'Manual assignment (only deployable mode)', 'automatic' => 'Automatic (blocked: no verified provider)'], 'manual'],
                 ['n8n.resale_verified', 'n8n commercial resale licensing verified (unlocks n8n sales/deploys)', 'checkbox', 'nullable|boolean'],
-                ['openclaw.spec_approved', 'OpenClaw managed-hosting specification approved', 'checkbox', 'nullable|boolean'],
+                ['openclaw.spec_approved', 'OpenClaw hosting specification approved', 'checkbox', 'nullable|boolean'],
                 ['infrastructure.max_monthly_cost_minor', 'Server cost limit per month (minor units / paise; blank = no limit)', 'number', 'nullable|integer|min:0'],
                 ['infrastructure.min_margin_percent', 'Minimum margin on assignment (%; blank = not enforced)', 'text', 'nullable|numeric|between:0,100'],
             ]],

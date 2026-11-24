@@ -49,7 +49,7 @@
         }
     }
     if ($isVps) {
-        $specs[] = [$managed ? 'shield' : 'key', 'Access', $managed ? 'Managed' : 'SSH / root'];
+        $specs[] = ['key', 'Access', $managed ? 'Restricted' : 'Full root (SSH)'];
     }
 
     // Features that only restate a spec row (e.g. "80 GB NVMe storage") are not repeated under "What's included".

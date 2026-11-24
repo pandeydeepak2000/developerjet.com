@@ -7,7 +7,7 @@
     @php
         $points = [
             ['cpu', 'Sized around your application', 'We agree the server, runtime and storage your application needs instead of fitting it into a fixed plan.'],
-            ['shield', 'Access agreed up front', 'Managed (we look after the server) or unmanaged (you get SSH/root) — decided with you and written into the quotation.'],
+            ['shield', 'Access agreed up front', 'You get the server with SSH/root access; any ongoing support or backups are agreed with you and written into the quotation.'],
             ['key', 'Your models, your keys', 'Your application uses your own AI provider accounts and API keys. We never resell model usage.'],
             ['headset', 'Clear support scope', 'Support covers the hosting we agree to provide. Your application code stays your responsibility unless we quote otherwise.'],
         ];

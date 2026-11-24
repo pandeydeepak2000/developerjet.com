@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0B1736">
-    <meta name="description" content="@yield('meta_description', 'DeveloperJet runs AI agents, automation and developer tools on dedicated VPS servers, with managed setup, clear billing and real support. Powered by AmbitionHost Pvt. Ltd.')">
+    <meta name="description" content="@yield('meta_description', 'DeveloperJet runs AI agents, automation and developer tools on dedicated VPS servers, set up for you with full root access, clear billing and real support. Powered by AmbitionHost Pvt. Ltd.')">
     <title>@yield('title', 'DeveloperJet') · DeveloperJet</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/logo-mark.png') }}">

@@ -12,7 +12,7 @@
 return [
     'hermes' => [
         'name' => 'Hermes AI Agent', 'icon' => 'terminal', 'route' => ['hermes', null], 'status' => 'available', 'home' => true,
-        'summary' => 'The Hermes AI agent installed for you on a managed VPS — use it in a terminal or in your browser.',
+        'summary' => 'The Hermes AI agent installed for you on your own VPS — use it in a terminal or in your browser.',
         'audience' => 'Developers and teams who want an always-on AI agent',
         'capabilities' => ['Terminal (CLI) or browser (Workspace) editions', 'Installed and configured by our team', 'Works with your own AI provider key'],
         'categories' => ['hermes-cli', 'hermes-workspace'],
@@ -26,21 +26,21 @@ return [
     ],
     'claude-code' => [
         'name' => 'Claude Code Hosting', 'icon' => 'code', 'route' => ['product.show', 'claude-code'], 'status' => 'available', 'home' => true,
-        'summary' => 'An always-on managed server prepared for Claude Code, reached securely over SSH.',
+        'summary' => 'An always-on server prepared for Claude Code, with full root access over SSH.',
         'audience' => 'Developers who run long AI coding sessions',
         'capabilities' => ['Server prepared and secured by our team', 'SSH access from any computer', 'Uses your own Claude subscription or API key'],
         'categories' => ['claude-code'],
     ],
     'docker-vps' => [
         'name' => 'Docker VPS Hosting', 'icon' => 'container', 'route' => ['product.show', 'docker-vps'], 'status' => 'available', 'home' => true,
-        'summary' => 'An unmanaged VPS delivered with Docker Engine and Compose, with full root access.',
+        'summary' => 'A VPS delivered with Docker Engine and Compose, with full root access.',
         'audience' => 'Developers who want full control of their server',
         'capabilities' => ['Docker Engine and Compose installed', 'Full SSH / root access', 'You manage updates and security'],
         'categories' => ['docker-vps'],
     ],
     'n8n' => [
         'name' => 'n8n Automation Hosting', 'icon' => 'workflow', 'route' => ['n8n', null], 'status' => 'available', 'home' => true,
-        'summary' => 'n8n workflow automation on a managed VPS, with plans sized by workflow capacity.',
+        'summary' => 'Self-hosted n8n installed on your own VPS, with full root access.',
         'audience' => 'Teams connecting apps with automated workflows',
         'capabilities' => ['Browser-based workflow editor', 'Plans by active-workflow capacity', 'Server set up and looked after by our team'],
         'categories' => ['n8n'],
@@ -54,9 +54,9 @@ return [
     ],
     'ai-complete-bundle' => [
         'name' => 'AI Complete Bundle', 'icon' => 'layers', 'route' => ['product.show', 'ai-complete-bundle'], 'status' => 'available', 'home' => false,
-        'summary' => 'Hermes CLI, Hermes Workspace and n8n planned together on one managed server.',
+        'summary' => 'Hermes CLI, Hermes Workspace and n8n together on one powerful server of your own.',
         'audience' => 'Teams who want agent, workspace and automation together',
-        'capabilities' => ['Terminal and browser agent access', 'Workflow automation alongside', 'One managed server to look after'],
+        'capabilities' => ['Terminal and browser agent access', 'Workflow automation alongside', 'One server, full root access'],
         'categories' => ['ai-complete-bundle'],
     ],
     'digital-services' => [

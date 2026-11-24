@@ -43,8 +43,8 @@ class AgentHostingCatalogSeeder extends Seeder
     public const AGENT_FAMILIES = [
         'hermes-cli' => ['Hermes CLI', 'Hermes CLI installed and configured on a VPS for SSH or PuTTY access.', 1],
         'hermes-workspace' => ['Hermes Workspace', 'Hermes Workspace installed with Docker on a VPS.', 2],
-        'n8n' => ['n8n Managed', 'n8n installed on a managed VPS.', 3],
-        'openclaw' => ['OpenClaw Managed Hosting', 'Standalone OpenClaw assistant hosting.', 5],
+        'n8n' => ['n8n Hosting', 'Self-hosted n8n installed on your own VPS.', 3],
+        'openclaw' => ['OpenClaw Hosting', 'OpenClaw installed on your own VPS.', 5],
     ];
 
     /**
@@ -138,13 +138,13 @@ class AgentHostingCatalogSeeder extends Seeder
                     'resource_profile_id' => $profile->id,
                     'is_featured' => $tier === 'edge',
                     'sort_order' => 10 + (++$i),
-                    'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'managed',
+                    'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'unmanaged',
                 ], $monthly, $tierName);
             }
         }
 
         $docker = ProductCategory::firstOrCreate(['slug' => 'docker-vps'], [
-            'name' => 'Docker VPS Hosting', 'description' => 'An unmanaged developer VPS with Docker Engine and Compose for your own containers.',
+            'name' => 'Docker VPS Hosting', 'description' => 'A developer VPS with Docker Engine and Compose and full root access.',
             'sort_order' => 7, 'is_active' => true,
         ]);
         $i = 0;
@@ -172,7 +172,7 @@ class AgentHostingCatalogSeeder extends Seeder
      * AI Complete Bundle: one heavy plan running Hermes CLI + Hermes Workspace + n8n on one server.
      * Sized on the "Power" VPS (12 vCPU / 32 GB / 400 GB NVMe): Workspace (Docker, UI, DB) + n8n + CLI with headroom.
      * Price chosen at the owner's request ("high amount, decide yourself"): ₹5,999/month = the ₹5,249 Power VPS plus
-     * managed setup of three applications, still below buying the three separately; yearly = 12 × monthly.
+     * setup of three applications, still below buying the three separately; yearly = 12 × monthly.
      * Only the untouched pending placeholder is upgraded; a bundle an admin has priced or edited is left alone.
      */
     public const BUNDLE_MONTHLY = 5999;
@@ -186,12 +186,12 @@ class AgentHostingCatalogSeeder extends Seeder
         $profile = $this->profile('agent-power', 'Power', $vcpu, $ram, $disk, $diskType, null);
         $attributes = [
             'name' => 'Complete',
-            'tagline' => 'Hermes CLI, Hermes Workspace and n8n on one powerful managed server',
+            'tagline' => 'Hermes CLI, Hermes Workspace and n8n on one powerful server of your own',
             'highlight' => $profile->summary(),
             'features' => ['Hermes CLI, Hermes Workspace and n8n installed', 'Each application isolated on the server', 'One invoice and one renewal'],
             'resource_profile_id' => $profile->id,
             'is_featured' => true, 'sort_order' => 1,
-            'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'managed',
+            'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'unmanaged',
             'is_active' => true, 'is_purchasable' => true, 'price_status' => 'approved',
         ];
 

@@ -51,8 +51,8 @@ class ProductPagesTest extends TestCase
 
     public function test_claude_code_page_states_customer_supplies_credentials_and_docker_is_unmanaged(): void
     {
-        $this->get('/claude-code')->assertSee('your own eligible Claude subscription', false)->assertSee('does not resell', false)->assertSee('Managed hosting');
-        $this->get('/docker-vps')->assertSee('Unmanaged VPS')->assertSee('SSH/root')->assertSee('Not provided');
+        $this->get('/claude-code')->assertSee('your own eligible Claude subscription', false)->assertSee('does not resell', false)->assertSee('Self-hosted · full root access');
+        $this->get('/docker-vps')->assertSee('Self-hosted · full root access')->assertSee('SSH/root')->assertSee('Not provided');
     }
 
     public function test_approved_price_appears_and_becomes_orderable_only_after_approval(): void
@@ -68,7 +68,7 @@ class ProductPagesTest extends TestCase
             $this->get('/compare/'.$slug)->assertOk()->assertSee('How to choose');
         }
         $this->get('/compare/unknown')->assertNotFound();
-        foreach (['Hermes CLI vs Hermes Workspace', 'Hermes vs OpenClaw', 'n8n vs AI agent hosting', 'Claude Code Hosting vs Hermes CLI', 'Docker hosting vs managed AI hosting', 'Managed hosting vs unmanaged VPS'] as $title) {
+        foreach (['Hermes CLI vs Hermes Workspace', 'Hermes vs OpenClaw', 'n8n vs AI agent hosting', 'Claude Code Hosting vs Hermes CLI', 'Docker VPS vs ready-made AI apps', 'What self-hosted means: our part vs your part'] as $title) {
             $this->get('/compare')->assertSee($title);
         }
     }
@@ -92,10 +92,10 @@ class ProductPagesTest extends TestCase
         $this->approve('docker-vps-a', 500);
         $user = $this->customer();
         $this->actingAs($user)->post('/cart', ['plan' => 'docker-vps-a', 'billing_interval' => 'monthly']);
-        $this->get('/checkout')->assertOk()->assertSee('Unmanaged VPS')->assertSee('SSH/root access')->assertSee('not instant');
+        $this->get('/checkout')->assertOk()->assertSee('Self-hosted VPS with full root access')->assertSee('SSH/root access')->assertSee('not instant');
 
         $this->approve('hermes-cli-launch', 500);
         $this->post('/cart', ['plan' => 'hermes-cli-launch', 'billing_interval' => 'monthly']);
-        $this->get('/checkout')->assertSee('Managed hosting')->assertSee('Root access is restricted');
+        $this->get('/checkout')->assertSee('Self-hosted VPS with full root access')->assertSee('backups are not included');
     }
 }

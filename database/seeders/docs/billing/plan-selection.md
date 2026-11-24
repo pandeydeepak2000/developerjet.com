@@ -19,7 +19,7 @@ Start with what you want to run:
 | Run your own containers with full root access | [Docker VPS](/docs/docker-vps) |
 | Use several AI models in one workspace (coming soon) | [AI All-Access](/docs/ai-all-access) |
 
-Not sure? The **Compare** pages explain the differences in plain language, and [Managed vs unmanaged](/docs/managed-vs-unmanaged) explains who looks after the server.
+Not sure? The **Compare** pages explain the differences in plain language, and [Self-hosted: who does what](/docs/managed-vs-unmanaged) explains who looks after the server.
 
 ## 2. Read the plan card
 

@@ -22,7 +22,7 @@ class ServicesCatalogSeeder extends Seeder
         ];
 
         foreach ($groups as [$slug, $name, $kind, $order, $plans]) {
-            $category = ProductCategory::firstOrCreate(['slug' => $slug], ['name' => $name, 'description' => $name.' delivered as managed projects.', 'sort_order' => $order, 'is_active' => true]);
+            $category = ProductCategory::firstOrCreate(['slug' => $slug], ['name' => $name, 'description' => $name.' delivered as projects.', 'sort_order' => $order, 'is_active' => true]);
 
             foreach ($plans as $i => [$planName, $tagline]) {
                 Plan::firstOrCreate(['slug' => $slug.'-'.str($planName)->slug()], [

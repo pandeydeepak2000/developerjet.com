@@ -1,5 +1,5 @@
 <svg class="dj-ill" viewBox="0 0 600 460" role="img" aria-labelledby="ill-n8n-title" xmlns="http://www.w3.org/2000/svg" font-family="Inter Variable, Inter, system-ui, sans-serif">
-    <title id="ill-n8n-title">{{ $alt ?? 'An automation workflow of connected nodes on a managed VPS.' }}</title>
+    <title id="ill-n8n-title">{{ $alt ?? 'An automation workflow of connected nodes on your own VPS.' }}</title>
     <defs>
         <pattern id="n8n-dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#D5DEEA"/></pattern>
     </defs>
@@ -62,7 +62,7 @@
         <rect width="552" height="68" rx="14" fill="#0B1736"/>
         <rect x="18" y="18" width="32" height="32" rx="8" fill="#2563EB"/>
         <path d="M26 28h16M26 34h16M26 40h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-        <text x="64" y="32" font-size="14" font-weight="700" fill="#fff">n8n on a managed VPS</text>
+        <text x="64" y="32" font-size="14" font-weight="700" fill="#fff">Self-hosted n8n</text>
         <text x="64" y="50" font-size="12" fill="#B6C3D6">Installed and checked by DeveloperJet</text>
         <text x="534" y="40" font-size="12" fill="#B6C3D6" text-anchor="end">Server set up for your plan</text>
     </g>

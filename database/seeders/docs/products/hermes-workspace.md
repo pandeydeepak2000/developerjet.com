@@ -1,9 +1,9 @@
 ---
 title: Hermes Workspace
-excerpt: Use Hermes from your browser, installed with Docker on a managed VPS, on a default address or your own domain.
+excerpt: Use Hermes from your browser, installed with Docker on your own VPS, on a DeveloperJet address or your own domain.
 order: 2
 ---
-Hermes Workspace is a browser interface for the Hermes AI agent. It is installed with Docker on a VPS assigned to you and managed by our team.
+Hermes Workspace is a browser interface for the Hermes AI agent. It is installed with Docker on a VPS dedicated to you, which is handed over with full root access.
 
 ## Who it is for
 

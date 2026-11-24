@@ -17,7 +17,7 @@ class ServicesController extends Controller
 {
     public const PAGES = [
         'wordpress' => ['category' => 'wordpress-services', 'kind' => 'wordpress', 'title' => 'WordPress Services', 'lead' => 'Professionally built WordPress websites, scoped around your requirements.'],
-        'laravel-development' => ['category' => 'laravel-development', 'kind' => 'laravel', 'title' => 'Laravel Development', 'lead' => 'Custom Laravel applications, APIs and dashboards delivered as managed projects.'],
+        'laravel-development' => ['category' => 'laravel-development', 'kind' => 'laravel', 'title' => 'Laravel Development', 'lead' => 'Custom Laravel applications, APIs and dashboards delivered as projects.'],
         'web-development' => ['category' => 'web-development', 'kind' => 'web', 'title' => 'Web Development', 'lead' => 'Landing pages, business websites and custom web development.'],
         'seo' => ['category' => 'seo-services', 'kind' => 'seo', 'title' => 'SEO Services', 'lead' => 'Transparent, report-driven SEO. We never promise guaranteed rankings.'],
     ];

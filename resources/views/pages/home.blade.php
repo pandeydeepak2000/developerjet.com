@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'AI Hosting & Developer Infrastructure')
-@section('meta_description', 'DeveloperJet runs AI agents, workflow automation and developer tools on dedicated VPS servers — Hermes, n8n, OpenClaw, Claude Code and Docker — with managed setup, clear billing and real support.')
+@section('meta_description', 'DeveloperJet runs AI agents, workflow automation and developer tools on dedicated VPS servers — Hermes, n8n, OpenClaw, Claude Code and Docker — set up for you, with full root access, clear billing and real support.')
 
 @section('content')
     @php
         $features = [
             ['shield', 'Security first', 'Dedicated servers per customer, verified payments, encrypted secrets and no plaintext root passwords.'],
-            ['settings', 'Managed setup', 'For managed plans we prepare the server and install your software. Unmanaged plans hand you full control.'],
+            ['settings', 'Setup done for you', 'We prepare the server and install your software, then hand it over with full root access.'],
             ['code', 'Developer tools', 'SSH access, Docker and Compose, Claude Code and Hermes — the tools developers already use.'],
             ['dashboard', 'Customer dashboard', 'Orders, services, invoices, wallet and support tickets in one place.'],
             ['headset', 'Real support', 'Ticket-based support from the DeveloperJet team, with clear statements of what is covered.'],
@@ -15,10 +15,10 @@
             ['activity', 'Deployment tracking', 'Follow each order from checkout to a ready service in your dashboard.'],
         ];
         $faqs = [
-            ['What does DeveloperJet do?', 'We run AI agents, workflow automation and developer tools on VPS servers dedicated to you. For managed products we set up and look after the server; for unmanaged products we hand you full SSH/root access.'],
+            ['What does DeveloperJet do?', 'We set up AI agents, workflow automation and developer tools on VPS servers dedicated to you, then hand the server over with full SSH/root access.'],
             ['Is delivery instant?', 'No. After your payment is verified, our team prepares your environment: the server is set up and your software is installed and checked. Progress is shown in your dashboard and access details appear there when everything is ready.'],
             ['Do I need my own AI subscription?', 'For AI products, yes. Hermes and OpenClaw use your own AI provider key, and Claude Code needs your own eligible Claude subscription or API credentials. We do not resell AI model access.'],
-            ['What is the difference between managed and unmanaged?', 'Managed plans are set up and maintained by our team, and root access is restricted. Unmanaged plans, such as Docker VPS, give you SSH/root access and you look after the server yourself.'],
+            ['Are backups included?', 'No. Every plan is self-hosted: after setup the server and your data are yours to look after. Contact our sales team if you want a backup plan.'],
             ['Are the prices on the website final?', 'Some plans show indicative INR prices that are confirmed before you order. Plans whose pricing has not been approved say “Pricing to be confirmed” and cannot be ordered yet.'],
             ['How do renewals work?', 'We email you before a renewal is due and create a renewal order for you to pay. Stored payment details are never charged automatically.'],
         ];
@@ -30,14 +30,14 @@
             <div class="dj-hero__copy">
                 <p class="dj-eyebrow"><span class="dj-eyebrow__icon"><x-icon name="spark" :size="16" /></span>AI HOSTING &amp; DEVELOPER INFRASTRUCTURE</p>
                 <h1 id="hero-title">Run AI agents and developer tools on servers built for you.</h1>
-                <p class="dj-lede">DeveloperJet hosts Hermes, n8n, OpenClaw, Claude Code and Docker on dedicated VPS servers. Choose managed setup or full control — with billing, deployment tracking and support in one dashboard.</p>
+                <p class="dj-lede">DeveloperJet hosts Hermes, n8n, OpenClaw, Claude Code and Docker on dedicated VPS servers. We set everything up and you get full root access — with billing, deployment tracking and support in one dashboard.</p>
                 <div class="dj-actions">
                     <a class="dj-btn dj-btn--primary dj-btn--lg" href="#products">Explore Hosting <x-icon name="arrow-right" :size="18" /></a>
                     <a class="dj-btn dj-btn--secondary dj-btn--lg" href="{{ route('plans') }}">View All Plans</a>
                 </div>
                 <ul class="dj-hero__facts">
                     <li><x-icon name="server" :size="20" /> A dedicated VPS for every customer</li>
-                    <li><x-icon name="shield" :size="20" /> Managed or unmanaged access</li>
+                    <li><x-icon name="key" :size="20" /> Full root access on every plan</li>
                     <li><x-icon name="dashboard" :size="20" /> Billing, invoices &amp; support in one place</li>
                 </ul>
             </div>
@@ -142,7 +142,7 @@
                 <a class="dj-btn dj-btn--secondary" href="{{ route('compare.index') }}">Detailed comparisons</a>
             </div>
             @include('partials.product-matrix', ['keys' => array_keys($matrix['products']), 'current' => null, 'matrix' => $matrix])
-            <p class="dj-footnote">Looking for n8n? <a href="{{ route('n8n') }}">n8n Automation Hosting</a> runs workflow automation on its own managed VPS.</p>
+            <p class="dj-footnote">Looking for n8n? <a href="{{ route('n8n') }}">n8n Automation Hosting</a> runs self-hosted workflow automation on a VPS of your own.</p>
         </div>
     </section>
 

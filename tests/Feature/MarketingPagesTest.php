@@ -95,7 +95,7 @@ class MarketingPagesTest extends TestCase
             ->assertSee('4 TB / month')
             ->assertSee('₹24,990 billed for 12 months')
             ->assertSee('Save ₹4,998 compared with monthly billing')
-            ->assertSee('Hermes Workspace is installed and configured with Docker');
+            ->assertSee('Hermes Workspace is installed with Docker and used from a web browser.');
 
         $this->assertSame(3, substr_count($content, 'data-plan-card'));
         $this->assertSame(3, substr_count($content, 'class="plan-get-started"'));
@@ -116,7 +116,7 @@ class MarketingPagesTest extends TestCase
             ->assertSee('Hermes installed with Docker')
             ->assertSee('data-billing-toggle="annual"', false)
             ->assertSee('₹24,990 billed for 12 months')
-            ->assertSee('Hermes CLI is installed directly on a VPS');
+            ->assertSee('Hermes CLI is used through an SSH or PuTTY terminal.');
 
         $this->assertSame(3, substr_count($content, 'data-plan-card'));
         $this->assertSame(3, substr_count($content, 'class="plan-get-started"'));
@@ -133,14 +133,14 @@ class MarketingPagesTest extends TestCase
             ->assertSee('Grow')
             ->assertSee('Scale')
             ->assertSee('data-billing-toggle="annual"', false)
-            ->assertSee('n8n installed on a managed VPS')
+            ->assertSee('n8n installed on your own VPS')
             ->assertSee('Up to 5 active workflows')
             ->assertSee('Up to 25 active workflows')
             ->assertSee('Up to 100 active workflows')
             ->assertSee('Every plan shows its VPS size. Applicable taxes are confirmed before purchase.')
             ->assertSee('₹24,990 billed for 12 months')
-            ->assertSee('Is n8n installed on a VPS?')
-            ->assertSee('n8n instance is installed on a VPS configured for your plan');
+            ->assertSee('Is n8n installed on a VPS of my own?')
+            ->assertSee('It is your self-hosted n8n.');
 
         $this->assertSame(3, substr_count($content, 'data-plan-card'));
         $this->assertSame(3, substr_count($content, 'class="plan-get-started"'));

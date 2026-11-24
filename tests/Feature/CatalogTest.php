@@ -77,7 +77,7 @@ class CatalogTest extends TestCase
     {
         $response = $this->get('/plans')->assertOk()
             ->assertSee('AI Complete Bundle')
-            ->assertSee('OpenClaw Managed Hosting')
+            ->assertSee('OpenClaw Hosting')
             ->assertSee('Pricing to be confirmed');
 
         $this->assertSame(4, substr_count($response->getContent(), 'plans-price-pending'));

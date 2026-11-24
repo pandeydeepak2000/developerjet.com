@@ -18,8 +18,8 @@ You must be signed in with a verified email to check out.
 
 1. From the cart, continue to **Checkout**.
 2. Review each line: plan, **Billed monthly** or **Billed yearly**, and the access model:
-   - **Managed hosting** — DeveloperJet sets up and secures the server; root access is restricted.
-   - **Unmanaged VPS** — you receive SSH/root access and are responsible for updates, security and your workloads.
+   - **Self-hosted** — DeveloperJet sets up the server and installs your software, then you receive full SSH/root access. You are responsible for updates, security and your data.
+   - **Backups** are not included; contact our sales team if you want a backup plan.
 3. Complete **Billing details**: *Billing name*, optional *GSTIN* (15 characters) and *Billing address*. These appear on your invoice.
 4. Choose a **Payment method**. Only methods that are enabled are listed. See [Payment methods](/docs/payment-methods).
 5. If you have wallet funds, tick **Apply wallet balance**.

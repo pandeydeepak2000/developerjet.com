@@ -1,10 +1,10 @@
 <svg class="dj-ill" viewBox="0 0 600 460" role="img" aria-labelledby="ill-bundle-title" xmlns="http://www.w3.org/2000/svg" font-family="Inter Variable, Inter, system-ui, sans-serif">
-    <title id="ill-bundle-title">{{ $alt ?? 'Hermes CLI, Hermes Workspace and n8n on one managed VPS.' }}</title>
+    <title id="ill-bundle-title">{{ $alt ?? 'Hermes CLI, Hermes Workspace and n8n on one VPS of your own.' }}</title>
     <rect width="600" height="460" rx="20" fill="#0B1736"/>
-    <text x="36" y="52" font-size="16" font-weight="700" fill="#fff">One managed VPS</text>
+    <text x="36" y="52" font-size="16" font-weight="700" fill="#fff">One VPS of your own</text>
     <text x="36" y="74" font-size="12" fill="#94A3B8">Dedicated to you · applications kept separate</text>
     <rect x="474" y="34" width="90" height="28" rx="14" fill="#2563EB"/>
-    <text x="519" y="53" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Managed</text>
+    <text x="519" y="53" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Root</text>
 
     {{-- Hermes CLI --}}
     <g transform="translate(36 100)">

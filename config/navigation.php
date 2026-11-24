@@ -7,7 +7,7 @@
  | capitalised in labels — the refund page asserts it never shows the lowercase word.
  |
  | Structure (owner brief, Business Automation sprint): three product groups only. There is no standalone
- | "Cloud VPS" group and no "Managed vs Unmanaged" entry (that comparison lives in product documentation and
+ | "Cloud VPS" group and no separate access-model entry (that comparison lives in product documentation and
  | /compare). Every destination appears ONCE: Docker VPS Hosting is the single canonical Docker link.
  | NavigationTest asserts uniqueness, so add new links here rather than duplicating them in the layout.
  */
@@ -17,9 +17,9 @@ return [
             'icon' => 'spark',
             'links' => [
                 ['AI All-Access', 'ai-all-access', null, 'Your AI models in one workspace · coming soon', 'layers', null],
-                ['Hermes CLI', 'hermes.cli', null, 'Terminal AI agent on a managed VPS', 'terminal', null],
+                ['Hermes CLI', 'hermes.cli', null, 'Terminal AI agent on your own VPS', 'terminal', null],
                 ['Hermes Workspace', 'hermes.workspace', null, 'Browser workspace, installed with Docker', 'browser', null],
-                ['n8n Automation Hosting', 'n8n', null, 'Workflow automation on a managed VPS', 'workflow', null],
+                ['n8n Automation Hosting', 'n8n', null, 'Self-hosted workflow automation', 'workflow', null],
                 ['OpenClaw', 'product.show', 'openclaw', 'Isolated personal AI assistant', 'shield', null],
                 ['AI Complete Bundle', 'product.show', 'ai-complete-bundle', 'Hermes CLI, Workspace and n8n together', 'layers', null],
             ],
@@ -27,7 +27,7 @@ return [
         'Developer Hosting' => [
             'icon' => 'code',
             'links' => [
-                ['Claude Code Hosting', 'product.show', 'claude-code', 'Claude Code on an always-on managed server', 'code', null],
+                ['Claude Code Hosting', 'product.show', 'claude-code', 'Claude Code on an always-on server', 'code', null],
                 ['Docker VPS Hosting', 'product.show', 'docker-vps', 'Docker Engine + Compose with SSH/root access', 'container', null],
                 ['AI Application Hosting', 'ai-app-hosting', null, 'Custom requirements, scoped with our team', 'cpu', null],
                 ['Compare Developer Products', 'compare.index', null, 'Plain-language product comparisons', 'grid', null],

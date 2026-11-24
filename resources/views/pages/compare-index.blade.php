@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Compare products')
-@section('meta_description', 'Plain-language comparisons of DeveloperJet products: Hermes, OpenClaw, n8n, Claude Code, Docker VPS, managed and unmanaged.')
+@section('meta_description', 'Plain-language comparisons of DeveloperJet products: Hermes, OpenClaw, n8n, Claude Code and Docker VPS.')
 
 @section('content')
     <section class="dj-page-hero dj-page-hero--center" aria-labelledby="compare-title">

@@ -90,7 +90,7 @@ class RedesignTest extends TestCase
 
         $this->get('/docker-vps')->assertOk()
             ->assertSee('Admin Named Tier')->assertSee('Feature from admin')
-            ->assertSee('SSH / root')->assertSee('To be confirmed');
+            ->assertSee('Full root (SSH)')->assertSee('To be confirmed');
 
         // Resources come from the resource profile and are not repeated as features.
         $html = $this->get('/hermes-cli')->assertOk()->assertSee('80 GB NVMe')->assertSee('4 TB / month')->getContent();

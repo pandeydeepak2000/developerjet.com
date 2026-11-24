@@ -35,8 +35,8 @@ class InfrastructureSeeder extends Seeder
         }
 
         foreach ([
-            ['claude-code', 'Claude Code Hosting', 'A managed VPS prepared for running Claude Code with your own eligible Claude subscription or API credentials.', 6, 'claude-code', 'managed'],
-            ['docker-vps', 'Docker VPS Hosting', 'An unmanaged developer VPS with Docker Engine and Compose for your own containers.', 7, 'docker-vps', 'unmanaged'],
+            ['claude-code', 'Claude Code Hosting', 'A VPS of your own prepared for running Claude Code with your own eligible Claude subscription or API credentials.', 6, 'claude-code', 'unmanaged'],
+            ['docker-vps', 'Docker VPS Hosting', 'A developer VPS with Docker Engine and Compose and full root access.', 7, 'docker-vps', 'unmanaged'],
         ] as [$slug, $name, $description, $order, $planSlug, $access]) {
             $category = ProductCategory::firstOrCreate(['slug' => $slug], ['name' => $name, 'description' => $description, 'sort_order' => $order, 'is_active' => true]);
 

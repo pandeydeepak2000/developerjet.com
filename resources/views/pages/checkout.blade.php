@@ -18,8 +18,8 @@
                             </p>
                             @if ($line['plan']->kind === 'hosting')
                                 @php($unmanaged = $line['plan']->access_model === 'unmanaged')
-                                <p class="shop-meta"><strong>{{ $unmanaged ? 'Unmanaged VPS' : 'Managed hosting' }}.</strong>
-                                    {{ $unmanaged ? 'You receive SSH/root access and are responsible for updates, security and your workloads.' : 'DeveloperJet sets up and secures the server. Root access is restricted by service policy.' }}
+                                <p class="shop-meta"><strong>{{ $unmanaged ? 'Self-hosted VPS with full root access' : 'Restricted access' }}.</strong>
+                                    {{ $unmanaged ? 'We set up the server and install your software, then you get SSH/root access. You are responsible for the server and your data; backups are not included.' : 'Root access is restricted on this plan.' }}
                                     @if ($line['plan']->resourceProfile)Resources: {{ $line['plan']->resourceProfile->summary() }}@else Resources: to be confirmed @endif.
                                     Delivery follows manual VPS assignment by our team, so it is not instant.</p>
                             @endif

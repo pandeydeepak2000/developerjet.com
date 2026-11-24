@@ -13,7 +13,7 @@ When your service becomes **Active**, its access details appear on the service p
 3. Check:
    - **Overview → Service URL** — the browser address for web-based products.
    - **Server → IP address** — shown once the service is active.
-   - **Server → Access** — whether the service is managed (root restricted) or unmanaged (SSH/root).
+   - **Server → Access** — your SSH/root access details.
    - The **Help** panel and any access instructions provided by our team.
 
 ## How each product is accessed

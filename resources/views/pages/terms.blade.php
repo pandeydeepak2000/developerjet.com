@@ -24,6 +24,8 @@
             <p>You are responsible for providing accurate information and keeping your account credentials secure. Please let us know promptly if you believe access to your account has been compromised.</p>
             <h3>Availability and changes</h3>
             <p>We work to keep services dependable, but availability may be affected by maintenance, third-party services, or events outside our control. We may update features or these terms; material changes will be communicated through appropriate channels.</p>
+            <h3>Self-hosted servers, your data and backups</h3>
+            <p>Hosting plans are self-hosted: we provide the VPS and install the software you ordered, then hand the server over with full root (administrator) access. From handover you are responsible for the server, its configuration, updates and the data on it. DeveloperJet is not responsible for changes made, software installed, or data changed, deleted or lost on your server. Backups are not included in any plan; a separate backup plan can be arranged with our sales team.</p>
             <h3>Responsible use</h3>
             <p>You may not use DeveloperJet services to break the law, interfere with another person’s access, or compromise systems. You retain rights to content you provide, and you authorize us to process it only as needed to deliver the service.</p>
             <h3>Questions and contact</h3>

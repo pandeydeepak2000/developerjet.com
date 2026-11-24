@@ -1,6 +1,6 @@
 ---
 title: Hermes CLI
-excerpt: Run the Hermes AI agent from a terminal on a managed VPS, connected over SSH or PuTTY.
+excerpt: Run the Hermes AI agent from a terminal on your own VPS, connected over SSH or PuTTY with root access.
 order: 1
 ---
 Hermes CLI is the Hermes AI agent installed on a VPS assigned to you and used from a terminal. DeveloperJet manages the server; you use Hermes.
@@ -16,7 +16,7 @@ You are comfortable opening an SSH or PuTTY session and working in a terminal. Y
 - A security baseline applied during setup.
 - Connection details delivered through your dashboard.
 
-**Not included:** AI model usage (you bring your own provider key), unrestricted root access (this is a managed service) and a browser interface — for that, see [Hermes Workspace](/docs/hermes-workspace).
+**Not included:** AI model usage (you bring your own provider key), backups (ask our sales team for a backup plan) and a browser interface — for that, see [Hermes Workspace](/docs/hermes-workspace).
 
 ## Getting started
 

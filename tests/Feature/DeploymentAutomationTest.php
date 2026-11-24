@@ -38,18 +38,18 @@ class DeploymentAutomationTest extends TestCase
     public static function products(): array
     {
         return [
-            'hermes-cli launch' => ['hermes-cli-launch', 'hermes_cli', 'managed', true],
-            'hermes-cli grow' => ['hermes-cli-grow', 'hermes_cli', 'managed', true],
-            'hermes-cli scale' => ['hermes-cli-scale', 'hermes_cli', 'managed', true],
-            'hermes-workspace launch' => ['hermes-workspace-launch', 'hermes_workspace', 'managed', true],
-            'hermes-workspace grow' => ['hermes-workspace-grow', 'hermes_workspace', 'managed', true],
-            'hermes-workspace scale' => ['hermes-workspace-scale', 'hermes_workspace', 'managed', true],
-            'n8n launch' => ['n8n-launch', 'n8n', 'managed', false],
-            'n8n grow' => ['n8n-grow', 'n8n', 'managed', false],
-            'n8n scale' => ['n8n-scale', 'n8n', 'managed', false],
-            'ai complete bundle' => ['ai-complete-bundle', 'bundle', 'managed', false],
-            'openclaw starter' => ['openclaw-starter', 'openclaw', 'managed', false],
-            'claude-code starter' => ['claude-code-a', 'claude_code', 'managed', false],
+            'hermes-cli launch' => ['hermes-cli-launch', 'hermes_cli', 'unmanaged', true],
+            'hermes-cli grow' => ['hermes-cli-grow', 'hermes_cli', 'unmanaged', true],
+            'hermes-cli scale' => ['hermes-cli-scale', 'hermes_cli', 'unmanaged', true],
+            'hermes-workspace launch' => ['hermes-workspace-launch', 'hermes_workspace', 'unmanaged', true],
+            'hermes-workspace grow' => ['hermes-workspace-grow', 'hermes_workspace', 'unmanaged', true],
+            'hermes-workspace scale' => ['hermes-workspace-scale', 'hermes_workspace', 'unmanaged', true],
+            'n8n launch' => ['n8n-launch', 'n8n', 'unmanaged', false],
+            'n8n grow' => ['n8n-grow', 'n8n', 'unmanaged', false],
+            'n8n scale' => ['n8n-scale', 'n8n', 'unmanaged', false],
+            'ai complete bundle' => ['ai-complete-bundle', 'bundle', 'unmanaged', false],
+            'openclaw starter' => ['openclaw-starter', 'openclaw', 'unmanaged', false],
+            'claude-code starter' => ['claude-code-a', 'claude_code', 'unmanaged', false],
             'docker-vps starter' => ['docker-vps-a', 'docker_vps', 'unmanaged', false],
             'docker-vps business' => ['docker-vps-c', 'docker_vps', 'unmanaged', false],
         ];
@@ -148,7 +148,7 @@ class DeploymentAutomationTest extends TestCase
         $this->liftRecipeGates();
         $service = $this->paidService('n8n-launch');
         $admin = $this->staff();
-        $server = $this->server(['access_model' => 'managed']);
+        $server = $this->server(['access_model' => 'unmanaged']);
 
         // No catalogue profile and no staff-confirmed size -> assignment is refused; nothing is invented.
         $this->expectException(OrderException::class);

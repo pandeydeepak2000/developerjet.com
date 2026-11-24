@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $managed = $page['access_model'] === 'managed';
+        $managed = $page['access_model'] === 'managed'; // legacy; all current products are self-hosted
         $hasYearly = $plans->contains(fn ($p) => $p->hasPublishedPrice() && $p->priceFor('yearly'));
         $anyIndicative = $plans->contains(fn ($p) => $p->hasPublishedPrice() && ! $p->isApproved());
         $anyPending = $plans->contains(fn ($p) => ! $p->hasPublishedPrice());
@@ -36,7 +36,7 @@
                     @endif
                 </div>
                 <div class="dj-badges">
-                    <span class="dj-badge {{ $managed ? 'dj-badge--blue' : 'dj-badge--navy' }}"><x-icon :name="$managed ? 'shield' : 'key'" :size="15" /> {{ $managed ? 'Managed hosting' : 'Unmanaged VPS' }}</span>
+                    <span class="dj-badge {{ $managed ? 'dj-badge--blue' : 'dj-badge--navy' }}"><x-icon :name="$managed ? 'shield' : 'key'" :size="15" /> {{ $managed ? 'Restricted access' : 'Self-hosted · full root access' }}</span>
                     <span class="dj-badge"><x-icon name="clock" :size="15" /> Prepared by our team after checkout — not instant</span>
                 </div>
                 @if (! empty($page['included_access']))
@@ -70,7 +70,7 @@
                     <p class="dj-eyebrow">Plans &amp; pricing</p>
                     <h2 id="pricing-title">Choose your {{ $productName }} plan</h2>
                     <p class="dj-section-head__text">
-                        {{ $managed ? 'Every plan runs on a VPS dedicated to you and is set up by our team.' : 'Every plan is a VPS dedicated to you, handed over with SSH/root access.' }}
+                        Every plan is a VPS dedicated to you, set up by our team and handed over with full SSH/root access.
                     </p>
                 </div>
                 @if ($hasYearly)

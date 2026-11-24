@@ -1,5 +1,5 @@
 <svg class="dj-ill" viewBox="0 0 600 460" role="img" aria-labelledby="ill-cc-title" xmlns="http://www.w3.org/2000/svg" font-family="Inter Variable, Inter, system-ui, sans-serif">
-    <title id="ill-cc-title">{{ $alt ?? 'A development cycle on a managed server: plan, edit, run and test.' }}</title>
+    <title id="ill-cc-title">{{ $alt ?? 'A development cycle on your own server: plan, edit, run and test.' }}</title>
     <defs>
         <marker id="cc-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#2563EB"/></marker>
     </defs>
@@ -36,7 +36,7 @@
         <rect width="352" height="208" rx="14" fill="#0B1736"/>
         <path d="M0 36H352" stroke="#1E3462"/>
         <circle cx="20" cy="18" r="5" fill="#33507F"/><circle cx="38" cy="18" r="5" fill="#33507F"/><circle cx="56" cy="18" r="5" fill="#33507F"/>
-        <text x="176" y="23" font-size="11" fill="#94A3B8" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">ssh · your managed server</text>
+        <text x="176" y="23" font-size="11" fill="#94A3B8" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">ssh · your own server</text>
         <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
             <text x="20" y="66"><tspan fill="#60A5FA">$</tspan><tspan fill="#E2E8F0" dx="8">claude</tspan></text>
             <text x="20" y="92"><tspan fill="#60A5FA">›</tspan><tspan fill="#E2E8F0" dx="8">Add validation to saveReport</tspan></text>
@@ -46,12 +46,12 @@
         </g>
     </g>
 
-    {{-- Managed server --}}
+    {{-- Your server --}}
     <g transform="translate(24 300)">
         <rect width="184" height="104" rx="14" fill="#fff" stroke="#D5DEEA"/>
         <rect x="18" y="20" width="36" height="16" rx="4" fill="none" stroke="#2563EB" stroke-width="2"/>
         <rect x="18" y="42" width="36" height="16" rx="4" fill="none" stroke="#2563EB" stroke-width="2"/>
-        <text x="66" y="36" font-size="13" font-weight="700" fill="#17243B">Managed server</text>
+        <text x="66" y="36" font-size="13" font-weight="700" fill="#17243B">Your server</text>
         <text x="66" y="54" font-size="11" fill="#5B6B82">Always on</text>
         <text x="18" y="84" font-size="11" fill="#5B6B82">Sign in with your own Claude</text>
     </g>

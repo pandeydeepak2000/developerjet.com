@@ -15,7 +15,7 @@
                     <a class="dj-btn dj-btn--secondary dj-btn--lg" href="{{ route('hermes.workspace') }}">Explore Workspace</a>
                 </div>
                 <div class="dj-badges">
-                    <span class="dj-badge dj-badge--blue"><x-icon name="shield" :size="15" /> Managed hosting</span>
+                    <span class="dj-badge dj-badge--blue"><x-icon name="key" :size="15" /> Self-hosted · full root access</span>
                     <span class="dj-badge"><x-icon name="server" :size="15" /> A VPS dedicated to you</span>
                 </div>
             </div>

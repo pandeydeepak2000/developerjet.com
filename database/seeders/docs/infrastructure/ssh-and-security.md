@@ -67,7 +67,7 @@ Commands that **change** things need more care:
 3. Under *Connection → SSH → Auth → Credentials*, select your `.ppk` file.
 4. Open the session and log in with your username.
 
-## Unmanaged servers: harden SSH
+## Harden SSH on your server
 
 On a Docker VPS you are responsible for SSH settings. After confirming key login works **in a second terminal**:
 
@@ -81,9 +81,9 @@ sudo systemctl reload ssh   # the service may be called sshd on some systems
 
 > **Warning:** Keep your current session open until you have tested a new login. A mistake in `sshd_config` can lock you out.
 
-## Firewall (unmanaged servers)
+## Firewall
 
-A firewall closes every port except the ones you allow. On an unmanaged VPS this is your job, and it is the single most effective protection you can add.
+A firewall closes every port except the ones you allow. After handover this is your job, and it is the single most effective protection you can add.
 
 ```bash
 # Allow SSH FIRST - if you skip this step you will lock yourself out
@@ -102,7 +102,7 @@ sudo ufw status verbose
 
 If you are locked out after changing SSH or firewall settings, open a **Technical Support** ticket — we can restore access.
 
-## Docker commands (unmanaged Docker VPS)
+## Docker commands (Docker VPS)
 
 On a Docker VPS you run your own containers. The full walkthrough — updating the system, a `compose.yaml` example and backups — is in [Docker VPS](/docs/docker-vps). The commands you will use most:
 

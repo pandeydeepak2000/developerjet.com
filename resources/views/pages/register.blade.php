@@ -22,7 +22,7 @@
         description="Create an account, verify your email, then add a plan to your cart."
         :items="[
             ['label' => 'HERMES', 'title' => 'CLI and Workspace plans', 'description' => 'Choose CLI installed for SSH or PuTTY access, or Workspace installed with Docker on a VPS.'],
-            ['label' => 'n8n', 'title' => 'n8n on a managed VPS', 'description' => 'Review n8n plans and confirm the VPS configuration with Sales.'],
+            ['label' => 'n8n', 'title' => 'Self-hosted n8n', 'description' => 'n8n installed for you on your own VPS with root access.'],
             ['label' => 'YOUR NEXT STEP', 'title' => 'Get started with Sales', 'description' => 'Choose a plan and use its Get started button to message Sales on WhatsApp.'],
         ]"
         cta-title="Want to see the available plans?"

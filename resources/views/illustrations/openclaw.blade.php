@@ -56,7 +56,7 @@
         <text x="60" y="290" font-size="12" font-weight="600" fill="#17243B">Your AI provider key</text>
 
         <rect x="16" y="320" width="192" height="40" rx="10" fill="#0B1736"/>
-        <text x="112" y="345" font-size="12" font-weight="600" fill="#fff" text-anchor="middle">Managed by DeveloperJet</text>
+        <text x="112" y="345" font-size="12" font-weight="600" fill="#fff" text-anchor="middle">Set up by DeveloperJet</text>
     </g>
 
     {{-- Note --}}

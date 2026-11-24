@@ -113,14 +113,15 @@ class NavigationStructureTest extends TestCase
         $this->assertStringNotContainsString('id="primary-menu"', Str::between($html, '<header', '</header>'));
     }
 
-    public function test_product_pages_explain_included_access_without_promising_root_on_managed_products(): void
+    public function test_every_product_page_states_self_hosted_root_access_and_no_backups(): void
     {
-        $this->get('/docker-vps')->assertSee('Included access:')->assertSee('root (administrator) access')->assertSee('DEVELOPER HOSTING · UNMANAGED');
-        foreach (['/claude-code', '/hermes-cli', '/hermes-workspace', '/n8n', '/openclaw', '/ai-complete-bundle'] as $path) {
+        $this->get('/docker-vps')->assertSee('Included access:')->assertSee('root (administrator) access')->assertSee('DEVELOPER HOSTING · SELF-HOSTED');
+        foreach (['/claude-code', '/hermes-cli', '/hermes-workspace', '/n8n', '/openclaw', '/ai-complete-bundle', '/docker-vps'] as $path) {
             $html = $this->get($path)->assertOk()->getContent();
             $note = Str::between($html, 'data-included-access>', '</p>');
-            $this->assertStringContainsString('Managed service', $note, $path);
-            $this->assertMatchesRegularExpression('/root access is not included|no SSH or root access/', $note, $path);
+            $this->assertMatchesRegularExpression('/root (access|\(administrator\) access)/', $note, $path);
+            $this->assertStringContainsString('Backups are not included', $html, $path);
+            $this->assertStringNotContainsString('Managed', strip_tags($html), $path);
         }
     }
 

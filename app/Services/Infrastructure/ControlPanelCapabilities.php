@@ -18,7 +18,7 @@ class ControlPanelCapabilities
         $server = $service->server;
         $provider = $server?->supplier;
         $adapter = $this->adapters->for($provider);
-        $unmanaged = ($server?->access_model ?? 'managed') === 'unmanaged';
+        $unmanaged = ($server?->access_model ?? 'unmanaged') === 'unmanaged';
         $out = [];
 
         foreach (config('infrastructure.controls') as $key => $control) {

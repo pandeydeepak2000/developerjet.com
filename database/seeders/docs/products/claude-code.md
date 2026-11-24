@@ -1,9 +1,9 @@
 ---
 title: Claude Code Hosting
-excerpt: Run Claude Code on an always-on managed VPS, using your own eligible Claude subscription or API credentials.
+excerpt: Run Claude Code on an always-on VPS of your own, using your own eligible Claude subscription or API credentials.
 order: 5
 ---
-Claude Code Hosting gives you a managed VPS with the Claude Code CLI installed, so your coding sessions can run on an always-on server instead of your laptop.
+Claude Code Hosting gives you a VPS of your own with the Claude Code CLI installed and full root access, so your coding sessions can run on an always-on server instead of your laptop.
 
 > **Important:** You must bring your **own eligible Claude subscription or API credentials**. DeveloperJet does not provide, include or resell Claude access, and is not affiliated with Anthropic.
 

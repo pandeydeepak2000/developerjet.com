@@ -93,10 +93,10 @@ class DeploymentService
         ]);
     }
 
-    /** A managed plan must not be given an unmanaged server (and vice-versa); the architecture must be supported. */
+    /** The server's access model must match the plan's (all current plans are self-hosted / root access); the architecture must be supported. */
     public function accessModelMismatch(Server $server, Service $service): ?string
     {
-        $model = $service->plan?->access_model ?? 'managed';
+        $model = $service->plan?->access_model ?? 'unmanaged';
         if ($server->access_model !== $model) {
             return "This server is set up for {$server->access_model} access but the plan is {$model}.";
         }
@@ -166,7 +166,7 @@ class DeploymentService
             return 'n8n commercial resale licensing has not been verified.';
         }
         if ($gate === 'openclaw_spec' && ! Setting::bool('openclaw.spec_approved')) {
-            return 'The OpenClaw managed-hosting specification has not been approved.';
+            return 'The OpenClaw hosting specification has not been approved.';
         }
         if ($mode === 'live' && (! config('provisioning.live_enabled') || ! $this->worker()->isLive())) {
             return 'Live provisioning is disabled. Run a dry run instead.';

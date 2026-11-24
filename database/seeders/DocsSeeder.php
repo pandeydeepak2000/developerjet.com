@@ -36,6 +36,11 @@ class DocsSeeder extends Seeder
     /** sha1 of every article body shipped by earlier versions of this seeder (v0.1 starter content). */
     public const SHIPPED_BODY_HASHES = [
         'f1e5a3dd999be7550af7a140e364431952009cf9', // payment-methods before PTSure was removed (2026-11-24)
+        // Bodies before the self-hosted rewording (2026-11-24): every product is handed over with root access.
+        '39c271f58f3dc9bb7db28ec3dcb15310eec1a31f', 'c67064a99b6c4cf83f844ac0b897dff3fce036a0', '00e62bafa60a1d500c9d0faaf69d07db5eb7b74b',
+        'b10ec159f1bf551e99766151757136a4a2fd994c', '9fb7224970c3b8e1e208809d3172b4fc96ae7360', '7f5c43852eac5421753c14588d6e10c99a76caa5',
+        '6a95327aca6790754a83f6e8346394337a1ac512', '10b75b6bc0e00afbb62d88f0c645ce7e588c09a3', '1970503f5b1615fe193b816fe3c64a16725ef63b',
+        '6e25657aa456a81508ad102adcea6ff15954edbd', '2cd0a6e67d8af4a3f594a79eeff5c4f0164c5929',
         '9db903b2818f4ef095609931e12146ca9c10190f', '33c16e8762f601ae0417b7f9261e7074c4d163b8', '8205098ba1eb3da7322eaa32cab40ad6fca18abb',
         '7ee74545f90332d804caddc88d6959dcaf43a11a', 'd154ce1c2ba7f108bddefcbaf9845a0013021ae5', '8171cb3639c6b40a4b5dc347baa488d33c172215',
         'd7efbf21b6f8e8872dc194702580b900607c60c1', '76327baf55d3e3a0bdfadcd21cb29bb0a6764a45', '928731afdc19de9fcc83fe0e80b6e945208edb09',

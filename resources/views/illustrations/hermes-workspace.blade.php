@@ -48,6 +48,6 @@
         <rect x="240" y="18" width="78" height="40" rx="9" fill="#13254F" stroke="#2C4A80"/>
         <text x="279" y="43" font-size="12" font-weight="600" fill="#fff" text-anchor="middle">HTTPS</text>
         <text x="518" y="35" font-size="13" font-weight="700" fill="#fff" text-anchor="end">Dedicated VPS</text>
-        <text x="518" y="53" font-size="12" fill="#B6C3D6" text-anchor="end">Managed by DeveloperJet</text>
+        <text x="518" y="53" font-size="12" fill="#B6C3D6" text-anchor="end">Set up by DeveloperJet</text>
     </g>
 </svg>

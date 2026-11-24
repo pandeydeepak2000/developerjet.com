@@ -59,20 +59,20 @@ return [
      | customer receives. Steps reference the catalogue above; RecipeRegistry validates this on every load.
      */
     'recipes' => [
-        'hermes_cli' => ['version' => '1.1.0', 'label' => 'Hermes CLI', 'needs_domain' => false, 'access_model' => 'managed',
+        'hermes_cli' => ['version' => '1.1.0', 'label' => 'Hermes CLI', 'needs_domain' => false, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_hermes_cli', 'configure_auth', 'configure_monitoring', 'health_check', 'record_state']],
-        'hermes_workspace' => ['version' => '1.1.0', 'label' => 'Hermes Workspace', 'needs_domain' => true, 'access_model' => 'managed',
+        'hermes_workspace' => ['version' => '1.1.0', 'label' => 'Hermes Workspace', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_workspace', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
-        'n8n' => ['version' => '1.1.0', 'label' => 'n8n', 'needs_domain' => true, 'gated' => 'n8n_license', 'access_model' => 'managed',
+        'n8n' => ['version' => '1.1.0', 'label' => 'n8n', 'needs_domain' => true, 'gated' => 'n8n_license', 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_n8n', 'configure_persistence', 'configure_backup', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
-        'bundle' => ['version' => '1.1.0', 'label' => 'AI Complete Bundle', 'needs_domain' => true, 'gated' => 'n8n_license', 'access_model' => 'managed',
+        'bundle' => ['version' => '1.1.0', 'label' => 'AI Complete Bundle', 'needs_domain' => true, 'gated' => 'n8n_license', 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_runtime_once', 'install_hermes_workspace', 'install_n8n', 'configure_network_isolation', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
-        'openclaw' => ['version' => '0.2.0', 'label' => 'OpenClaw', 'needs_domain' => true, 'gated' => 'openclaw_spec', 'access_model' => 'managed',
+        'openclaw' => ['version' => '0.2.0', 'label' => 'OpenClaw', 'needs_domain' => true, 'gated' => 'openclaw_spec', 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'create_isolated_user', 'install_openclaw', 'configure_gateway_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
         // The customer supplies an eligible Claude subscription/API credential. Access is never resold implicitly.
-        'claude_code' => ['version' => '0.1.0', 'label' => 'Claude Code', 'needs_domain' => false, 'access_model' => 'managed', 'customer_credentials' => 'claude',
+        'claude_code' => ['version' => '0.1.0', 'label' => 'Claude Code', 'needs_domain' => false, 'access_model' => 'unmanaged', 'customer_credentials' => 'claude',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'create_isolated_user', 'install_claude_code', 'configure_monitoring', 'health_check', 'record_state']],
-        // Unmanaged developer VPS: Docker Engine + Compose only. A management UI is out of scope until one is approved.
+        // Self-hosted developer VPS: Docker Engine + Compose only. A management UI is out of scope until one is approved.
         'docker_vps' => ['version' => '0.1.0', 'label' => 'Docker Engine and Compose', 'needs_domain' => false, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'configure_monitoring', 'health_check', 'record_state']],
     ],

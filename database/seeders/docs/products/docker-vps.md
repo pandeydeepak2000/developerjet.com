@@ -1,9 +1,9 @@
 ---
 title: Docker VPS
-excerpt: An unmanaged VPS delivered with Docker Engine and Compose, with full SSH/root access.
+excerpt: A VPS delivered with Docker Engine and Compose, with full SSH/root access.
 order: 6
 ---
-Docker VPS is an **unmanaged** server. We deliver it with Docker Engine and Docker Compose installed and checked; from then on you manage it.
+Docker VPS is a **self-hosted** server. We deliver it with Docker Engine and Docker Compose installed and checked; from then on it is yours to run.
 
 [diagram: access-models]
 
@@ -64,7 +64,7 @@ docker compose logs -f web
 
 ## Backups
 
-Backups are your responsibility on an unmanaged server. Copy volumes and databases off the server regularly and test restoring them.
+Backups are your responsibility (they are not included; ask our sales team for a backup plan). Copy volumes and databases off the server regularly and test restoring them.
 
 ## Server controls
 
