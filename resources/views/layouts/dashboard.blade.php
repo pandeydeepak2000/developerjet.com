@@ -45,7 +45,7 @@
     <div class="dash dash-app">
         <aside class="dash-nav app-side" id="app-side" aria-label="Account navigation">
             <div class="app-side__top">
-                <a class="app-brand" href="{{ route('dashboard') }}" aria-label="DeveloperJet dashboard"><img src="{{ asset('images/logo.png') }}" alt="DeveloperJet" width="142" height="40"></a>
+                <a class="app-brand" href="{{ route('dashboard') }}" aria-label="DeveloperJet client area"><img src="{{ asset('images/logo-mark.png') }}" alt="" width="36" height="36"><span><strong>DeveloperJet</strong><small>Client area</small></span></a>
                 <button class="app-side__close" type="button" aria-label="Close menu" data-app-close><x-icon name="x" :size="22" /></button>
             </div>
             <div class="dash-profile">

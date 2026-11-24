@@ -1120,3 +1120,10 @@ body.dj-drawer-open { overflow: hidden; }
   .dj-body .app-content{padding:18px 14px 32px}
 }
 @media (prefers-reduced-motion:reduce){.dj-body .dash-app .app-side{transition:none}}
+/* App brand: icon + wordmark text (the navy pill logo looked out of place on the white sidebar). */
+.dj-body .app-brand{display:flex;align-items:center;gap:10px;color:#0b1736;text-decoration:none}
+.dj-body .app-brand img{width:36px;height:36px;border-radius:10px}
+.dj-body .app-brand span{display:grid;line-height:1.15}
+.dj-body .app-brand strong{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.dj-body .app-brand small{color:var(--dj-muted,#64748b);font-size:12px;font-weight:600}
+.dj-body .app-side__top{padding:4px 2px 12px}
