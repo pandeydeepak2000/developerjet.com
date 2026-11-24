@@ -9,6 +9,7 @@ use App\Http\Controllers\BusinessAutomationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CustomerApiKeyController;
 use App\Http\Controllers\CustomerAutomationController;
 use App\Http\Controllers\CustomerInvoiceController;
 use App\Http\Controllers\CustomerOrderController;
@@ -113,6 +114,9 @@ Route::middleware(['auth', 'verified', 'impersonation.readonly'])->group(functio
 
         Route::get('/profile', [CustomerProfileController::class, 'show'])->name('dashboard.profile');
         Route::put('/profile', [CustomerProfileController::class, 'update'])->middleware('throttle:20,1')->name('dashboard.profile.update');
+        Route::get('/api-keys', [CustomerApiKeyController::class, 'index'])->name('dashboard.keys');
+        Route::post('/api-keys', [CustomerApiKeyController::class, 'store'])->middleware('throttle:20,1')->name('dashboard.keys.store');
+        Route::delete('/api-keys/{key}', [CustomerApiKeyController::class, 'destroy'])->whereNumber('key')->name('dashboard.keys.destroy');
         Route::put('/profile/billing', [CustomerProfileController::class, 'billing'])->middleware('throttle:20,1')->name('dashboard.profile.billing');
         Route::put('/profile/password', [CustomerProfileController::class, 'password'])->middleware('throttle:10,1')->name('dashboard.profile.password');
 

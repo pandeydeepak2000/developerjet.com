@@ -214,6 +214,16 @@ if (dashToggle && dashSections) {
     });
 }
 
+// Checkout: show the provider + key fields only when "Add a new key" is chosen.
+document.querySelectorAll('[data-ai-choice]').forEach((box) => {
+    const select = box.querySelector('[data-ai-select]');
+    const fields = box.querySelector('[data-ai-new]');
+    if (!select || !fields) return;
+    const sync = () => { fields.hidden = select.value !== 'new'; };
+    select.addEventListener('change', sync);
+    sync();
+});
+
 // Checkout: Razorpay shows the total with GST, wallet shows the GST-free total.
 const payOptions = document.querySelector('[data-pay-options]');
 if (payOptions) {

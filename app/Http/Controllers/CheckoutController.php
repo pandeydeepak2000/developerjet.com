@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerApiKey;
 use App\Models\Plan;
 use App\Models\Service;
 use App\Models\User;
@@ -11,9 +12,9 @@ use App\Services\OrderService;
 use App\Services\Payments\GatewayManager;
 use App\Services\TaxService;
 use App\Services\WalletService;
+use App\Support\Audit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -46,6 +47,7 @@ class CheckoutController extends Controller
             'gstPercent' => app(TaxService::class)->standardPercent(),
             'gateways' => $gateways->available(),
             'wallet' => $wallet,
+            'savedKeys' => CustomerApiKey::where('user_id', $request->user()->id)->latest('id')->get(),
             'approved' => collect($summary['lines'])->every(fn ($l) => $l['plan']->isApproved()),
         ]);
     }
@@ -132,11 +134,12 @@ class CheckoutController extends Controller
             'setup.*.domain_mode' => ['nullable', 'in:default,own'],
             'setup.*.domain' => ['nullable', 'required_if:setup.*.domain_mode,own', 'string', 'max:190', 'regex:/^(?=.{4,190}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/i'],
             'setup.*.ai_provider' => ['nullable', 'in:'.implode(',', $providers)],
-            'setup.*.ai_api_key' => ['nullable', 'required_with:setup.*.ai_provider', 'string', 'min:8', 'max:300'],
+            'setup.*.api_key_id' => ['nullable', 'string', 'max:20'],
+            'setup.*.ai_api_key' => ['nullable', 'string', 'min:8', 'max:300', 'not_regex:/\s/'],
         ], [
             'setup.*.domain.required_if' => 'Enter your domain, or choose "Use a DeveloperJet address".',
             'setup.*.domain.regex' => 'Enter a domain like n8n.yourcompany.com (no http:// or slashes).',
-            'setup.*.ai_api_key.required_with' => 'Paste the API key for the provider you selected, or leave the provider empty to add it later.',
+            'setup.*.ai_api_key.min' => 'That API key looks too short. Paste the full key, or choose to add it later.',
         ]);
 
         $out = [];
@@ -152,9 +155,16 @@ class CheckoutController extends Controller
                     $choice['domain'] = strtolower(trim((string) $input['domain']));
                 }
             }
-            if ($needs['ai'] && ! empty($input['ai_provider']) && ! empty($input['ai_api_key'])) {
-                $choice['ai_provider'] = (string) $input['ai_provider'];
-                $choice['ai_key'] = Crypt::encryptString(trim((string) $input['ai_api_key']));
+            if ($needs['ai']) {
+                $pick = (string) ($input['api_key_id'] ?? '');
+                if (ctype_digit($pick) && ($saved = CustomerApiKey::where('user_id', $request->user()->id)->find((int) $pick))) {
+                    $choice['api_key_id'] = $saved->id; // a key already saved on the account
+                } elseif (($pick === 'new' || $pick === '') && ! empty($input['ai_provider']) && ! empty($input['ai_api_key'])) {
+                    // A new key is saved to the account straight away (encrypted), so it can be reused and managed.
+                    $saved = CustomerApiKey::store($request->user(), (string) $input['ai_provider'], (string) $input['ai_api_key'], 'Added at checkout');
+                    Audit::log('customer.api_key_added', $saved, ['provider' => $saved->provider], $request->user()->id);
+                    $choice['api_key_id'] = $saved->id;
+                }
             }
             if ($choice) {
                 $out[$plan->id] = $choice;

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Addon;
+use App\Models\CustomerApiKey;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentAttempt;
@@ -379,7 +380,16 @@ class OrderService
             }
         }
 
-        if ($service->usesAi() && ! empty($setup['ai_provider']) && ! empty($setup['ai_key'])) {
+        if ($service->usesAi() && ! empty($setup['api_key_id'])) {
+            // Key saved on the customer's account (chosen or added at checkout): copied onto the service and linked.
+            $saved = CustomerApiKey::where('user_id', $service->user_id)->find((int) $setup['api_key_id']);
+            if ($saved) {
+                $service->forceFill(['config' => $config])->save();
+                $saved->applyTo($service);
+                $config = $service->fresh()->config ?? $config;
+                $changes['ai_provider'] = $service->ai_provider;
+            }
+        } elseif ($service->usesAi() && ! empty($setup['ai_provider']) && ! empty($setup['ai_key'])) {
             try {
                 $changes['ai_provider'] = $setup['ai_provider'];
                 $changes['ai_api_key'] = Crypt::decryptString($setup['ai_key']);

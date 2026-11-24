@@ -1161,3 +1161,21 @@ body.dj-drawer-open { overflow: hidden; }
 .dj-body .billed-to__body p{margin:0}
 .dj-body .billed-to__missing{color:#92400e}
 .dj-body .billing-form .btn-row{margin-top:12px}
+/* AI API keys page + key pickers */
+.dj-body .key-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #eef1f6}
+.dj-body .key-row:first-of-type{border-top:0}
+.dj-body .key-row__icon{display:grid;place-items:center;flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:#fff4e0;color:#b45309}
+.dj-body .key-row__body{display:grid;flex:1;min-width:0;gap:2px}
+.dj-body .key-row__body small{color:var(--dj-muted,#64748b);overflow-wrap:anywhere}
+.dj-body .key-row code,.dj-body .ai-pick code{font-size:12.5px;background:#f1f5fb;padding:1px 6px;border-radius:6px}
+.dj-body .dash-chip-link.is-danger{color:#b91c1c;border-color:#fecaca;background:#fff;cursor:pointer;font:inherit;font-weight:600;font-size:14px}
+.dj-body .key-form{display:grid;gap:12px}
+.dj-body .key-form label{display:grid;gap:6px;font-weight:600}
+.dj-body .key-help li{padding:8px 0}
+.dj-body .ai-pick{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:8px 0}
+.dj-body .ai-pick label{display:grid;gap:6px;flex:1 1 280px;font-weight:600}
+.dj-body .ai-new{margin-top:10px}
+.dj-body .ai-new summary{cursor:pointer;font-weight:700;color:#2563eb}
+.dj-body .ai-new[open] summary{margin-bottom:10px}
+.dj-body .ai-choice{display:grid;gap:10px}
+.dj-body .ai-choice>label{display:grid;gap:6px;font-weight:600}

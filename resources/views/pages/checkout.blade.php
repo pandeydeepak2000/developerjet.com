@@ -56,18 +56,27 @@
 
                                 @if ($s['needs']['ai'])
                                     <p class="setup-label">AI provider key <small>(optional — add it later if you prefer)</small></p>
-                                    <div class="form-grid">
-                                        <label>Provider
-                                            <select name="setup[{{ $pid }}][ai_provider]">
-                                                <option value="">Add later in dashboard</option>
-                                                @foreach ($aiProviders as $key => $label)<option value="{{ $key }}" @selected(old("setup.$pid.ai_provider") === $key)>{{ $label }}</option>@endforeach
+                                    <div class="ai-choice" data-ai-choice>
+                                        <label>Key
+                                            <select name="setup[{{ $pid }}][api_key_id]" data-ai-select>
+                                                <option value="">Add later in my dashboard</option>
+                                                @foreach ($savedKeys as $k)<option value="{{ $k->id }}" @selected($loop->first)>Use saved: {{ $k->label }} · {{ $k->providerLabel() }} · {{ $k->masked() }}</option>@endforeach
+                                                <option value="new" @selected($savedKeys->isEmpty())>Add a new key</option>
                                             </select>
                                         </label>
-                                        <label>API key
-                                            <input type="password" name="setup[{{ $pid }}][ai_api_key]" maxlength="300" autocomplete="off" placeholder="sk-…">
-                                        </label>
+                                        <div class="form-grid ai-choice__new" data-ai-new>
+                                            <label>Provider
+                                                <select name="setup[{{ $pid }}][ai_provider]">
+                                                    <option value="">Choose provider</option>
+                                                    @foreach ($aiProviders as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach
+                                                </select>
+                                            </label>
+                                            <label>API key
+                                                <input type="password" name="setup[{{ $pid }}][ai_api_key]" maxlength="300" autocomplete="new-password" placeholder="Paste your key">
+                                            </label>
+                                        </div>
                                     </div>
-                                    <p class="setup-note"><x-icon name="lock" :size="16" /> Stored encrypted and used only to configure your service. We never show it again or email it. AI usage is billed by your provider.</p>
+                                    <p class="setup-note"><x-icon name="lock" :size="16" /> Saved to your account encrypted (manage it under AI API keys). We only ever show the last 4 characters and never email it. AI usage is billed by your provider.</p>
                                 @endif
                             </fieldset>
                         @endforeach

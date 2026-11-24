@@ -25,6 +25,7 @@
                 ['dashboard.projects', 'Projects', 'dashboard.projects*', 'code'],
                 ['dashboard.requests', 'Quotes', 'dashboard.requests*', 'chat'],
                 ['dashboard.automation', 'Automation requests', 'dashboard.automation*', 'workflow'],
+                ['dashboard.keys', 'AI API keys', 'dashboard.keys*', 'key'],
             ],
             'Billing' => array_values(array_filter([
                 \Illuminate\Support\Facades\Route::has('dashboard.subscriptions') ? ['dashboard.subscriptions', 'Subscriptions & renewals', 'dashboard.subscriptions*', 'clock'] : null,

@@ -114,16 +114,34 @@
 
     @if (in_array($service->kind, ['hermes_cli', 'hermes_workspace', 'bundle', 'openclaw', 'claude_code']))
         <div class="panel" id="ai"><h2>AI provider</h2>
+            @php $linked = $savedKeys->firstWhere('id', (int) ($service->config['api_key_id'] ?? 0)); @endphp
             @if ($service->aiConfigured())
-                <p><span class="badge badge-good">Configured</span> Provider: {{ $providers[$service->ai_provider] ?? $service->ai_provider }}. Your key is stored encrypted and cannot be displayed.</p>
+                <p><span class="badge badge-good">Configured</span> {{ $providers[$service->ai_provider] ?? $service->ai_provider }}@if ($linked) · <strong>{{ $linked->label }}</strong> <code>{{ $linked->masked() }}</code>@endif. The key is encrypted and never shown again.</p>
             @else
-                <div class="flash flash-info" role="note"><strong>Configuration incomplete.</strong> Your service works once installed, but needs an AI provider and key to answer requests. You can add it now or later.</div>
+                <div class="flash flash-info" role="note"><strong>Configuration incomplete.</strong> Your service works once installed, but needs an AI provider key to answer requests. Pick a saved key or add one.</div>
             @endif
-            <form method="POST" action="{{ route('dashboard.services.ai', $service) }}" class="form-grid" autocomplete="off">@csrf
-                <label>Provider<select name="ai_provider">@foreach ($providers as $k => $l)<option value="{{ $k }}" @selected($service->ai_provider === $k)>{{ $l }}</option>@endforeach</select></label>
-                <label>API key (write-only)<input type="password" name="ai_api_key" autocomplete="new-password" maxlength="300" required></label>
-                <div class="btn-row span-2"><button class="button-primary" type="submit">Save securely</button></div>
-            </form>
+
+            @if ($savedKeys->isNotEmpty())
+                <form method="POST" action="{{ route('dashboard.services.ai', $service) }}" class="ai-pick" autocomplete="off">@csrf
+                    <label>Use a saved key
+                        <select name="api_key_id" required>
+                            @foreach ($savedKeys as $k)<option value="{{ $k->id }}" @selected($linked && $linked->id === $k->id)>{{ $k->label }} · {{ $k->providerLabel() }} · {{ $k->masked() }}</option>@endforeach
+                        </select>
+                    </label>
+                    <button class="button-primary" type="submit">Use this key</button>
+                </form>
+                <p class="muted small">Or add a new key below. Manage all keys under <a href="{{ route('dashboard.keys') }}">AI API keys</a>.</p>
+            @endif
+
+            <details class="ai-new" @if ($savedKeys->isEmpty()) open @endif>
+                <summary>{{ $savedKeys->isEmpty() ? 'Add your API key' : 'Add a new key' }}</summary>
+                <form method="POST" action="{{ route('dashboard.services.ai', $service) }}" class="form-grid" autocomplete="off">@csrf
+                    <label>Provider<select name="ai_provider">@foreach ($providers as $k => $l)<option value="{{ $k }}" @selected($service->ai_provider === $k)>{{ $l }}</option>@endforeach</select></label>
+                    <label>API key<input type="password" name="ai_api_key" autocomplete="new-password" maxlength="300" required placeholder="Paste your key"></label>
+                    <div class="btn-row span-2"><button class="button-primary" type="submit">Save and use</button></div>
+                </form>
+                <p class="muted small">The key is saved to your account (encrypted) so you can reuse it on other services.</p>
+            </details>
             <form method="POST" action="{{ route('dashboard.services.ai', $service) }}">@csrf<input type="hidden" name="skip" value="1"><button class="link-danger" type="submit">Skip for now</button></form>
         </div>
     @endif

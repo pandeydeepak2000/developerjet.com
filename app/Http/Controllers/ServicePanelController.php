@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerApiKey;
 use App\Models\Service;
 use App\Services\Infrastructure\ControlPanelCapabilities;
 use App\Services\Provisioning\RecipeRegistry;
@@ -35,6 +36,7 @@ class ServicePanelController extends Controller
             'service' => $service,
             'latest' => $service->deployments->first(),
             'providers' => config('provisioning.ai_providers'),
+            'savedKeys' => CustomerApiKey::where('user_id', $service->user_id)->latest('id')->get(),
             'controls' => app(ControlPanelCapabilities::class)->for($service),
             'registry' => app(RecipeRegistry::class),
             'progress' => DeploymentProgress::for($service),
@@ -58,7 +60,7 @@ class ServicePanelController extends Controller
     public function configureAi(Request $request, Service $service): RedirectResponse
     {
         $this->authorize('view', $service);
-        abort_unless(in_array($service->kind, ['hermes_cli', 'hermes_workspace', 'bundle', 'openclaw', 'claude_code'], true), 404);
+        abort_unless($service->usesAi(), 404);
 
         if ($request->boolean('skip')) {
             $service->update(['config' => array_merge($service->config ?? [], ['ai_skipped' => true]), 'ai_provider' => null, 'ai_api_key' => null]);
@@ -66,15 +68,21 @@ class ServicePanelController extends Controller
             return back()->with('success', 'AI configuration skipped. Your service is delivered with configuration marked incomplete.');
         }
 
-        $data = $request->validate([
-            'ai_provider' => ['required', 'in:'.implode(',', array_keys(config('provisioning.ai_providers')))],
-            'ai_api_key' => ['required', 'string', 'min:8', 'max:300'],
-        ]);
+        // Either pick a key already saved on the account, or add a new one (which is also saved to the account).
+        if ($request->filled('api_key_id')) {
+            $key = CustomerApiKey::where('user_id', $service->user_id)->findOrFail($request->integer('api_key_id'));
+        } else {
+            $data = $request->validate([
+                'ai_provider' => ['required', 'in:'.implode(',', array_keys(config('provisioning.ai_providers')))],
+                'ai_api_key' => ['required', 'string', 'min:8', 'max:300', 'not_regex:/\s/'],
+            ]);
+            $key = CustomerApiKey::store($service->user, $data['ai_provider'], $data['ai_api_key'], 'Added on '.$service->label);
+            Audit::log('customer.api_key_added', $key, ['provider' => $key->provider], $service->user_id);
+        }
+        $key->applyTo($service);
+        Audit::log('service.ai_configured', $service, ['provider' => $key->provider]); // key never logged
 
-        $service->update(['ai_provider' => $data['ai_provider'], 'ai_api_key' => $data['ai_api_key'], 'config' => array_merge($service->config ?? [], ['ai_skipped' => false])]);
-        Audit::log('service.ai_configured', $service, ['provider' => $data['ai_provider']]); // key never logged
-
-        return back()->with('success', 'AI provider saved securely.');
+        return back()->with('success', $key->providerLabel().' key '.$key->masked().' is now used by this service.');
     }
 
     public function domain(Request $request, Service $service): RedirectResponse
