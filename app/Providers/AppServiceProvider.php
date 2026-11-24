@@ -57,7 +57,7 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(5)->by('ba-email|'.mb_strtolower(trim((string) $request->input('email')))),
         ]);
 
-        View::composer('layouts.app', function ($view) {
+        View::composer(['layouts.app', 'layouts.dashboard'], function ($view) {
             $view->with('cartCount', app(CartService::class)->count());
         });
 

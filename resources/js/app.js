@@ -214,6 +214,25 @@ if (dashToggle && dashSections) {
     });
 }
 
+// Customer app shell: off-canvas sidebar on small screens (menu button, overlay, close button, Escape).
+const appMenu = document.querySelector('[data-app-menu]');
+const appSide = document.getElementById('app-side');
+const appOverlay = document.querySelector('[data-app-overlay]');
+if (appMenu && appSide) {
+    const setOpen = (open) => {
+        document.body.classList.toggle('app-nav-open', open);
+        appMenu.setAttribute('aria-expanded', String(open));
+        if (appOverlay) appOverlay.hidden = !open;
+        if (open) appSide.querySelector('a, button')?.focus();
+    };
+    appMenu.addEventListener('click', () => setOpen(!document.body.classList.contains('app-nav-open')));
+    appOverlay?.addEventListener('click', () => setOpen(false));
+    document.querySelector('[data-app-close]')?.addEventListener('click', () => { setOpen(false); appMenu.focus(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('app-nav-open')) { setOpen(false); appMenu.focus(); }
+    });
+}
+
 // Admin: off-canvas sidebar below 961px (overlay, Escape, outside click, focus management) and persisted theme.
 const adminMenuButton = document.querySelector('[data-admin-menu]');
 const adminSidebar = document.getElementById('admin-sidebar');
