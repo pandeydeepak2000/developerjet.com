@@ -45,7 +45,7 @@ class CheckoutController extends Controller
             'billing_address' => ['nullable', 'string', 'max:500'],
             'gstin' => ['nullable', 'string', 'regex:/^[0-9A-Z]{15}$/'],
             'use_wallet' => ['nullable', 'boolean'],
-            'payment_method' => ['nullable', 'string', 'in:razorpay,ptsure'],
+            'payment_method' => ['nullable', 'string', 'in:razorpay'],
             'accept_terms' => ['accepted'],
         ], ['accept_terms.accepted' => 'Please accept the Terms and Refund Policy to continue.']);
 

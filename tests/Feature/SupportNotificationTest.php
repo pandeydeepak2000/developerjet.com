@@ -208,7 +208,7 @@ class SupportNotificationTest extends TestCase
         $this->assertStringNotContainsString('SMTP-PASS', (string) $raw['smtp.password']);
         $this->assertSame('TOP-SECRET-VALUE', Setting::get('gateway.razorpay.key_secret'));
 
-        $this->get('/admin/settings')->assertOk()->assertDontSee('TOP-SECRET-VALUE')->assertDontSee('SMTP-PASS')->assertDontSee('WH-SECRET')->assertSee('stored encrypted');
+        $this->get('/admin/settings?tab=payments')->assertOk()->assertDontSee('TOP-SECRET-VALUE')->assertDontSee('SMTP-PASS')->assertDontSee('WH-SECRET')->assertSee('stored encrypted');
         // Blank secret input keeps the stored value.
         $this->put('/admin/settings', ['section' => 'razorpay', 'gateway__razorpay__key_secret' => ''])->assertRedirect();
         $this->assertSame('TOP-SECRET-VALUE', Setting::get('gateway.razorpay.key_secret'));

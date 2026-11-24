@@ -483,7 +483,7 @@ class BillingEngineTest extends TestCase
         foreach (['upcoming', 'overdue', 'suspension', 'reactivation', 'reminders', 'all'] as $tab) {
             $this->actingAs($this->staff())->get(route('admin.billing.index', ['tab' => $tab]))->assertOk();
         }
-        $this->actingAs($this->staff())->get(route('admin.settings.edit'))->assertOk()->assertSee('Billing &amp; renewals', false)->assertSee('billing__grace_days', false);
+        $this->actingAs($this->staff())->get(route('admin.settings.edit', ['tab' => 'billing']))->assertOk()->assertSee('Billing &amp; renewals', false)->assertSee('billing__grace_days', false);
     }
 
     public function test_legacy_past_due_subscription_without_snapshot_still_renews(): void

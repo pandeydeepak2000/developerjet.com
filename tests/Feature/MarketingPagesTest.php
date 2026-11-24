@@ -137,7 +137,7 @@ class MarketingPagesTest extends TestCase
             ->assertSee('Up to 5 active workflows')
             ->assertSee('Up to 25 active workflows')
             ->assertSee('Up to 100 active workflows')
-            ->assertSee('VPS size confirmed before purchase.')
+            ->assertSee('Every plan shows its VPS size. Applicable taxes are confirmed before purchase.')
             ->assertSee('₹24,990 billed for 12 months')
             ->assertSee('Is n8n installed on a VPS?')
             ->assertSee('n8n instance is installed on a VPS configured for your plan');

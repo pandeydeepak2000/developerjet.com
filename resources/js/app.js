@@ -437,6 +437,62 @@ if (setupStages) {
     document.addEventListener('visibilitychange', () => { if (!document.hidden && timer) poll(); });
 }
 
+// Plan carousel (products with more than 3 plans): arrows scroll one card, counter + progress follow the scroll.
+document.querySelectorAll('[data-plan-carousel]').forEach((carousel) => {
+    const track = carousel.querySelector('[data-carousel-track]');
+    const prev = carousel.querySelector('[data-carousel-prev]');
+    const next = carousel.querySelector('[data-carousel-next]');
+    const range = carousel.querySelector('[data-carousel-range]');
+    const progress = carousel.querySelector('[data-carousel-progress]');
+    if (!track) return;
+    const cards = () => [...track.querySelectorAll(':scope > .dj-plan')];
+    const pad = (n) => String(n).padStart(2, '0');
+    const step = () => {
+        const first = cards()[0];
+        if (!first) return track.clientWidth;
+        const gap = parseFloat(getComputedStyle(track).columnGap) || 24;
+        return first.getBoundingClientRect().width + gap;
+    };
+    const update = () => {
+        const all = cards();
+        const max = track.scrollWidth - track.clientWidth;
+        const w = step();
+        const start = Math.round(track.scrollLeft / w);
+        const visible = Math.max(1, Math.round(track.clientWidth / w));
+        const end = Math.min(all.length, start + visible);
+        if (range) range.textContent = `${pad(Math.min(start + 1, all.length))}–${pad(end)} / ${all.length} plans`;
+        if (progress) {
+            progress.style.width = `${Math.min(100, (visible / all.length) * 100)}%`;
+            progress.style.marginLeft = `${max > 0 ? (track.scrollLeft / max) * (100 - Math.min(100, (visible / all.length) * 100)) : 0}%`;
+        }
+        if (prev) prev.disabled = track.scrollLeft <= 2;
+        if (next) next.disabled = track.scrollLeft >= max - 2;
+    };
+    prev?.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next?.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
+    track.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { e.preventDefault(); next?.click(); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); prev?.click(); }
+    });
+    track.addEventListener('scroll', () => window.requestAnimationFrame(update), { passive: true });
+    window.addEventListener('resize', update);
+    update();
+});
+
+// Deep links like /n8n#plan-n8n-edge (used by AmbitionHost "Setup" buttons): bring that plan card into view
+// inside its carousel and highlight it briefly.
+if (location.hash.startsWith('#plan-')) {
+    const heading = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const card = heading?.closest('.dj-plan');
+    if (card) {
+        window.addEventListener('load', () => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
+            card.classList.add('is-targeted');
+            setTimeout(() => card.classList.remove('is-targeted'), 2600);
+        });
+    }
+}
+
 // Admin staff: show which sidebar menus the selected role unlocks.
 document.querySelectorAll('select[data-role-preview]').forEach((select) => {
     const out = document.getElementById(select.dataset.rolePreview);

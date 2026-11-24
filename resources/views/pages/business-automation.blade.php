@@ -155,13 +155,13 @@
                 <p class="dj-section-head__text">Draft plans to help you choose a starting point. Scope and price are always confirmed in a written quotation.</p>
             </div>
             <p class="dj-price-note"><x-icon name="info" :size="18" /> <span><strong>Request a quote.</strong> Automation work is custom-scoped, so prices are agreed with you before anything starts. Nothing is charged until you accept a quotation and pay its invoice.</span></p>
-            <div class="dj-plan-grid dj-plan-grid--{{ min(max($plans->count(), 1), 3) }}">
+            <x-plan-grid :count="$plans->count()" label="Business Automation plans">
                 @forelse ($plans as $plan)
                     <x-plan-card :plan="$plan" product="Business Automation" :toggle="false" :quote-url="route('business-automation', ['plan' => $plan->slug]).'#request'" />
                 @empty
                     <p class="dj-muted">Plans will be published here. Use the form below to request a quote.</p>
                 @endforelse
-            </div>
+            </x-plan-grid>
         </div>
     </section>
 

@@ -35,6 +35,7 @@ class DocsSeeder extends Seeder
 
     /** sha1 of every article body shipped by earlier versions of this seeder (v0.1 starter content). */
     public const SHIPPED_BODY_HASHES = [
+        'f1e5a3dd999be7550af7a140e364431952009cf9', // payment-methods before PTSure was removed (2026-11-24)
         '9db903b2818f4ef095609931e12146ca9c10190f', '33c16e8762f601ae0417b7f9261e7074c4d163b8', '8205098ba1eb3da7322eaa32cab40ad6fca18abb',
         '7ee74545f90332d804caddc88d6959dcaf43a11a', 'd154ce1c2ba7f108bddefcbaf9845a0013021ae5', '8171cb3639c6b40a4b5dc347baa488d33c172215',
         'd7efbf21b6f8e8872dc194702580b900607c60c1', '76327baf55d3e3a0bdfadcd21cb29bb0a6764a45', '928731afdc19de9fcc83fe0e80b6e945208edb09',

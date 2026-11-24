@@ -99,7 +99,7 @@ return [
     'payments' => [
         'model' => PaymentAttempt::class, 'module' => 'payments', 'title' => 'Payments', 'search' => ['gateway_order_id', 'gateway_payment_id'], 'actions' => [], 'with' => ['order'],
         'columns' => [['id', '#'], ['order.number', 'Order'], ['gateway', 'Gateway'], ['mode', 'Mode'], ['amount_minor', 'Amount', 'money'], ['status', 'Status', 'badge'], ['created_at', 'Created', 'date']],
-        'filters' => [['status', 'Status', ['created' => 'Created', 'verified' => 'Verified', 'failed' => 'Failed', 'amount_mismatch' => 'Amount mismatch']], ['gateway', 'Gateway', ['razorpay' => 'Razorpay', 'ptsure' => 'PTSure']]],
+        'filters' => [['status', 'Status', ['created' => 'Created', 'verified' => 'Verified', 'failed' => 'Failed', 'amount_mismatch' => 'Amount mismatch']], ['gateway', 'Gateway', ['razorpay' => 'Razorpay']]],
     ],
     'invoices' => [
         'model' => Invoice::class, 'module' => 'invoices', 'title' => 'Invoices', 'search' => ['number'], 'actions' => [], 'with' => ['user'], 'row_link' => 'admin.invoices.download',

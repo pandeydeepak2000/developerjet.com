@@ -71,11 +71,11 @@
                         @if ($pending)Plans showing <strong>Pricing to be confirmed</strong> cannot be ordered yet.@endif
                     </span></p>
                 @endif
-                <div class="dj-plan-grid dj-plan-grid--{{ min($category->plans->count(), 3) }}">
+                <x-plan-grid :count="$category->plans->count()" :label="$category->name.' plans'">
                     @foreach ($category->plans as $plan)
                         <x-plan-card :plan="$plan" :product="$category->name" :toggle="false" />
                     @endforeach
-                </div>
+                </x-plan-grid>
             </div>
         </section>
     @endforeach

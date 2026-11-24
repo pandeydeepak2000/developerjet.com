@@ -9,7 +9,6 @@ class GatewayManager
     {
         return [
             'razorpay' => app(RazorpayGateway::class),
-            'ptsure' => app(PtSureGateway::class),
         ];
     }
 

@@ -124,7 +124,7 @@ return [
             ['Do you build workflows for me?', 'Not as part of this plan. For custom automation work, ask about our digital services.'],
         ],
         'plan_extras' => [],
-        'plan_note' => 'VPS size confirmed before purchase.',
+        'plan_note' => 'Every plan shows its VPS size. Applicable taxes are confirmed before purchase.',
         'setup' => 'n8n installation and server setup included',
         'support_scope' => 'Draft — server, installation and access.',
         'compare_with' => ['n8n', 'hermes-workspace', 'ai-complete-bundle'],

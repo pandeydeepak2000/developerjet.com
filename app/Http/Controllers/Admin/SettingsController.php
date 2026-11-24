@@ -82,13 +82,6 @@ class SettingsController extends Controller
                 ['gateway.razorpay.key_secret', 'Key secret', 'secret', 'nullable|string|max:200'],
                 ['gateway.razorpay.webhook_secret', 'Webhook secret', 'secret', 'nullable|string|max:200'],
             ]],
-            'ptsure' => ['title' => 'PTSure', 'note' => 'Live integration is DISABLED: verified PTSure merchant API documentation and credentials are required first. Settings are stored encrypted for future use only.', 'fields' => [
-                ['gateway.ptsure.enabled', 'Enable PTSure (has no effect until integration is verified)', 'checkbox', 'nullable|boolean'],
-                ['gateway.ptsure.mode', 'Mode', 'select', 'nullable|in:test,live', ['test' => 'Test', 'live' => 'Live'], 'test'],
-                ['gateway.ptsure.merchant_id', 'Merchant ID', 'text', 'nullable|string|max:100'],
-                ['gateway.ptsure.api_key', 'API key', 'secret', 'nullable|string|max:200'],
-                ['gateway.ptsure.webhook_secret', 'Webhook secret', 'secret', 'nullable|string|max:200'],
-            ]],
             'telegram' => ['title' => 'Telegram alerts', 'fields' => array_merge([
                 ['telegram.bot_token', 'Bot token', 'secret', 'nullable|string|max:200'],
                 ['telegram.chat_id', 'Admin chat ID', 'text', 'nullable|string|max:60'],
@@ -128,11 +121,45 @@ class SettingsController extends Controller
         ];
     }
 
+    /** Settings tabs: key => [label, short description, section keys]. One tab is shown at a time. */
+    public const GROUPS = [
+        'business' => ['Business & invoices', 'Company details, invoice numbering, tax and sales contact', ['company', 'tax', 'sales']],
+        'payments' => ['Payments', 'Razorpay online payments and the customer wallet', ['razorpay']],
+        'billing' => ['Billing & renewals', 'Renewal invoices, reminders, grace period, cancellation', ['billing', 'lifecycle']],
+        'email' => ['Email & alerts', 'SMTP email, Telegram alerts and email templates', ['smtp', 'telegram', 'templates']],
+        'support' => ['Support', 'Ticket SLA targets and assignment emails', ['support']],
+        'system' => ['Security & system', 'Staff two-factor, provisioning and product gates', ['security', 'provisioning']],
+    ];
+
+    public static function groupOf(string $section): string
+    {
+        foreach (self::GROUPS as $key => [, , $sections]) {
+            if (in_array($section, $sections, true)) {
+                return $key;
+            }
+        }
+
+        return 'business';
+    }
+
+    public static function sectionUrl(string $section): string
+    {
+        return route('admin.settings.edit', ['tab' => self::groupOf($section)]).'#'.$section;
+    }
+
     public function edit(Request $request): View
     {
         abort_unless($request->user()->hasPermission('settings.view'), 403);
+        $tab = array_key_exists((string) $request->query('tab'), self::GROUPS) ? (string) $request->query('tab') : 'business';
+        $schema = self::schema();
 
-        return view('admin.settings', ['schema' => self::schema(), 'canEdit' => $request->user()->hasPermission('settings.edit')]);
+        return view('admin.settings', [
+            'schema' => $schema,
+            'groups' => self::GROUPS,
+            'tab' => $tab,
+            'sections' => array_intersect_key($schema, array_flip(self::GROUPS[$tab][2])),
+            'canEdit' => $request->user()->hasPermission('settings.edit'),
+        ]);
     }
 
     public function update(Request $request): RedirectResponse
@@ -146,7 +173,7 @@ class SettingsController extends Controller
         if (in_array($section, self::SUPER_ONLY_SECTIONS, true)) {
             abort_unless($request->user()->isSuper(), 403, 'Only a Super Admin can change this section.');
             if (! StaffSecurity::recentlyConfirmed($request)) {
-                $request->session()->put('staff_reauth_return', route('admin.settings.edit').'#'.$section);
+                $request->session()->put('staff_reauth_return', self::sectionUrl($section));
 
                 return redirect()->route('admin.confirm-access')->with('error', 'Confirm your password, then save the section again.');
             }
@@ -180,7 +207,7 @@ class SettingsController extends Controller
 
         Audit::log('settings.updated', null, ['section' => $section, 'keys' => $changed]);
 
-        return redirect()->route('admin.settings.edit', ['#'.$section])->with('success', $def['title'].' saved.');
+        return redirect()->to(self::sectionUrl($section))->with('success', $def['title'].' saved.');
     }
 
     /** SMTP connection test: Super Admin only, recent re-authentication, sends NO email. */
@@ -188,14 +215,14 @@ class SettingsController extends Controller
     {
         abort_unless($request->user()->isSuper(), 403, 'Only a Super Admin can test email settings.');
         if (! StaffSecurity::recentlyConfirmed($request)) {
-            $request->session()->put('staff_reauth_return', route('admin.settings.edit').'#smtp');
+            $request->session()->put('staff_reauth_return', self::sectionUrl('smtp'));
 
             return redirect()->route('admin.confirm-access')->with('error', 'Confirm your password, then run the SMTP test again.');
         }
         $result = $mail->testConnection();
         Audit::log('settings.smtp_test', null, ['ok' => $result['ok'], 'missing' => $result['missing']]);
 
-        return redirect()->route('admin.settings.edit', ['#smtp'])->with($result['ok'] ? 'success' : 'error', $result['message']);
+        return redirect()->to(self::sectionUrl('smtp'))->with($result['ok'] ? 'success' : 'error', $result['message']);
     }
 
     /** Dotted setting keys cannot be form field names reliably, so the form posts them with "__". */

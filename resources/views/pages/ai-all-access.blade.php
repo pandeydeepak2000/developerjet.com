@@ -190,13 +190,13 @@
                 <p class="dj-section-head__text">Three plans are planned for individuals, teams and organisations. Names, limits and prices are drafts and will change.</p>
             </div>
             <p class="dj-price-note dj-price-note--soon"><x-icon name="info" :size="18" /> <span><strong>Pricing to be confirmed.</strong> AI All-Access cannot be bought yet. “Request access” saves your interest to your account — nothing is charged. Model usage is always billed by your own AI provider.</span></p>
-            <div class="dj-plan-grid dj-plan-grid--{{ min(max($plans->count(), 1), 3) }}">
+            <x-plan-grid :count="$plans->count()" label="AI All-Access plans">
                 @forelse ($plans as $plan)
                     <x-plan-card :plan="$plan" product="AI All-Access" :toggle="false" :extras="[]" />
                 @empty
                     <p class="dj-muted">Plans will be published here. <a href="{{ route('contact') }}">Contact our team</a> to register interest.</p>
                 @endforelse
-            </div>
+            </x-plan-grid>
 
             @if ($plans->count() > 1 && $comparisonRows->isNotEmpty())
                 <div class="dj-table-wrap dj-plan-compare" role="region" aria-label="Compare AI All-Access plans" tabindex="0">

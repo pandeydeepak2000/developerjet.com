@@ -9,6 +9,7 @@ use App\Models\PaymentEvent;
 use App\Models\Service;
 use App\Services\OrderException;
 use App\Services\OrderService;
+use App\Services\Payments\GatewayManager;
 use App\Support\OrderStatus;
 use App\Support\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -272,15 +273,16 @@ class OrderPaymentTest extends TestCase
         $this->assertSame(OrderStatus::AWAITING_PROVISIONING, $order->fresh()->status);
     }
 
-    public function test_ptsure_cannot_be_used_even_if_enabled(): void
+    public function test_only_razorpay_and_wallet_exist_ptsure_was_removed(): void
     {
-        Setting::set('gateway.ptsure.enabled', '1');
         $this->approve('hermes-cli-launch');
         $user = $this->customer();
         $order = $this->placeOrder($user);
 
+        $this->assertSame(['razorpay'], array_keys(app(GatewayManager::class)->all()));
         $this->get(route('dashboard.orders.show', ['order' => $order, 'gateway' => 'ptsure']))->assertOk()->assertDontSee('PTSure');
-        $this->call('POST', '/webhooks/ptsure', [], [], [], [], '{}')->assertStatus(400);
+        $this->call('POST', '/webhooks/ptsure', [], [], [], [], '{}')->assertNotFound();
+        $this->actingAs($this->staff())->get(route('admin.settings.edit'))->assertOk()->assertDontSee('PTSure');
     }
 
     public function test_customer_data_isolation_for_orders_and_invoices(): void

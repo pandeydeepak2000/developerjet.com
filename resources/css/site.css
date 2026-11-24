@@ -930,3 +930,25 @@ body.dj-drawer-open { overflow: hidden; }
   .dash .data-table td:has(> .badge),.dash .data-table td:has(> .status-badge){white-space:nowrap}
 }
 .dash .data-table td small{display:block;color:#7d7f8d;font-size:12px}
+/* Plan carousel: used when a product has more than 3 plans. */
+.dj-plan-carousel{display:grid;gap:16px}
+.dj-plan-carousel__bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dj-plan-carousel__count{margin:0;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--dj-line-2,#e2e8f0);border-radius:999px;background:#fff;font-size:13px;color:#5b6478}
+.dj-plan-carousel__count strong{color:#17243b}
+.dj-plan-carousel__nav{display:flex;gap:10px}
+.dj-plan-carousel__btn{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--dj-line-2,#dbe2ec);border-radius:999px;background:#fff;color:#17243b;font-size:18px;cursor:pointer;transition:background .15s,border-color .15s}
+.dj-plan-carousel__btn:hover:not(:disabled){border-color:#2563eb;color:#2563eb}
+.dj-plan-carousel__btn:disabled{opacity:.4;cursor:default}
+.dj-plan-grid--carousel{grid-auto-flow:column;grid-template-rows:repeat(5,auto);grid-auto-columns:minmax(272px,calc((100% - 72px)/4));overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:2px;padding:4px 2px 12px;scrollbar-width:none}
+.dj-plan-grid--carousel::-webkit-scrollbar{display:none}
+.dj-plan-grid--carousel>.dj-plan{scroll-snap-align:start}
+.dj-plan-grid--carousel:focus-visible{outline:2px solid #2563eb;outline-offset:4px;border-radius:12px}
+.dj-plan-carousel__foot{display:flex;align-items:center;gap:16px}
+.dj-plan-carousel__progress{flex:1;height:4px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+.dj-plan-carousel__progress span{display:block;height:100%;width:40%;border-radius:999px;background:#2563eb;transition:margin-left .2s,width .2s}
+.dj-plan-carousel__range{margin:0;font-size:13px;color:#5b6478;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (max-width:1100px){.dj-plan-grid--carousel{grid-auto-columns:minmax(272px,calc((100% - 48px)/3))}}
+@media (max-width:860px){.dj-plan-grid--carousel{grid-auto-columns:minmax(260px,calc((100% - 24px)/2))}}
+@media (max-width:560px){.dj-plan-grid--carousel{grid-auto-columns:86%}.dj-plan-carousel__count span{display:none}}
+.dj-plan.is-targeted{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.25),0 18px 40px rgba(37,99,235,.18);transition:box-shadow .3s,border-color .3s}
+.dj-plan[aria-labelledby]{scroll-margin-top:120px}

@@ -11,7 +11,6 @@ Checkout lists only the payment methods that are switched on at the time you ord
 | --- | --- | --- |
 | **Razorpay** | UPI, cards and netbanking | Shown when enabled by DeveloperJet. |
 | **Wallet balance** | Funds already in your DeveloperJet wallet | Tick *Apply wallet balance* at checkout. |
-| **PTSure** | Online payments | Listed only after the integration has been verified. |
 
 If no online method is enabled, checkout tells you so. The order can still be placed and paid later.
 

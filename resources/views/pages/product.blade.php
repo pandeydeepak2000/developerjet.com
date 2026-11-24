@@ -90,13 +90,13 @@
                 </span></p>
             @endif
 
-            <div class="dj-plan-grid dj-plan-grid--{{ min(max($plans->count(), 1), 3) }}">
+            <x-plan-grid :count="$plans->count()" :label="$productName.' plans'">
                 @forelse ($plans as $plan)
                     <x-plan-card :plan="$plan" :product="$productName" :extras="$page['plan_extras'] ?? []" :setup="$page['setup'] ?? null" :support="$page['support_scope'] ?? null" />
                 @empty
                     <p class="dj-muted">No plans are published yet. <a href="{{ route('contact') }}">Talk to our team</a>.</p>
                 @endforelse
-            </div>
+            </x-plan-grid>
         </div>
     </section>
 

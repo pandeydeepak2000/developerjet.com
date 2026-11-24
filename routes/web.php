@@ -58,7 +58,7 @@ Route::get('/docs/{slug}', [DocsController::class, 'show'])->where('slug', '[a-z
 Route::get('/services/{page}', [ServicesController::class, 'show'])->whereIn('page', array_keys(ServicesController::PAGES))->name('services.show');
 
 // Payment gateway webhooks: authenticated by signature, CSRF-exempt (see bootstrap/app.php)
-Route::post('/webhooks/{gateway}', [WebhookController::class, 'handle'])->middleware('throttle:240,1')->whereIn('gateway', ['razorpay', 'ptsure'])->name('webhooks');
+Route::post('/webhooks/{gateway}', [WebhookController::class, 'handle'])->middleware('throttle:240,1')->whereIn('gateway', ['razorpay'])->name('webhooks');
 
 // Guest-only authentication
 Route::middleware('guest')->group(function () {
@@ -98,7 +98,7 @@ Route::middleware(['auth', 'verified', 'impersonation.readonly'])->group(functio
         Route::get('/', [DashboardController::class, 'overview'])->name('dashboard');
         Route::get('/orders', [DashboardController::class, 'orders'])->name('dashboard.orders');
         Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('dashboard.orders.show');
-        Route::post('/orders/{order}/verify/{gateway}', [CustomerOrderController::class, 'verify'])->middleware('throttle:20,1')->whereIn('gateway', ['razorpay', 'ptsure'])->name('dashboard.orders.verify');
+        Route::post('/orders/{order}/verify/{gateway}', [CustomerOrderController::class, 'verify'])->middleware('throttle:20,1')->whereIn('gateway', ['razorpay'])->name('dashboard.orders.verify');
         Route::delete('/orders/{order}', [CustomerOrderController::class, 'cancel'])->name('dashboard.orders.cancel');
 
         Route::get('/services', [DashboardController::class, 'services'])->name('dashboard.services');

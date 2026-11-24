@@ -27,7 +27,7 @@
         </section>
     @elseif ($tab === 'reconciliation')
         <section class="admin-card">
-            <p class="muted small">Gateway payments are settled by the browser callback, the webhook, and every 15 minutes by <code>payments:reconcile</code>. All three use the same idempotent path, so a payment is never credited twice. Razorpay has only been tested against fakes; PTSure is disabled.</p>
+            <p class="muted small">Gateway payments are settled by the browser callback, the webhook, and every 15 minutes by <code>payments:reconcile</code>. All three use the same idempotent path, so a payment is never credited twice. Razorpay has only been tested against fakes so far.</p>
             @if ($u->hasPermission('orders.edit'))
                 <form method="POST" action="{{ route('admin.billing-ops.reconcile') }}">@csrf<button class="admin-btn admin-btn-quiet" type="submit">Run reconciliation now</button></form>
             @endif
