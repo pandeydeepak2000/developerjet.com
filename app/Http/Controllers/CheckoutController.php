@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use App\Models\Service;
+use App\Models\User;
 use App\Services\CartService;
 use App\Services\OrderException;
 use App\Services\OrderService;
@@ -68,11 +69,7 @@ class CheckoutController extends Controller
         $setup = $this->setupChoices($request, $summary);
 
         try {
-            $order = $orders->place($request->user(), $summary, [
-                'billing_name' => $data['billing_name'] ?? null,
-                'billing_address' => $data['billing_address'] ?? null,
-                'gstin' => $data['gstin'] ?? null,
-            ], $token, $request->boolean('use_wallet') || ($data['payment_method'] ?? null) === 'wallet', null, $setup);
+            $order = $orders->place($request->user(), $summary, $this->billingSnapshot($request->user(), $data), $token, $request->boolean('use_wallet') || ($data['payment_method'] ?? null) === 'wallet', null, $setup);
         } catch (OrderException $e) {
             return back()->withInput($request->except('setup'))->with('error', $e->getMessage());
         }
@@ -83,6 +80,31 @@ class CheckoutController extends Controller
         return redirect()->route('dashboard.orders.show', $order)
             ->with('success', 'Order placed. Complete payment to start provisioning.')
             ->with('preferred_gateway', ($data['payment_method'] ?? null) === 'razorpay' ? 'razorpay' : null);
+    }
+
+    /**
+     * Invoice billing details come from the customer's saved profile (Profile → Billing details). Older API callers
+     * may still post billing_name / billing_address / gstin; those act only as fallbacks when the profile is empty.
+     */
+    private function billingSnapshot(User $user, array $data): array
+    {
+        $country = $user->billing_country ? (CustomerProfileController::COUNTRIES[$user->billing_country] ?? $user->billing_country) : null;
+        $address = $user->billing_address
+            ? trim(implode("\n", array_filter([
+                $user->billing_address,
+                collect([$user->billing_city, $user->billing_state, $user->billing_postcode])->filter()->implode(', '),
+                $country,
+            ])))
+            : ($data['billing_address'] ?? null);
+
+        return array_filter([
+            'billing_name' => $user->billing_company ?: ($data['billing_name'] ?? $user->name),
+            'billing_contact' => $user->billing_company ? $user->name : null,
+            'billing_address' => $address,
+            'billing_state' => $user->billing_state,
+            'billing_country' => $user->billing_country,
+            'gstin' => $user->gstin ?: ($data['gstin'] ?? null),
+        ], fn ($v) => $v !== null && $v !== '');
     }
 
     /** Which setup questions a plan asks at checkout: ['domain' => bool, 'ai' => bool]. */

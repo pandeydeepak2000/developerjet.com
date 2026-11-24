@@ -2,7 +2,7 @@
 
 @section('title', 'Profile & security')
 @section('heading', 'Profile & security')
-@section('subheading', 'Your contact details and sign-in security.')
+@section('subheading', 'Your contact details, billing details and sign-in security.')
 
 @section('dash')
     @if (! $user->phone)
@@ -27,6 +27,12 @@
 
             <div><button class="button-primary" type="submit">Save details</button></div>
         </form>
+    </div>
+
+    <div class="panel" id="billing">
+        <h2>Billing details</h2>
+        <p class="muted">Printed on your invoices. Add your company name and GSTIN if you need a business (GST) invoice.</p>
+        @include('partials.billing-form', ['user' => $user] + (request('return') === 'checkout' ? ['return' => 'checkout'] : []))
     </div>
 
     <div class="panel">

@@ -74,13 +74,22 @@
                     </div>
                 @endif
 
-                <div class="panel">
-                    <h2>Billing details</h2>
-                    <p class="muted">Used on your invoice. GSTIN is optional.</p>
-                    <div class="form-grid">
-                        <label>Billing name<input name="billing_name" value="{{ old('billing_name', auth()->user()->name) }}" maxlength="120"></label>
-                        <label>GSTIN (optional)<input name="gstin" value="{{ old('gstin') }}" maxlength="15" pattern="[0-9A-Z]{15}" placeholder="15 characters"></label>
-                        <label class="span-2">Billing address<textarea name="billing_address" rows="3" maxlength="500">{{ old('billing_address') }}</textarea></label>
+                @php($bu = auth()->user())
+                @php($editBilling = route('dashboard.profile', ['return' => 'checkout']).'#billing')
+                <div class="panel billed-to">
+                    <div class="billed-to__head">
+                        <h2>Billed to</h2>
+                        <a class="billed-to__edit" href="{{ $editBilling }}">{{ $bu->billing_address ? 'Edit' : 'Add billing address' }}</a>
+                    </div>
+                    <div class="billed-to__body">
+                        <p><strong>{{ $bu->billing_company ?: $bu->name }}</strong>@if ($bu->billing_company)<br><span class="muted">{{ $bu->name }}</span>@endif</p>
+                        <p class="muted">{{ $bu->email }}@if ($bu->phone) · {{ $bu->phone }}@endif</p>
+                        @if ($bu->billing_address)
+                            <p>{{ $bu->billing_address }}<br>{{ collect([$bu->billing_city, $bu->billing_state, $bu->billing_postcode])->filter()->implode(', ') }}@if ($bu->billing_country) · {{ \App\Http\Controllers\CustomerProfileController::COUNTRIES[$bu->billing_country] ?? $bu->billing_country }}@endif</p>
+                        @else
+                            <p class="billed-to__missing">No billing address yet. <a href="{{ $editBilling }}">Add it once</a> and it appears on all your invoices.</p>
+                        @endif
+                        @if ($bu->gstin)<p><span class="badge badge-neutral">GSTIN</span> {{ $bu->gstin }}</p>@endif
                     </div>
                 </div>
 

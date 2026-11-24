@@ -113,6 +113,7 @@ Route::middleware(['auth', 'verified', 'impersonation.readonly'])->group(functio
 
         Route::get('/profile', [CustomerProfileController::class, 'show'])->name('dashboard.profile');
         Route::put('/profile', [CustomerProfileController::class, 'update'])->middleware('throttle:20,1')->name('dashboard.profile.update');
+        Route::put('/profile/billing', [CustomerProfileController::class, 'billing'])->middleware('throttle:20,1')->name('dashboard.profile.billing');
         Route::put('/profile/password', [CustomerProfileController::class, 'password'])->middleware('throttle:10,1')->name('dashboard.profile.password');
 
         Route::get('/subscriptions', [CustomerSubscriptionController::class, 'index'])->name('dashboard.subscriptions');

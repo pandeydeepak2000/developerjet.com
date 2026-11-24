@@ -44,6 +44,38 @@ class CustomerProfileController extends Controller
         return redirect()->route('dashboard.profile')->with('success', 'Profile saved.');
     }
 
+    /** Saved billing details used on every invoice (no user id is accepted from the request). */
+    public function billing(Request $request): RedirectResponse
+    {
+        if (filled($request->input('gstin'))) {
+            $request->merge(['gstin' => strtoupper(preg_replace('/\s+/', '', (string) $request->input('gstin')))]);
+        }
+        $data = $request->validateWithBag('billing', [
+            'billing_company' => ['nullable', 'string', 'max:150'],
+            'gstin' => ['nullable', 'string', 'regex:/^[0-9]{2}[A-Z0-9]{13}$/'],
+            'billing_address' => ['required', 'string', 'max:500'],
+            'billing_city' => ['required', 'string', 'max:80'],
+            'billing_state' => ['required', 'string', 'max:80'],
+            'billing_postcode' => ['required', 'string', 'max:12', 'regex:/^[A-Za-z0-9 -]{3,12}$/'],
+            'billing_country' => ['required', 'string', 'in:'.implode(',', array_keys(self::COUNTRIES))],
+        ], ['gstin.regex' => 'Enter a valid 15-character GSTIN, e.g. 27ABCDE1234F1Z5.']);
+
+        $data['gstin'] = isset($data['gstin']) ? strtoupper($data['gstin']) : null;
+        $user = $request->user();
+        $user->forceFill($data);
+        $changed = array_keys($user->getDirty());
+        $user->save();
+        if ($changed) {
+            Audit::log('customer.billing.updated', $user, ['fields' => $changed], $user->id);
+        }
+
+        $back = $request->input('return') === 'checkout' ? route('checkout') : route('dashboard.profile').'#billing';
+
+        return redirect()->to($back)->with('success', 'Billing details saved.');
+    }
+
+    public const COUNTRIES = ['IN' => 'India', 'US' => 'United States', 'GB' => 'United Kingdom', 'AE' => 'United Arab Emirates', 'SG' => 'Singapore', 'CA' => 'Canada', 'AU' => 'Australia', 'DE' => 'Germany', 'NP' => 'Nepal', 'BD' => 'Bangladesh'];
+
     public function password(Request $request): RedirectResponse
     {
         $data = $request->validateWithBag('password', [
