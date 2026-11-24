@@ -27,7 +27,15 @@
     @if ($u->hasPermission('wallet.create'))
     <section class="admin-card"><h2>Manual adjustment</h2>
         <form method="POST" action="{{ route('admin.wallet.adjust') }}" class="admin-form admin-form-grid" data-loading-form>@csrf
-            <label>Customer email<input type="email" name="email" required></label>
+            <div class="dj-picker" data-customer-picker data-url="{{ route('admin.wallet.customers') }}">
+                <label for="wallet-customer">Customer</label>
+                <div class="dj-picker-field">
+                    <input id="wallet-customer" type="text" name="email" value="{{ old('email') }}" required autocomplete="off" maxlength="150"
+                           placeholder="e.g. rahul, rahul@gmail.com, 98765…" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wallet-customer-list">
+                    <ul id="wallet-customer-list" class="dj-picker-list" role="listbox" hidden></ul>
+                </div>
+                <p class="dj-picker-hint muted small" data-picker-hint aria-live="polite">Naam, email ya phone ke 2+ akshar type karein, phir list se customer chunein.</p>
+            </div>
             <label>Type<select name="type"><option value="credit">Credit</option><option value="debit">Debit</option></select></label>
             <label>Amount (₹)<input type="number" name="amount" step="0.01" min="0.01" required></label>
             <label>Transaction ID / UTR *<input name="transaction_id" required minlength="3" maxlength="120" value="{{ old('transaction_id') }}" placeholder="UTR / Transaction ID"></label>

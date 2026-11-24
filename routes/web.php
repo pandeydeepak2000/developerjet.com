@@ -234,6 +234,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/exports/{type}', [Admin\ExportController::class, 'download'])->middleware('throttle:20,1')->where('type', '[a-z_]+')->name('admin.exports.download');
         Route::post('/billing-ops/reconcile', [Admin\BillingOpsController::class, 'reconcile'])->middleware('throttle:6,1')->name('admin.billing-ops.reconcile');
         Route::get('/wallet', [Admin\WalletController::class, 'index'])->name('admin.wallet.index');
+        Route::get('/wallet/customers', [Admin\WalletController::class, 'customers'])->middleware('throttle:120,1')->name('admin.wallet.customers');
         Route::post('/wallet/topups/{topup}/approve', [Admin\WalletController::class, 'approve'])->name('admin.wallet.approve');
         Route::post('/wallet/topups/{topup}/reject', [Admin\WalletController::class, 'reject'])->name('admin.wallet.reject');
         Route::post('/wallet/adjust', [Admin\WalletController::class, 'adjust'])->name('admin.wallet.adjust');

@@ -46,3 +46,16 @@ a.dj-kpi:hover{border-color:#bfdbfe;transform:translateY(-1px)}
 @media (prefers-reduced-motion:reduce){a.dj-kpi:hover{transform:none}}
 .admin-collapse-btn{display:inline-flex;align-items:center;justify-content:center}
 @media (max-width:960px){.admin-collapse-btn{display:none}}
+/* Wallet customer picker (searchable dropdown). */
+.dj-picker{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dj-picker label{font-weight:600}
+.dj-picker-field{position:relative}
+.dj-picker-list{position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;margin:0;padding:6px;list-style:none;background:var(--a-card,#fff);color:var(--a-text,#0f172a);border:1px solid var(--a-line,#e2e8f0);border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,.18);max-height:320px;overflow:auto}
+.dj-picker-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:10px 12px;border-radius:8px;cursor:pointer}
+.dj-picker-list li strong{grid-column:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dj-picker-list li span{grid-column:1;color:var(--a-muted,#64748b);font-size:13px;overflow-wrap:anywhere}
+.dj-picker-list li small{grid-column:2;grid-row:1/span 2;align-self:center;color:var(--a-muted,#64748b);white-space:nowrap}
+.dj-picker-list li:hover,.dj-picker-list li[aria-selected=true]{background:rgba(37,99,235,.12)}
+.dj-picker-list li.is-empty{display:block;cursor:default;color:var(--a-muted,#64748b)}
+.dj-picker-hint{margin:0}
+@media (max-width:520px){.dj-picker-list li{grid-template-columns:minmax(0,1fr)}.dj-picker-list li small{grid-column:1;grid-row:auto}}

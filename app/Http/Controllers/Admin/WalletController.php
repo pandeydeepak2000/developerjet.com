@@ -11,7 +11,9 @@ use App\Services\InsufficientFundsException;
 use App\Services\TaxService;
 use App\Services\WalletService;
 use App\Support\Audit;
+use App\Support\Money;
 use App\Support\Setting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +37,44 @@ class WalletController extends Controller
             'wallets' => $wallets,
             'history' => $history,
         ]);
+    }
+
+    /**
+     * Customer picker for the manual-adjustment form: name / email / phone lookup, customers only,
+     * at most 8 rows, so it stays fast with tens of thousands of accounts. Same permission as adjust.
+     */
+    public function customers(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->hasPermission('wallet.create'), 403);
+        $term = mb_substr(trim((string) $request->query('q')), 0, 100);
+        if (mb_strlen($term) < 2) {
+            return response()->json(['data' => []]);
+        }
+
+        $like = '%'.addcslashes($term, '%_\\').'%';
+        $digits = preg_replace('/\D+/', '', $term);
+        $prefix = addcslashes($term, '%_\\').'%';
+
+        $rows = User::query()
+            ->where('role', User::ROLE_CUSTOMER)
+            ->where(function ($q) use ($like, $digits) {
+                $q->where('email', 'like', $like)->orWhere('name', 'like', $like);
+                if (strlen($digits) >= 4) {
+                    $q->orWhere('phone', 'like', '%'.$digits.'%');
+                }
+            })
+            ->with('wallet:id,user_id,balance_minor')
+            ->orderByRaw('CASE WHEN email LIKE ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END', [$prefix, $prefix])
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'email', 'is_active']);
+
+        return response()->json(['data' => $rows->map(fn (User $u) => [
+            'name' => $u->name,
+            'email' => $u->email,
+            'active' => (bool) $u->is_active,
+            'balance' => Money::inr((int) ($u->wallet?->balance_minor ?? 0)),
+        ])->values()])->header('Cache-Control', 'no-store');
     }
 
     /** Credit a verified top-up exactly once (row lock + status check + unique ledger reference). */

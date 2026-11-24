@@ -437,3 +437,87 @@ if (setupStages) {
     document.addEventListener('visibilitychange', () => { if (!document.hidden && timer) poll(); });
 }
 
+// Admin wallet: searchable customer picker (name / email / phone). Server returns at most 8 rows, so it scales to
+// tens of thousands of customers. Without JS the field is a plain email input and the server still validates it.
+document.querySelectorAll('[data-customer-picker]').forEach((picker) => {
+    const input = picker.querySelector('input');
+    const list = picker.querySelector('[role=listbox]');
+    const hint = picker.querySelector('[data-picker-hint]');
+    const url = picker.dataset.url;
+    if (!input || !list || !url) return;
+
+    const defaultHint = hint ? hint.textContent : '';
+    let items = [];
+    let active = -1;
+    let timer = null;
+    let seq = 0;
+
+    const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+    const setHint = (text) => { if (hint) hint.textContent = text; };
+
+    const choose = (i) => {
+        const c = items[i];
+        if (!c) return;
+        input.value = c.email;
+        setHint(`Chuna gaya: ${c.name} · ${c.email} · Wallet balance ${c.balance}${c.active ? '' : ' · (account inactive)'}`);
+        close();
+    };
+
+    const render = () => {
+        list.innerHTML = '';
+        active = -1;
+        if (!items.length) {
+            const li = document.createElement('li');
+            li.className = 'is-empty';
+            li.textContent = 'Koi customer nahi mila.';
+            list.appendChild(li);
+        }
+        items.forEach((c, i) => {
+            const li = document.createElement('li');
+            li.setAttribute('role', 'option');
+            li.id = `${list.id}-${i}`;
+            const name = document.createElement('strong');
+            name.textContent = c.name;
+            const email = document.createElement('span');
+            email.textContent = c.email;
+            const bal = document.createElement('small');
+            bal.textContent = `Balance ${c.balance}${c.active ? '' : ' · inactive'}`;
+            li.append(name, email, bal);
+            li.addEventListener('mousedown', (e) => { e.preventDefault(); choose(i); });
+            list.appendChild(li);
+        });
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+    };
+
+    const search = async () => {
+        const q = input.value.trim();
+        if (q.length < 2) { items = []; close(); setHint(defaultHint); return; }
+        const mine = ++seq;
+        try {
+            const res = await fetch(`${url}?q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+            if (!res.ok || mine !== seq) return;
+            items = (await res.json()).data || [];
+            render();
+        } catch (e) { /* network hiccup: the next keystroke retries */ }
+    };
+
+    const move = (step) => {
+        const options = [...list.querySelectorAll('[role=option]')];
+        if (!options.length) return;
+        active = (active + step + options.length) % options.length;
+        options.forEach((o, i) => o.setAttribute('aria-selected', String(i === active)));
+        input.setAttribute('aria-activedescendant', options[active].id);
+        options[active].scrollIntoView({ block: 'nearest' });
+    };
+
+    input.addEventListener('input', () => { setHint(defaultHint); clearTimeout(timer); timer = setTimeout(search, 250); });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden && items.length) render(); move(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+        else if (e.key === 'Escape') { close(); }
+        else if (e.key === 'Enter' && !list.hidden && active >= 0) { e.preventDefault(); choose(active); }
+    });
+    input.addEventListener('blur', () => setTimeout(close, 120));
+});
+
