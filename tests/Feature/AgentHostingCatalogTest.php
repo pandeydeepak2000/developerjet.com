@@ -99,6 +99,30 @@ class AgentHostingCatalogTest extends TestCase
         $this->assertFalse((bool) Plan::where('slug', 'n8n-ultra')->value('is_active'));
     }
 
+    public function test_ai_complete_bundle_becomes_one_heavy_priced_plan(): void
+    {
+        $this->seed(AgentHostingCatalogSeeder::class);
+
+        $bundle = Plan::where('slug', 'ai-complete-bundle')->with('resourceProfile')->firstOrFail();
+        $this->assertTrue($bundle->isApproved());
+        $this->assertTrue($bundle->canBePurchased());
+        $this->assertSame([12, 32, 400], [$bundle->resourceProfile->vcpu, $bundle->resourceProfile->ram_gb, $bundle->resourceProfile->disk_gb]);
+        $this->assertSame(599900, $bundle->priceFor('monthly'));
+        $this->assertSame(599900 * 12, $bundle->priceFor('yearly'));
+        $this->assertSame(1, Plan::active()->whereHas('category', fn ($q) => $q->where('slug', 'ai-complete-bundle'))->count());
+
+        $this->get('/ai-complete-bundle')->assertOk()
+            ->assertSee('₹5,999')
+            ->assertSee('data-billing-toggle="annual"', false)
+            ->assertSee('32 GB')
+            ->assertDontSee('data-plan-carousel', false);
+
+        // An admin's own price is never overwritten by re-running the seeder.
+        $bundle->prices()->where('billing_interval', 'monthly')->update(['amount_minor' => 700000]);
+        $this->seed(AgentHostingCatalogSeeder::class);
+        $this->assertSame(700000, $bundle->fresh()->priceFor('monthly'));
+    }
+
     public function test_three_or_fewer_plans_keep_the_normal_grid(): void
     {
         // Without the new catalogue, OpenClaw still has its 3 placeholder plans.

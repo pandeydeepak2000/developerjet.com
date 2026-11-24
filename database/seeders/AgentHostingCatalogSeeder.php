@@ -164,6 +164,48 @@ class AgentHostingCatalogSeeder extends Seeder
         foreach (self::RETIRED as $slug) {
             $this->retire($slug);
         }
+
+        $this->bundle();
+    }
+
+    /**
+     * AI Complete Bundle: one heavy plan running Hermes CLI + Hermes Workspace + n8n on one server.
+     * Sized on the "Power" VPS (12 vCPU / 32 GB / 400 GB NVMe): Workspace (Docker, UI, DB) + n8n + CLI with headroom.
+     * Price chosen at the owner's request ("high amount, decide yourself"): ₹5,999/month = the ₹5,249 Power VPS plus
+     * managed setup of three applications, still below buying the three separately; yearly = 12 × monthly.
+     * Only the untouched pending placeholder is upgraded; a bundle an admin has priced or edited is left alone.
+     */
+    public const BUNDLE_MONTHLY = 5999;
+
+    private function bundle(): void
+    {
+        $category = ProductCategory::firstOrCreate(['slug' => 'ai-complete-bundle'], [
+            'name' => 'AI Complete Bundle', 'description' => 'Hermes CLI + Workspace + n8n together.', 'sort_order' => 4, 'is_active' => true,
+        ]);
+        [, , $vcpu, $ram, $disk, $diskType] = self::AGENT_TIERS['power'];
+        $profile = $this->profile('agent-power', 'Power', $vcpu, $ram, $disk, $diskType, null);
+        $attributes = [
+            'name' => 'Complete',
+            'tagline' => 'Hermes CLI, Hermes Workspace and n8n on one powerful managed server',
+            'highlight' => $profile->summary(),
+            'features' => ['Hermes CLI, Hermes Workspace and n8n installed', 'Each application isolated on the server', 'One invoice and one renewal'],
+            'resource_profile_id' => $profile->id,
+            'is_featured' => true, 'sort_order' => 1,
+            'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'managed',
+            'is_active' => true, 'is_purchasable' => true, 'price_status' => 'approved',
+        ];
+
+        $plan = Plan::where('slug', 'ai-complete-bundle')->first();
+        if (! $plan) {
+            $plan = Plan::create($attributes + ['slug' => 'ai-complete-bundle', 'product_category_id' => $category->id]);
+        } elseif ($plan->price_status === 'pending' && $plan->prices()->doesntExist()) {
+            $plan->forceFill($attributes)->save();
+        } else {
+            return; // already priced or edited in Admin: never overwrite
+        }
+
+        $plan->prices()->create(['billing_interval' => 'monthly', 'amount_minor' => self::BUNDLE_MONTHLY * 100, 'currency' => 'INR']);
+        $plan->prices()->create(['billing_interval' => 'yearly', 'amount_minor' => self::BUNDLE_MONTHLY * 12 * 100, 'currency' => 'INR']);
     }
 
     /** Hide a plan nobody has ordered; plans with orders or services are left alone. */
