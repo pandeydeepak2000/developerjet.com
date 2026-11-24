@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\BlockWritesWhileImpersonating;
 use App\Http\Middleware\ConfirmStaffAccess;
+use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\RequirePermission;
 use App\Http\Middleware\ResolveStaffPortal;
@@ -33,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff.portal' => ResolveStaffPortal::class,
             'staff.reauth' => ConfirmStaffAccess::class,
             'impersonation.readonly' => BlockWritesWhileImpersonating::class,
+            // Same as Laravel's, but staff "View as client" sessions skip the customer email OTP.
+            'verified' => EnsureEmailIsVerified::class,
         ]);
         // Gateway webhooks are authenticated by signature, not CSRF/session.
         $middleware->validateCsrfTokens(except: ['webhooks/*']);

@@ -37,7 +37,7 @@
 
     @if ($canImpersonate)
     <section class="admin-card"><h2>View as client</h2>
-        <p class="muted small">Customer ka dashboard exactly waisa dekho jaisa wo dekhta hai — bina uska password jaane. Ye read-only hai: impersonation ke dauraan koi order, payment ya setting change nahi ho sakti. Start aur Exit dono audit log me record hote hain.</p>
+        <p class="muted small">Customer ka dashboard exactly waisa dekho jaisa wo dekhta hai — bina uska password jaane. Ye read-only hai: impersonation ke dauraan koi order, payment ya setting change nahi ho sakti. Start aur Exit dono audit log me record hote hain. Customer ko koi email, OTP ya notification nahi jaata, aur unverified customer ka dashboard bhi bina OTP ke khulta hai.</p>
         <form method="POST" action="{{ route('admin.users.impersonate', $member) }}" onsubmit="return confirm('View dashboard as {{ $member->name }}? This is read-only and logged.');">@csrf<button class="admin-btn" type="submit">View as client</button></form>
     </section>
     @elseif ($member->role === 'customer')

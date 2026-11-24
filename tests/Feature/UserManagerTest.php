@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\BuildsFixtures;
 use Tests\TestCase;
 
@@ -81,6 +83,42 @@ class UserManagerTest extends TestCase
         $this->post(route('admin.impersonation.exit'))->assertRedirect(route('admin.users.show', $customer));
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.impersonation_started']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.impersonation_ended']);
+    }
+
+    public function test_view_as_client_skips_otp_for_unverified_customer_and_never_notifies_them(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        $admin = $this->staff();
+        $customer = $this->customer(['name' => 'Unverified Client', 'email' => 'unverified@example.test', 'email_verified_at' => null]);
+
+        $this->actingAs($admin)->withSession($this->confirmed())
+            ->post(route('admin.users.impersonate', $customer))
+            ->assertRedirect(route('dashboard'));
+
+        // No OTP wall: staff sees the customer's dashboard straight away.
+        $this->get(route('dashboard'))->assertOk()->assertSee('Viewing as Unverified Client');
+        $this->get(route('dashboard.services'))->assertOk();
+
+        // The customer is never told: no OTP issued, no mail, no notification, still unverified.
+        $this->assertSame(0, $customer->otps()->count());
+        Mail::assertNothingSent();
+        Mail::assertNothingQueued();
+        Notification::assertNothingSent();
+        $this->assertNull($customer->fresh()->email_verified_at);
+    }
+
+    public function test_email_verification_still_applies_outside_a_real_staff_impersonation(): void
+    {
+        $customer = $this->customer(['email_verified_at' => null]);
+
+        // The customer's own session is still sent to the OTP page.
+        $this->actingAs($customer, 'web')->get(route('dashboard'))->assertRedirect(route('verification.notice'));
+
+        // Forged session keys without a signed-in staff member with the permission do not bypass it.
+        $this->actingAs($customer, 'web')
+            ->withSession(['impersonator_id' => 999, 'impersonated_user_id' => $customer->id])
+            ->get(route('dashboard'))->assertRedirect(route('verification.notice'));
     }
 
     public function test_impersonation_forbidden_without_permission_and_for_staff_or_inactive(): void
