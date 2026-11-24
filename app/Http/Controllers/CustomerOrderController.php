@@ -34,6 +34,9 @@ class CustomerOrderController extends Controller
             'order' => $order,
             'gateways' => $gateways->available(),
             'checkout' => $checkout,
+            // Straight after "Place order" with Razorpay chosen, open the payment window immediately (one-time flash),
+            // so the customer goes checkout → pay without an extra click. Reloading the page does not re-open it.
+            'autoOpen' => $checkout !== null && $request->boolean('pay'),
             // Customers never see internal notes.
             'events' => $order->events->where('is_internal', false),
         ]);

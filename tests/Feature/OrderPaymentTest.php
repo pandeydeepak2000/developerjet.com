@@ -37,6 +37,25 @@ class OrderPaymentTest extends TestCase
         return [$user, $order->fresh(), PaymentAttempt::where('order_id', $order->id)->firstOrFail()];
     }
 
+    public function test_razorpay_window_opens_straight_after_place_order_but_not_on_reload(): void
+    {
+        $this->approve('hermes-cli-launch', 2000);
+        $user = $this->customer();
+        $this->actingAs($user)->post('/cart', ['plan' => 'hermes-cli-launch', 'billing_interval' => 'monthly']);
+        $response = $this->withSession(['checkout_token' => 'tok-auto'])->post('/checkout', ['accept_terms' => 1, 'payment_method' => 'razorpay']);
+        $order = Order::where('user_id', $user->id)->latest('id')->firstOrFail();
+
+        $response->assertRedirect(route('dashboard.orders.show', ['order' => $order, 'gateway' => 'razorpay', 'pay' => 1]));
+        $this->followRedirects($response)->assertOk()
+            ->assertSee('id="pay-button" data-auto-open', false)
+            ->assertSee('Opening the secure payment window')
+            ->assertSee('Complete the payment in the secure window');
+
+        // A later visit (e.g. from Orders) shows the Pay button without forcing the window open.
+        $this->get(route('dashboard.orders.show', ['order' => $order, 'gateway' => 'razorpay']))->assertOk()
+            ->assertSee('id="pay-button"', false)->assertDontSee('id="pay-button" data-auto-open', false);
+    }
+
     public function test_order_creation_snapshots_items_and_creates_unpaid_order(): void
     {
         $this->approve('hermes-cli-launch', 2000);

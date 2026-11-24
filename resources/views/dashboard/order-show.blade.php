@@ -33,20 +33,37 @@
                     @csrf
                     <input type="hidden" name="razorpay_order_id"><input type="hidden" name="razorpay_payment_id"><input type="hidden" name="razorpay_signature">
                 </form>
-                <button class="auth-submit" type="button" id="pay-button">Pay {{ \App\Support\Money::inr($order->payableMinor()) }}</button>
+                <button class="auth-submit" type="button" id="pay-button"@if ($autoOpen) data-auto-open @endif>Pay {{ \App\Support\Money::inr($order->payableMinor()) }}</button>
+                <p class="muted small" id="pay-status" aria-live="polite">@if ($autoOpen)Opening the secure payment window…@endif</p>
                 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                 <script>
-                    document.getElementById('pay-button').addEventListener('click', function () {
-                        var options = @json($checkout['payload']);
-                        options.handler = function (r) {
-                            var f = document.getElementById('verify-form');
-                            f.razorpay_order_id.value = r.razorpay_order_id;
-                            f.razorpay_payment_id.value = r.razorpay_payment_id;
-                            f.razorpay_signature.value = r.razorpay_signature;
-                            f.submit();
-                        };
-                        new Razorpay(options).open();
-                    });
+                    (function () {
+                        var button = document.getElementById('pay-button');
+                        var status = document.getElementById('pay-status');
+                        function openCheckout() {
+                            if (typeof Razorpay === 'undefined') { status.textContent = 'The payment window could not load. Check your connection and press Pay.'; return; }
+                            var options = @json($checkout['payload']);
+                            options.handler = function (r) {
+                                var f = document.getElementById('verify-form');
+                                f.razorpay_order_id.value = r.razorpay_order_id;
+                                f.razorpay_payment_id.value = r.razorpay_payment_id;
+                                f.razorpay_signature.value = r.razorpay_signature;
+                                status.textContent = 'Payment received. Confirming it with our server…';
+                                f.submit();
+                            };
+                            options.modal = Object.assign({}, options.modal || {}, {
+                                ondismiss: function () { status.textContent = 'Payment window closed. Your order is saved — press Pay whenever you are ready.'; }
+                            });
+                            new Razorpay(options).open();
+                        }
+                        button.addEventListener('click', openCheckout);
+                        // Coming straight from checkout: open the payment window without an extra click.
+                        if (button.hasAttribute('data-auto-open')) {
+                            // Drop ?pay=1 so a reload or bookmark does not open the window again.
+                            try { var u = new URL(window.location.href); u.searchParams.delete('pay'); window.history.replaceState(null, '', u.toString()); } catch (e) {}
+                            window.addEventListener('load', openCheckout);
+                        }
+                    })();
                 </script>
             @elseif ($gateways)
                 <p class="muted">Choose how to pay:</p>

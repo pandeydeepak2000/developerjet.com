@@ -79,9 +79,14 @@ class CheckoutController extends Controller
         $cart?->items()->delete();
         $request->session()->forget('checkout_token');
 
-        return redirect()->route('dashboard.orders.show', $order)
-            ->with('success', 'Order placed. Complete payment to start provisioning.')
-            ->with('preferred_gateway', ($data['payment_method'] ?? null) === 'razorpay' ? 'razorpay' : null);
+        $paid = $order->status !== 'pending_payment';
+        $online = ($data['payment_method'] ?? null) === 'razorpay';
+
+        return redirect()->route('dashboard.orders.show', $online && ! $paid ? ['order' => $order, 'gateway' => 'razorpay', 'pay' => 1] : $order)
+            ->with('success', $paid
+                ? 'Payment received. Our team is now preparing your server — follow the progress here.'
+                : ($online ? 'Order saved. Complete the payment in the secure window to confirm it.' : 'Order placed. Complete payment to start provisioning.'))
+            ->with('preferred_gateway', $online ? 'razorpay' : null);
     }
 
     /**
