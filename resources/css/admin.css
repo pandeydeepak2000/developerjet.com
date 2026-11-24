@@ -164,3 +164,13 @@ a.dj-kpi:hover{border-color:#bfdbfe;transform:translateY(-1px)}
 .admin-body .admin-setup-facts div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px}
 .admin-body .admin-setup-facts dt{color:var(--a-muted,#64748b);font-weight:600}
 .admin-body .admin-setup-facts dd{margin:0}
+/* One-step server setup on the order page */
+.admin-body .admin-setup{display:block;padding:16px 0}
+.admin-body .admin-setup h3{display:flex;align-items:center;gap:8px;margin:14px 0 10px;font-size:15px}
+.admin-body .admin-step-num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:999px;background:var(--a-accent,#2563eb);color:#fff;font-size:12px;font-weight:700}
+.admin-body .admin-setup-form{margin:0;padding:0;border:0;box-shadow:none;background:none}
+.admin-body .admin-setup-form small{display:block;margin-top:4px;font-weight:400}
+.admin-body .admin-setup-deploy .btn-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.admin-body .admin-setup-note{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:13px}
+.admin-body .admin-advanced{margin:12px 0 0}
+.admin-body .admin-advanced>summary{cursor:pointer;color:var(--a-accent,#2563eb);font-weight:600;font-size:14px;margin-bottom:10px}

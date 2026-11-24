@@ -39,69 +39,102 @@
         <section class="admin-card">
             <h2>Services & provisioning</h2>
             @foreach ($order->services as $service)
-                <div class="admin-service-row">
-                    <div><strong>{{ $service->label }}</strong> <x-status-badge :status="$service->status" />
-                        <p class="muted small">Server: {{ $service->server?->label ?? 'not assigned' }} @if ($service->plan?->resourceProfile) · plan needs {{ $service->plan->resourceProfile->summary() }} @else · plan resources not confirmed @endif</p>
-                        <dl class="admin-setup-facts">
-                            @if ($service->needsDomain())
-                                <div><dt>App address</dt><dd>
-                                    @if ($service->custom_domain)
-                                        Customer domain: <strong>{{ $service->custom_domain }}</strong>
-                                        @if ($service->domain_verified)<span class="badge badge-good">Verified</span>@else<span class="badge badge-warn">Waiting for customer DNS check</span>@endif
-                                    @elseif ($service->config['assigned_domain'] ?? null)
-                                        DeveloperJet address: <strong>{{ $service->config['assigned_domain'] }}</strong>
-                                    @else
-                                        <span class="badge badge-warn">Customer chose a DeveloperJet address — set one below</span>
-                                    @endif
-                                    @if ($service->appDomain())<br><small class="muted">Installer will use: {{ $service->appDomain() }}</small>@endif
-                                </dd></div>
-                            @endif
-                            @if ($service->usesAi())
-                                <div><dt>AI key</dt><dd>
-                                    @if ($service->aiConfigured())<span class="badge badge-good">Provided · {{ config('provisioning.ai_providers.'.$service->ai_provider, $service->ai_provider) }}</span> <small class="muted">used automatically during setup</small>
-                                    @else<span class="badge badge-neutral">Not provided</span> <small class="muted">customer is asked to add it in their dashboard</small>@endif
-                                </dd></div>
-                            @endif
-                        </dl>
-                        @if ($service->needsDomain() && ! ($service->domain_verified && $service->custom_domain) && $u->hasPermission('servers.assign'))
-                            <form method="POST" action="{{ route('admin.services.domain', $service) }}" class="admin-inline-form">@csrf
-                                <input name="assigned_domain" value="{{ old('assigned_domain', $service->config['assigned_domain'] ?? '') }}" placeholder="client1.developerjet.com" maxlength="190" aria-label="App subdomain" required>
-                                <button class="admin-btn admin-btn-quiet" type="submit">{{ ($service->config['assigned_domain'] ?? null) ? 'Change address' : 'Set app address' }}</button>
-                            </form>
-                            <p class="muted small">Used when the customer has not given (or not yet verified) their own domain. Create the DNS A record for this name pointing at the server's IP.</p>
-                        @endif
+                @php
+                    $canSetup = $u->hasPermission('servers.assign') && in_array($service->status, ['pending_provisioning', 'failed']);
+                    $askAddress = $service->needsDomain() && ! ($service->domain_verified && $service->custom_domain);
+                    $profile = $service->plan?->resourceProfile;
+                    $srv = $service->server;
+                @endphp
+                <div class="admin-service-row admin-setup">
+                    <div class="admin-setup-head">
+                        <div><strong>{{ $service->label }}</strong> <x-status-badge :status="$service->status" />
+                            <p class="muted small">@if ($profile)Plan size: {{ $profile->summary() }} · {{ $profile->disk_gb }} GB disk @else Plan size not in catalogue — enter it below @endif</p>
+                        </div>
                     </div>
-                    <div class="admin-service-actions">
-                        @if ($u->hasPermission('servers.assign') && in_array($service->status, ['pending_provisioning', 'failed']))
-                            <form method="POST" action="{{ route('admin.services.assign', $service) }}" class="admin-inline-form">@csrf
-                                <select name="server_id" aria-label="Server"><option value="">Select server…</option>@foreach ($servers as $s)<option value="{{ $s->id }}">{{ $s->label }} ({{ $s->cpu_capacity }}c/{{ $s->ram_capacity_gb }}G/{{ $s->storage_capacity_gb }}G)</option>@endforeach</select>
-                                @unless ($service->plan?->resourceProfile)
-                                    {{-- No catalogue profile for this plan (n8n, Docker VPS, Claude Code, bundle, OpenClaw):
-                                         staff state the size this service needs; it is audited and re-checked at deploy time. --}}
-                                    <input type="number" name="vcpu" min="1" max="256" placeholder="vCPU" required
-                                           value="{{ $service->config['confirmed_resources']['vcpu'] ?? '' }}" aria-label="Required vCPU">
-                                    <input type="number" name="ram_gb" min="1" max="4096" placeholder="RAM GB" required
-                                           value="{{ $service->config['confirmed_resources']['ram_gb'] ?? '' }}" aria-label="Required RAM in GB">
-                                    <input type="number" name="disk_gb" min="1" max="65536" placeholder="Disk GB" required
-                                           value="{{ $service->config['confirmed_resources']['disk_gb'] ?? '' }}" aria-label="Required disk in GB">
+
+                    <dl class="admin-setup-facts">
+                        <div><dt>Server</dt><dd>@if ($srv)<strong>{{ $srv->ip_address }}</strong> <small class="muted">({{ $srv->ssh_user.'@'.$srv->ip_address.':'.$srv->ssh_port }} ·{{ $srv->getRawOriginal('ssh_credential') ? 'password/key saved' : 'no password saved' }})</small>@else<span class="badge badge-warn">Not added yet</span>@endif</dd></div>
+                        @if ($service->needsDomain())
+                            <div><dt>App address</dt><dd>
+                                @if ($service->appDomain())<strong>{{ $service->appDomain() }}</strong>
+                                    @if ($service->custom_domain && $service->domain_verified)<span class="badge badge-good">Customer domain · verified</span>@endif
+                                @elseif ($service->custom_domain)Customer domain <strong>{{ $service->custom_domain }}</strong> <span class="badge badge-warn">waiting for customer DNS check</span>
+                                @else<span class="badge badge-warn">Not set yet</span>@endif
+                            </dd></div>
+                        @endif
+                        @if ($service->usesAi())
+                            <div><dt>AI key</dt><dd>
+                                @if ($service->aiConfigured())<span class="badge badge-good">Provided · {{ config('provisioning.ai_providers.'.$service->ai_provider, $service->ai_provider) }}</span>
+                                @else<span class="badge badge-neutral">Not provided</span> <small class="muted">customer can add it in their dashboard</small>@endif
+                            </dd></div>
+                        @endif
+                    </dl>
+
+                    @if ($canSetup)
+                        <form method="POST" action="{{ route('admin.services.setup', $service) }}" class="admin-form admin-setup-form" data-loading-form>@csrf
+                            <h3><span class="admin-step-num">1</span> VPS details</h3>
+                            <div class="admin-form-grid">
+                                <label>VPS IP address <input name="ip_address" value="{{ old('ip_address', $srv?->ip_address) }}" placeholder="203.0.113.10" required inputmode="decimal"></label>
+                                <label>Username <input name="ssh_user" value="{{ old('ssh_user', $srv?->ssh_user ?? 'root') }}" placeholder="root"></label>
+                                <label>Root password
+                                    <input type="password" name="ssh_password" autocomplete="new-password" @unless ($srv?->getRawOriginal('ssh_credential')) required @endunless
+                                           placeholder="{{ $srv?->getRawOriginal('ssh_credential') ? '•••• saved — leave blank to keep' : 'From the VPS supplier email' }}">
+                                    <small class="muted">Stored encrypted, never shown again.</small>
+                                </label>
+                                <label>SSH port <input type="number" name="ssh_port" value="{{ old('ssh_port', $srv?->ssh_port ?? 22) }}" min="1" max="65535"></label>
+                                @if ($askAddress)
+                                    <label class="span-2">App address (subdomain)
+                                        <input name="assigned_domain" value="{{ old('assigned_domain', $service->config['assigned_domain'] ?? $service->custom_domain) }}" placeholder="client1.developerjet.com" maxlength="190" required>
+                                        <small class="muted">Add a DNS A record for this name pointing to the VPS IP.</small>
+                                    </label>
+                                @endif
+                                @unless ($profile)
+                                    <label>vCPU <input type="number" name="vcpu" min="1" max="256" required value="{{ old('vcpu', $service->config['confirmed_resources']['vcpu'] ?? '') }}"></label>
+                                    <label>RAM (GB) <input type="number" name="ram_gb" min="1" max="4096" required value="{{ old('ram_gb', $service->config['confirmed_resources']['ram_gb'] ?? '') }}"></label>
+                                    <label>Disk (GB) <input type="number" name="disk_gb" min="1" max="65536" required value="{{ old('disk_gb', $service->config['confirmed_resources']['disk_gb'] ?? '') }}"></label>
                                 @endunless
-                                <button class="admin-btn admin-btn-quiet" type="submit">Assign</button>
-                            </form>
-                            @unless ($service->plan?->resourceProfile)
-                                <p class="muted small">This plan has no catalogue resource profile — record the required vCPU / RAM / disk when assigning. The size is stored on the service and re-checked before deployment.</p>
+                            </div>
+                            <div class="admin-form-actions"><button class="admin-btn" type="submit">{{ $srv ? 'Update details' : 'Save details' }}</button></div>
+                        </form>
+
+                        @if ($servers->isNotEmpty())
+                            <details class="admin-advanced">
+                                <summary>Or use a server already in inventory</summary>
+                                <form method="POST" action="{{ route('admin.services.assign', $service) }}" class="admin-inline-form">@csrf
+                                    <select name="server_id" aria-label="Server"><option value="">Select server…</option>@foreach ($servers as $s)<option value="{{ $s->id }}">{{ $s->label }} — {{ $s->ip_address }} ({{ $s->cpu_capacity }}c/{{ $s->ram_capacity_gb }}G/{{ $s->storage_capacity_gb }}G)</option>@endforeach</select>
+                                    @unless ($profile)
+                                        <input type="number" name="vcpu" min="1" max="256" placeholder="vCPU" required aria-label="Required vCPU">
+                                        <input type="number" name="ram_gb" min="1" max="4096" placeholder="RAM GB" required aria-label="Required RAM in GB">
+                                        <input type="number" name="disk_gb" min="1" max="65536" placeholder="Disk GB" required aria-label="Required disk in GB">
+                                    @endunless
+                                    <button class="admin-btn admin-btn-quiet" type="submit">Assign</button>
+                                </form>
+                            </details>
+                        @endif
+                    @endif
+
+                    @if ($u->hasPermission('deployments.deploy') && $service->server_id)
+                        <div class="admin-setup-deploy">
+                            <h3><span class="admin-step-num">2</span> Deploy</h3>
+                            <div class="btn-row">
+                                <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form" onsubmit="return confirm('Install {{ $service->plan?->name ?? 'the app' }} on {{ $srv->ip_address }}?')">@csrf
+                                    <input type="hidden" name="mode" value="live"><button class="admin-btn" type="submit">Deploy</button></form>
+                                <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form">@csrf
+                                    <input type="hidden" name="mode" value="dry_run"><button class="admin-btn admin-btn-quiet" type="submit">Check only (dry run)</button></form>
+                            </div>
+                            @unless (config('provisioning.live_enabled'))
+                                <p class="admin-setup-note">Automatic install is not switched on yet, so Deploy will stop safely without installing anything. Until it is approved and tested on a real VPS, install the app over SSH yourself.</p>
                             @endunless
-                        @endif
-                        @if ($u->hasPermission('deployments.deploy') && $service->server_id)
-                            <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form">@csrf
-                                <input type="hidden" name="mode" value="dry_run"><button class="admin-btn admin-btn-quiet" type="submit">Dry run</button></form>
-                            <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form" onsubmit="return confirm('Start a LIVE deployment on {{ $service->server->label }}?')">@csrf
-                                <input type="hidden" name="mode" value="live"><button class="admin-btn" type="submit">Deploy</button></form>
-                        @endif
-                        @if ($u->hasPermission('servers.edit') && $u->hasPermission('deployments.deploy') && $service->server_id)
+                        </div>
+                    @endif
+
+                    @if ($u->hasPermission('servers.edit') && $u->hasPermission('deployments.deploy') && $service->server_id && ! $canSetup)
+                        <details class="admin-advanced">
+                            <summary>Suspend this server</summary>
                             <form method="POST" action="{{ route('admin.servers.suspend', $service->server_id) }}" class="admin-inline-form" onsubmit="return confirm('Log a suspension request for this server?')">@csrf
                                 <input name="reason" placeholder="Suspension reason" required maxlength="500" aria-label="Suspension reason"><button class="admin-btn admin-btn-danger" type="submit">Request suspension</button></form>
-                        @endif
-                    </div>
+                        </details>
+                    @endif
                 </div>
             @endforeach
         </section>
