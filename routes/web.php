@@ -274,6 +274,7 @@ Route::prefix('admin')->group(function () {
 
         // User Manager: one place for Customers + Staff (Support / Sales teams), email change, impersonation.
         Route::get('/users', [Admin\UserManagerController::class, 'index'])->name('admin.users.index');
+        Route::post('/users', [Admin\UserManagerController::class, 'store'])->middleware('throttle:30,1')->name('admin.users.store');
         Route::get('/users/{user}', [Admin\UserManagerController::class, 'show'])->whereNumber('user')->name('admin.users.show');
         Route::post('/users/{user}/email', [Admin\UserManagerController::class, 'updateEmail'])->whereNumber('user')->middleware('staff.reauth')->name('admin.users.email');
         Route::post('/users/{user}/impersonate', [Admin\UserManagerController::class, 'impersonate'])->whereNumber('user')->middleware(['staff.reauth', 'throttle:10,1'])->name('admin.users.impersonate');

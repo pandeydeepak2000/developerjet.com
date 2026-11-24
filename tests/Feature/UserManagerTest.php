@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -83,6 +84,50 @@ class UserManagerTest extends TestCase
         $this->post(route('admin.impersonation.exit'))->assertRedirect(route('admin.users.show', $customer));
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.impersonation_started']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.impersonation_ended']);
+    }
+
+    public function test_staff_can_add_a_customer_without_ever_choosing_their_password(): void
+    {
+        Notification::fake();
+        $admin = $this->staff('admin');
+
+        $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'Walk-in Client', 'email' => 'Walkin@Example.test', 'phone_country' => '+91', 'phone' => '98765 43210', 'send_setup_link' => '1',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $customer = User::where('email', 'walkin@example.test')->firstOrFail();
+        $this->assertSame(User::ROLE_CUSTOMER, $customer->role);
+        $this->assertTrue((bool) $customer->is_active);
+        $this->assertNull($customer->email_verified_at);
+        $this->assertSame('+919876543210', $customer->phone);
+        $this->assertNull($customer->role_id);
+        Notification::assertSentTo($customer, ResetPassword::class);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'user.created_by_staff']);
+
+        // Duplicate email is refused; the page offers the form.
+        $this->post(route('admin.users.store'), ['name' => 'Dup', 'email' => 'walkin@example.test', 'phone_country' => '+91', 'phone' => '98765 43210'])
+            ->assertSessionHasErrors('email');
+        $this->get(route('admin.users.index'))->assertOk()->assertSee('Add customer');
+    }
+
+    public function test_adding_a_customer_needs_customers_edit_permission(): void
+    {
+        $this->actingAs($this->staff('technical-support'))->post(route('admin.users.store'), [
+            'name' => 'Nope', 'email' => 'nope@example.test', 'phone_country' => '+91', 'phone' => '98765 43210',
+        ])->assertForbidden();
+        $this->assertDatabaseMissing('users', ['email' => 'nope@example.test']);
+    }
+
+    public function test_staff_page_tabs_and_member_role_editor_render(): void
+    {
+        $super = $this->staff();
+        $member = $this->staff('technical-support', ['name' => 'Tina Tech']);
+        $this->actingAs($super);
+
+        $this->get(route('admin.staff.index'))->assertOk()->assertSee('Tina Tech')->assertSee('Manage');
+        $this->get(route('admin.staff.index', ['tab' => 'add']))->assertOk()->assertSee('Send invitation')->assertSee('Create staff account');
+        $this->get(route('admin.staff.index', ['tab' => 'roles']))->assertOk()->assertSee('Sidebar menus')->assertSee('Support tickets');
+        $this->get(route('admin.staff.show', $member))->assertOk()->assertSee('Role &amp; access', false)->assertSee('Save role &amp; access', false);
     }
 
     public function test_view_as_client_skips_otp_for_unverified_customer_and_never_notifies_them(): void

@@ -59,3 +59,50 @@ a.dj-kpi:hover{border-color:#bfdbfe;transform:translateY(-1px)}
 .dj-picker-list li.is-empty{display:block;cursor:default;color:var(--a-muted,#64748b)}
 .dj-picker-hint{margin:0}
 @media (max-width:520px){.dj-picker-list li{grid-template-columns:minmax(0,1fr)}.dj-picker-list li small{grid-column:1;grid-row:auto}}
+
+/* Admin polish: page lead, disclosure cards, tab counts, compact buttons, role cards, chips. */
+.admin-body .admin-lead{margin:-4px 0 16px;color:var(--a-muted,#64748b);max-width:80ch}
+.admin-body .admin-tabs a span{margin-left:8px;padding:1px 8px;border-radius:999px;background:rgba(100,116,139,.15);font-size:12px;font-weight:700}
+.admin-body .admin-tabs a[aria-current="page"] span{background:rgba(255,255,255,.22)}
+.admin-body .admin-card-flush{padding:0;overflow:hidden}
+.admin-body .admin-card-flush>.admin-filters{margin:0;padding:14px 16px;border-bottom:1px solid var(--a-line,#e2e8f0)}
+.admin-body .admin-card-flush>.admin-table-wrap{border:0;border-radius:0;margin:0}
+.admin-body .admin-card-flush>nav,.admin-body .admin-card-flush>.admin-empty{margin:12px 16px}
+.admin-body .admin-btn-sm{min-height:32px;padding:0 12px;font-size:13px}
+.admin-body .admin-strong-link{font-weight:600;color:var(--a-text,#0f172a);text-decoration:none}
+.admin-body .admin-strong-link:hover{color:var(--a-accent,#2563eb);text-decoration:underline}
+.admin-body .admin-sub{display:block;color:var(--a-muted,#64748b);font-size:12.5px;overflow-wrap:anywhere}
+.admin-body .admin-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+.admin-body .admin-disclosure>summary::-webkit-details-marker{display:none}
+.admin-body .admin-disclosure>summary>span{display:flex;flex-direction:column;gap:2px}
+.admin-body .admin-disclosure>summary small{color:var(--a-muted,#64748b);font-weight:400}
+.admin-body .admin-disclosure>summary::after{content:"+";font-size:22px;line-height:1;color:var(--a-accent,#2563eb)}
+.admin-body .admin-disclosure[open]>summary{margin-bottom:14px}
+.admin-body .admin-disclosure[open]>summary::after{content:"\2212"}
+.admin-body .admin-fieldset{border:1px solid var(--a-line,#e2e8f0);border-radius:10px;padding:10px 12px;margin:0;min-width:0}
+.admin-body .admin-fieldset legend{padding:0 6px;font-weight:600}
+.admin-body .admin-check-grid{display:flex;flex-wrap:wrap;gap:6px 16px}
+.admin-body .admin-role-preview{margin:-4px 0 4px;color:var(--a-muted,#64748b)}
+.admin-body .admin-role-list{display:grid;gap:10px}
+.admin-body .admin-role-card{border:1px solid var(--a-line,#e2e8f0);border-radius:12px;background:var(--a-card,#fff)}
+.admin-body .admin-role-card>summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;cursor:pointer;list-style:none}
+.admin-body .admin-role-card>summary::-webkit-details-marker{display:none}
+.admin-body .admin-role-card[open]>summary{border-bottom:1px solid var(--a-line,#e2e8f0)}
+.admin-body .admin-role-title{display:flex;flex-direction:column;gap:2px;min-width:180px}
+.admin-body .admin-role-title small{color:var(--a-muted,#64748b)}
+.admin-body .admin-role-body{padding:14px}
+.admin-body .admin-chips{display:flex;flex-wrap:wrap;gap:6px}
+.admin-body .admin-chip{display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;background:rgba(37,99,235,.1);color:var(--a-accent,#2563eb);font-size:12px;font-weight:600;white-space:nowrap}
+.admin-body .admin-chip-muted{background:rgba(100,116,139,.12);color:var(--a-muted,#64748b)}
+.admin-body .admin-matrix td,.admin-body .admin-matrix th{text-align:center}
+.admin-body .admin-matrix th[scope=row],.admin-body .admin-matrix td.small,.admin-body .admin-matrix thead th:nth-child(-n+2){text-align:left}
+.admin-body .admin-matrix input[type=checkbox]{width:18px;height:18px}
+.admin-body .admin-matrix{min-width:980px}
+.admin-body .admin-matrix thead th{white-space:nowrap;font-size:11px;letter-spacing:.02em;padding:10px 8px}
+.admin-body .admin-matrix td,.admin-body .admin-matrix tbody th{padding:8px}
+.admin-body .admin-matrix tbody th{white-space:nowrap}
+
+/* Tables: keep headers and short values on one line; long text (names, emails) still wraps. */
+.admin-body .admin-table thead th{white-space:nowrap}
+.admin-body .admin-table td:is([data-label=Phone],[data-label=Type],[data-label=Orders],[data-label=Status],[data-label=Joined],[data-label=Date],[data-label=Amount],[data-label=Balance],[data-label=Expires],[data-label="Last sign-in"],[data-label=Security],[data-label=Role]){white-space:nowrap}
+@media (max-width:760px){.admin-body .admin-table td{white-space:normal}}

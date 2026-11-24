@@ -7,14 +7,20 @@ use App\Models\Order;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Rules\ValidPhone;
 use App\Support\Audit;
+use App\Support\PhoneNumber;
 use App\Support\StaffSecurity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 /** Unified User Manager: customers + staff (Support / Sales teams) in one place. */
 class UserManagerController extends Controller
@@ -52,6 +58,48 @@ class UserManagerController extends Controller
             'roles' => Role::orderBy('name')->get(['id', 'name']),
             'counts' => ['customers' => User::where('role', 'customer')->count(), 'staff' => User::whereIn('role', ['staff', 'admin'])->count()],
         ]);
+    }
+
+    /**
+     * Add a customer account from the admin panel (e.g. a client onboarded by phone or in person).
+     * Staff never choose or see the customer's password: an unguessable random one is stored and the
+     * customer sets their own through the normal reset link. Email stays unverified until the customer
+     * confirms it with the usual one-time code. Staff accounts are created from Staff & roles only.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('customers.edit'), 403);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:190', 'unique:users,email'],
+            'phone_country' => ['required', 'string', 'in:'.implode(',', array_keys(config('phone.countries')))],
+            'phone' => ['required', 'string', 'max:24', new ValidPhone],
+            'send_setup_link' => ['nullable', 'boolean'],
+        ], ['email.unique' => 'An account with this email already exists. Search for it in User Manager instead.']);
+
+        $customer = new User([
+            'name' => trim($data['name']),
+            'email' => strtolower($data['email']),
+            'phone' => PhoneNumber::normalise($data['phone_country'], $data['phone']),
+            'password' => Str::random(48),
+        ]);
+        $customer->forceFill(['role' => User::ROLE_CUSTOMER, 'is_active' => true])->save();
+
+        $linkSent = false;
+        if ($request->boolean('send_setup_link')) {
+            try {
+                $linkSent = Password::sendResetLink(['email' => $customer->email]) === Password::RESET_LINK_SENT;
+            } catch (Throwable $e) {
+                Log::error('Customer setup link failed.', ['user' => $customer->id, 'error' => $e::class]);
+            }
+        }
+        Audit::log('user.created_by_staff', $customer, ['by' => $request->user()->id, 'setup_link_sent' => $linkSent]);
+
+        $message = 'Customer '.$customer->name.' added.'.($request->boolean('send_setup_link')
+            ? ($linkSent ? ' A password setup link was emailed to '.$customer->email.'.' : ' The setup link could not be emailed; check SMTP, then ask the customer to use "Forgot password".')
+            : ' Ask the customer to use "Forgot password" on the login page to set their password.');
+
+        return redirect()->route('admin.users.show', $customer)->with($linkSent || ! $request->boolean('send_setup_link') ? 'success' : 'error', $message);
     }
 
     public function show(Request $request, User $user): View

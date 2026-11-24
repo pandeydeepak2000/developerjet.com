@@ -437,6 +437,27 @@ if (setupStages) {
     document.addEventListener('visibilitychange', () => { if (!document.hidden && timer) poll(); });
 }
 
+// Admin staff: show which sidebar menus the selected role unlocks.
+document.querySelectorAll('select[data-role-preview]').forEach((select) => {
+    const out = document.getElementById(select.dataset.rolePreview);
+    if (!out) return;
+    const show = () => { out.textContent = `Sidebar mein dikhega: ${select.selectedOptions[0]?.dataset.menus || '—'}`; };
+    select.addEventListener('change', show);
+    show();
+});
+
+// Admin: a link like <a data-open-details="id"> opens and scrolls to that <details> panel.
+document.querySelectorAll('[data-open-details]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+        const panel = document.getElementById(link.dataset.openDetails);
+        if (!panel) return;
+        e.preventDefault();
+        panel.open = true;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        panel.querySelector('input:not([type=hidden])')?.focus({ preventScroll: true });
+    });
+});
+
 // Admin wallet: searchable customer picker (name / email / phone). Server returns at most 8 rows, so it scales to
 // tens of thousands of customers. Without JS the field is a plain email input and the server still validates it.
 document.querySelectorAll('[data-customer-picker]').forEach((picker) => {

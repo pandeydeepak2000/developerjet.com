@@ -26,6 +26,11 @@ use Throwable;
 /** Staff accounts and roles. Role/permission configuration is Super Admin only; others can never grant above themselves. */
 class StaffController extends Controller
 {
+    /** Sidebar menu label => the permission that shows it (mirrors layouts/admin.blade.php). */
+    public const SIDEBAR_ITEMS = [
+        ['Dashboard', 'dashboard.view'], ['User Manager', 'customers.view'], ['Staff & roles', 'staff.view'], ['Departments', 'tickets.view'], ['Orders', 'orders.view'], ['Payments', 'payments.view'], ['Wallet', 'wallet.view'], ['Invoices', 'invoices.view'], ['Billing & renewals', 'subscriptions.view'], ['Billing operations', 'invoices.view'], ['Subscriptions', 'subscriptions.view'], ['Products & plans', 'plans.view'], ['Categories', 'categories.view'], ['Add-ons', 'addons.view'], ['Servers', 'servers.view'], ['Infrastructure', 'servers.view'], ['Providers', 'servers.view'], ['Provider offers', 'servers.view'], ['Server pools', 'servers.view'], ['Deployments', 'deployments.view'], ['Automation leads', 'leads.view'], ['Quote requests', 'projects.view'], ['Projects', 'projects.view'], ['SEO services', 'seo.view'], ['Support tickets', 'tickets.view'], ['Documentation', 'docs.view'], ['Doc categories', 'docs.view'], ['Notifications', 'notifications.view'], ['Settings', 'settings.view'], ['Security logs', 'security_logs.view'],
+    ];
+
     public function index(Request $request): View
     {
         abort_unless($request->user()->hasPermission('staff.view'), 403);
@@ -37,9 +42,7 @@ class StaffController extends Controller
             'modules' => config('permissions.modules'),
             'isSuper' => $request->user()->isSuper(),
             'invitations' => StaffInvitation::with('role')->whereNull('accepted_at')->latest('id')->limit(20)->get(),
-            'sidebarItems' => [
-                ['Dashboard', 'dashboard.view'], ['User Manager', 'customers.view'], ['Staff & roles', 'staff.view'], ['Departments', 'tickets.view'], ['Orders', 'orders.view'], ['Payments', 'payments.view'], ['Wallet', 'wallet.view'], ['Invoices', 'invoices.view'], ['Billing & renewals', 'subscriptions.view'], ['Billing operations', 'invoices.view'], ['Subscriptions', 'subscriptions.view'], ['Products & plans', 'plans.view'], ['Categories', 'categories.view'], ['Add-ons', 'addons.view'], ['Servers', 'servers.view'], ['Infrastructure', 'servers.view'], ['Providers', 'servers.view'], ['Provider offers', 'servers.view'], ['Server pools', 'servers.view'], ['Deployments', 'deployments.view'], ['Automation leads', 'leads.view'], ['Quote requests', 'projects.view'], ['Projects', 'projects.view'], ['SEO services', 'seo.view'], ['Support tickets', 'tickets.view'], ['Documentation', 'docs.view'], ['Doc categories', 'docs.view'], ['Notifications', 'notifications.view'], ['Settings', 'settings.view'], ['Security logs', 'security_logs.view'],
-            ],
+            'sidebarItems' => self::SIDEBAR_ITEMS,
         ]);
     }
 
@@ -155,6 +158,11 @@ class StaffController extends Controller
                 ->whereNotIn('action', StaffProfileController::LOGIN_ACTIONS)->latest('id')->limit(25)->get(),
             'recoveryLeft' => StaffSecurity::remainingRecoveryCodes($user),
             'canManage' => $this->canManage($request->user(), $user),
+            'canEdit' => $request->user()->hasPermission('staff.edit') && $user->role === User::ROLE_STAFF && (! $user->isSuperAccount() || $request->user()->isSuper()),
+            'roles' => Role::with('permissions')->orderBy('id')->get(),
+            'departments' => Department::orderBy('name')->get(),
+            'isSuper' => $request->user()->isSuper(),
+            'sidebarItems' => self::SIDEBAR_ITEMS,
         ]);
     }
 

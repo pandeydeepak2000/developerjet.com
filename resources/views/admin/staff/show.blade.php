@@ -18,6 +18,25 @@
         </dl>
     </section>
 
+    @php
+        $menusFor = fn ($role) => $role->is_super
+            ? collect($sidebarItems)->pluck(0)->unique()->values()
+            : collect($sidebarItems)->filter(fn ($i) => $role->permissions->pluck('permission')->contains($i[1]))->pluck(0)->unique()->values();
+        $currentMenus = $member->staffRole ? $menusFor($member->staffRole->loadMissing('permissions')) : collect();
+    @endphp
+    <section class="admin-card"><h2>Role &amp; access</h2>
+        <p class="small"><strong>Login par sidebar mein dikhta hai:</strong> {{ $currentMenus->implode(', ') ?: 'Sirf My profile' }}</p>
+        @if ($canEdit)
+            <form method="POST" action="{{ route('admin.staff.update', $member) }}" class="admin-form" data-loading-form>@csrf @method('PUT')
+                @include('admin.staff._role_select', ['roles' => $roles, 'isSuper' => $isSuper, 'menusFor' => $menusFor, 'id' => 'member-role', 'current' => $member->role_id])
+                @include('admin.staff._departments', ['departments' => $departments, 'selected' => $member->departments->pluck('id')->all()])
+                <label class="admin-check"><input type="checkbox" name="is_active" value="1" @checked($member->is_active)> Account active</label>
+                <p class="muted small">Save karne se pehle password confirm karna hoga. Badlav audit log mein record hota hai.</p>
+                <div class="admin-actions-row"><button class="admin-btn" type="submit">Save role &amp; access</button></div>
+            </form>
+        @endif
+    </section>
+
     @if ($canManage && $member->id !== auth()->id())
     <section class="admin-card"><h2>Access controls</h2>
         <p class="muted small">These actions ask you to confirm your password first and are recorded in the audit log.</p>
