@@ -22,19 +22,21 @@ class MailDeliveryService
         // config('mail.mailers.smtp.host') defaults to 127.0.0.1 when MAIL_HOST is unset, and
         // the stock .env sets MAIL_HOST=127.0.0.1 as a placeholder, so neither counts as a
         // configured SMTP host. Only an explicitly saved setting or a non-localhost env host does.
+        // Read through config(), never env(): after `php artisan config:cache` (production)
+        // env() returns null outside config files, which hid a correctly filled .env.
         $missing = [];
-        $envHost = env('MAIL_HOST');
+        $envHost = config('mail.mailers.smtp.host');
         $envHostIsReal = is_string($envHost) && $envHost !== '' && ! in_array(strtolower($envHost), ['127.0.0.1', 'localhost', '::1'], true);
         if (! Setting::has('smtp.host') && ! $envHostIsReal) {
             $missing[] = 'smtp.host';
         }
-        if (! Setting::has('smtp.username') && ! env('MAIL_USERNAME')) {
+        if (! Setting::has('smtp.username') && ! config('mail.mailers.smtp.username')) {
             $missing[] = 'smtp.username';
         }
-        if (! Setting::has('smtp.password') && ! env('MAIL_PASSWORD')) {
+        if (! Setting::has('smtp.password') && ! config('mail.mailers.smtp.password')) {
             $missing[] = 'smtp.password';
         }
-        $from = Setting::get('smtp.from_address') ?: env('MAIL_FROM_ADDRESS');
+        $from = Setting::get('smtp.from_address') ?: config('mail.from.address');
         if (! $from || $from === 'hello@example.com') {
             $missing[] = 'smtp.from_address';
         }
@@ -63,7 +65,9 @@ class MailDeliveryService
         $port = (int) (Setting::get('smtp.port', 587) ?: config('mail.mailers.smtp.port', 587));
         $username = (string) (Setting::get('smtp.username') ?: config('mail.mailers.smtp.username'));
         $password = (string) (Setting::get('smtp.password') ?: config('mail.mailers.smtp.password'));
-        $scheme = Setting::get('smtp.encryption', 'tls') === 'ssl' ? 'smtps' : 'smtp';
+        $scheme = Setting::has('smtp.encryption')
+            ? (Setting::get('smtp.encryption') === 'ssl' ? 'smtps' : 'smtp')
+            : (config('mail.mailers.smtp.scheme') === 'smtps' || $port === 465 ? 'smtps' : 'smtp');
         try {
             $transport = Transport::fromDsn($scheme.'://'.rawurlencode($username).':'.rawurlencode($password).'@'.$host.':'.$port);
             if (! $transport instanceof SmtpTransport) {

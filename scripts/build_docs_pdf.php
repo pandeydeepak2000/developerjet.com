@@ -13,6 +13,7 @@ $root = dirname(__DIR__);
 $browser = getenv('BROWSER_BIN') ?: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 $jobs = [
     ['docs/03_COMPLETE_WORKFLOW.md', 'docs/generated/DeveloperJet_Complete_Workflow.pdf', 'DeveloperJet Complete Workflow', 'Client to Admin - complete feature workflow, automation, manual and gated steps'],
+    ['docs/05_EASY_GUIDE.md', 'docs/generated/DeveloperJet_Easy_Guide.pdf', 'DeveloperJet Aasaan Guide', 'Website, Client Dashboard aur Admin Panel - simple Hinglish mein poora workflow'],
 ];
 
 $css = <<<'CSS'

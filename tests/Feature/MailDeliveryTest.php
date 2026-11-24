@@ -30,6 +30,22 @@ class MailDeliveryTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_env_smtp_values_count_when_config_is_cached(): void
+    {
+        // Simulates production after `php artisan config:cache`: values live only in config,
+        // env() would return null. A filled .env must not be reported as missing.
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => 'mail.example.net',
+            'mail.mailers.smtp.username' => 'support@example.net',
+            'mail.mailers.smtp.password' => 'not-a-real-password',
+            'mail.from.address' => 'support@example.net',
+        ]);
+        $mail = app(MailDeliveryService::class);
+        $this->assertSame([], $mail->missingSmtpSettings());
+        $this->assertTrue($mail->deliversToInbox());
+    }
+
     public function test_log_mailer_is_never_reported_as_a_sent_otp(): void
     {
         config(['mail.default' => 'log']);
