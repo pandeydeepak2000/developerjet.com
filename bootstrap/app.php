@@ -44,5 +44,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Never flash secrets back into the session when a form fails validation.
+        $exceptions->dontFlash(['current_password', 'password', 'password_confirmation', 'ai_api_key', 'setup']);
     })->create();

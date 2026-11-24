@@ -61,6 +61,35 @@ class Service extends Model
         return $this->hasOne(Subscription::class);
     }
 
+    /** Recipes that are opened in a browser and therefore need a web address (domain / subdomain). */
+    public const DOMAIN_KINDS = ['hermes_workspace', 'n8n', 'bundle', 'openclaw'];
+
+    /** Recipes that use the customer's own AI provider key. */
+    public const AI_KINDS = ['hermes_cli', 'hermes_workspace', 'bundle', 'openclaw', 'claude_code'];
+
+    public function needsDomain(): bool
+    {
+        return in_array($this->kind, self::DOMAIN_KINDS, true);
+    }
+
+    public function usesAi(): bool
+    {
+        return in_array($this->kind, self::AI_KINDS, true);
+    }
+
+    /**
+     * The address the application is served on: the customer's own domain once DNS-verified, otherwise the
+     * subdomain staff assigned (DeveloperJet controls that DNS, so it needs no customer verification).
+     */
+    public function appDomain(): ?string
+    {
+        if ($this->domain_verified && $this->custom_domain) {
+            return $this->custom_domain;
+        }
+
+        return ($this->config['assigned_domain'] ?? null) ?: null;
+    }
+
     /** Hermes services are "configuration incomplete" until an AI provider and key are supplied. */
     public function aiConfigured(): bool
     {

@@ -41,7 +41,36 @@
             @foreach ($order->services as $service)
                 <div class="admin-service-row">
                     <div><strong>{{ $service->label }}</strong> <x-status-badge :status="$service->status" />
-                        <p class="muted small">Server: {{ $service->server?->label ?? 'not assigned' }} @if ($service->plan?->resourceProfile) · plan needs {{ $service->plan->resourceProfile->summary() }} @else · plan resources not confirmed @endif</p></div>
+                        <p class="muted small">Server: {{ $service->server?->label ?? 'not assigned' }} @if ($service->plan?->resourceProfile) · plan needs {{ $service->plan->resourceProfile->summary() }} @else · plan resources not confirmed @endif</p>
+                        <dl class="admin-setup-facts">
+                            @if ($service->needsDomain())
+                                <div><dt>App address</dt><dd>
+                                    @if ($service->custom_domain)
+                                        Customer domain: <strong>{{ $service->custom_domain }}</strong>
+                                        @if ($service->domain_verified)<span class="badge badge-good">Verified</span>@else<span class="badge badge-warn">Waiting for customer DNS check</span>@endif
+                                    @elseif ($service->config['assigned_domain'] ?? null)
+                                        DeveloperJet address: <strong>{{ $service->config['assigned_domain'] }}</strong>
+                                    @else
+                                        <span class="badge badge-warn">Customer chose a DeveloperJet address — set one below</span>
+                                    @endif
+                                    @if ($service->appDomain())<br><small class="muted">Installer will use: {{ $service->appDomain() }}</small>@endif
+                                </dd></div>
+                            @endif
+                            @if ($service->usesAi())
+                                <div><dt>AI key</dt><dd>
+                                    @if ($service->aiConfigured())<span class="badge badge-good">Provided · {{ config('provisioning.ai_providers.'.$service->ai_provider, $service->ai_provider) }}</span> <small class="muted">used automatically during setup</small>
+                                    @else<span class="badge badge-neutral">Not provided</span> <small class="muted">customer is asked to add it in their dashboard</small>@endif
+                                </dd></div>
+                            @endif
+                        </dl>
+                        @if ($service->needsDomain() && ! ($service->domain_verified && $service->custom_domain) && $u->hasPermission('servers.assign'))
+                            <form method="POST" action="{{ route('admin.services.domain', $service) }}" class="admin-inline-form">@csrf
+                                <input name="assigned_domain" value="{{ old('assigned_domain', $service->config['assigned_domain'] ?? '') }}" placeholder="client1.developerjet.com" maxlength="190" aria-label="App subdomain" required>
+                                <button class="admin-btn admin-btn-quiet" type="submit">{{ ($service->config['assigned_domain'] ?? null) ? 'Change address' : 'Set app address' }}</button>
+                            </form>
+                            <p class="muted small">Used when the customer has not given (or not yet verified) their own domain. Create the DNS A record for this name pointing at the server's IP.</p>
+                        @endif
+                    </div>
                     <div class="admin-service-actions">
                         @if ($u->hasPermission('servers.assign') && in_array($service->status, ['pending_provisioning', 'failed']))
                             <form method="POST" action="{{ route('admin.services.assign', $service) }}" class="admin-inline-form">@csrf

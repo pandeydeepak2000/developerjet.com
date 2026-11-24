@@ -1127,3 +1127,19 @@ body.dj-drawer-open { overflow: hidden; }
 .dj-body .app-brand strong{font-size:17px;font-weight:800;letter-spacing:-.02em}
 .dj-body .app-brand small{color:var(--dj-muted,#64748b);font-size:12px;font-weight:600}
 .dj-body .app-side__top{padding:4px 2px 12px}
+
+/* Checkout: per-service setup (app address + AI key) */
+.dj-body .checkout-setup .setup-block{display:grid;gap:10px;margin:14px 0 0;padding:16px;border:1px solid var(--dj-line,#e5e9f0);border-radius:14px}
+.dj-body .checkout-setup legend{padding:0 6px;font-weight:700}
+.dj-body .setup-label{margin:4px 0 0;font-weight:700}
+.dj-body .setup-label small{color:var(--dj-muted,#64748b);font-weight:500}
+.dj-body .setup-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dj-body .setup-choice{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--dj-line,#e5e9f0);border-radius:12px;cursor:pointer}
+.dj-body .setup-choice:has(input:checked){border-color:#2563eb;background:#f3f7ff}
+.dj-body .setup-choice input{margin-top:3px}
+.dj-body .setup-choice span{display:grid;gap:2px}
+.dj-body .setup-choice small{color:var(--dj-muted,#64748b);font-weight:500}
+.dj-body .setup-domain{grid-column:1/-1;display:grid;gap:6px;font-weight:600}
+.dj-body .setup-choices:not(:has(input[value=own]:checked)) .setup-domain{display:none}
+.dj-body .setup-note{display:flex;align-items:flex-start;gap:8px;margin:0;color:var(--dj-muted,#64748b);font-size:13.5px}
+@media (max-width:640px){.dj-body .setup-choices{grid-template-columns:minmax(0,1fr)}}

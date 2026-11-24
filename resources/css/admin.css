@@ -160,3 +160,7 @@ a.dj-kpi:hover{border-color:#bfdbfe;transform:translateY(-1px)}
 .admin-body .admin-toggle input{width:18px;height:18px;flex:0 0 auto}
 .admin-body .admin-stat-row-2{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:980px){.admin-body .admin-settings{grid-template-columns:minmax(0,1fr)}.admin-body .admin-settings-menu{position:static;grid-auto-flow:column;grid-auto-columns:max-content;overflow-x:auto}.admin-body .admin-settings-menu a small{display:none}}
+.admin-body .admin-setup-facts{display:grid;gap:6px;margin:8px 0;font-size:14px}
+.admin-body .admin-setup-facts div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px}
+.admin-body .admin-setup-facts dt{color:var(--a-muted,#64748b);font-weight:600}
+.admin-body .admin-setup-facts dd{margin:0}

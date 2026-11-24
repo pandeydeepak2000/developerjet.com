@@ -45,7 +45,7 @@ class SshWorker implements ProvisioningWorker
         }
 
         $done = $deployment->completed_steps ?? [];
-        $domain = $service->domain_verified ? $service->custom_domain : null;
+        $domain = $service->appDomain(); // verified customer domain, else the staff-assigned subdomain
 
         try {
             foreach ($steps as $step) {
@@ -57,7 +57,7 @@ class SshWorker implements ProvisioningWorker
                     continue;
                 }
                 if (($meta['needs_domain'] ?? false) && $domain === null) {
-                    $log[] = ['step' => $step, 'level' => 'warn', 'message' => 'Skipped — no verified custom domain; the default address is arranged by the admin.'];
+                    $log[] = ['step' => $step, 'level' => 'warn', 'message' => 'Skipped — no verified customer domain and no staff-assigned subdomain yet.'];
 
                     continue;
                 }

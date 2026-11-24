@@ -25,6 +25,33 @@ class DeploymentController extends Controller
         return view('admin.deployments.show', ['deployment' => $deployment->load('service.order', 'server', 'logs')]);
     }
 
+    /**
+     * Staff choose the app address when the customer picked "Use a DeveloperJet address" (or has not verified their
+     * own domain yet). DeveloperJet controls this DNS, so it is used by the installer without a TXT check. The
+     * DNS A record must point at the assigned server before the HTTPS step can succeed.
+     */
+    public function domain(Request $request, Service $service): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('servers.assign'), 403);
+        abort_unless($service->needsDomain(), 404);
+        $data = $request->validate([
+            'assigned_domain' => ['required', 'string', 'max:190', 'regex:/^(?=.{4,190}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/i'],
+        ], ['assigned_domain.regex' => 'Enter a hostname like client1.developerjet.com (no http:// or slashes).']);
+
+        $domain = strtolower($data['assigned_domain']);
+        $taken = Service::where('id', '!=', $service->id)
+            ->where(fn ($q) => $q->where('config->assigned_domain', $domain)->orWhere(fn ($q) => $q->where('custom_domain', $domain)->where('domain_verified', true)))
+            ->exists();
+        if ($taken) {
+            return back()->withErrors(['assigned_domain' => 'This address is already used by another service.']);
+        }
+
+        $service->forceFill(['config' => array_merge($service->config ?? [], ['assigned_domain' => $domain])])->save();
+        Audit::log('service.domain_assigned', $service, ['domain' => $domain]);
+
+        return back()->with('success', 'App address set to '.$domain.'. Point its DNS A record at the server before deploying.');
+    }
+
     public function assign(Request $request, Service $service): RedirectResponse
     {
         abort_unless($request->user()->hasPermission('servers.assign'), 403);

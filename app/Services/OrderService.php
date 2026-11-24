@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Addon;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\PaymentAttempt;
 use App\Models\Project;
 use App\Models\Service;
@@ -15,6 +16,7 @@ use App\Support\Money;
 use App\Support\OrderStatus as S;
 use App\Support\Setting;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -95,7 +97,7 @@ class OrderService
      *
      * @param  array{lines: array<int, array<string, mixed>>, total_minor: int, unavailable: int}  $summary
      */
-    public function place(User $user, array $summary, array $billing, string $token, bool $useWallet, ?int $renewalOf = null): Order
+    public function place(User $user, array $summary, array $billing, string $token, bool $useWallet, ?int $renewalOf = null, array $setup = []): Order
     {
         $key = hash('sha256', $user->id.'|'.$token);
 
@@ -110,7 +112,7 @@ class OrderService
         }
 
         try {
-            $order = DB::transaction(function () use ($user, $summary, $billing, $key, $renewalOf) {
+            $order = DB::transaction(function () use ($user, $summary, $billing, $key, $renewalOf, $setup) {
                 $order = Order::create([
                     'user_id' => $user->id,
                     'number' => 'TMP-'.Str::random(12),
@@ -122,7 +124,9 @@ class OrderService
                 $priced = $this->computeLines($summary);
 
                 foreach ($priced['lines'] as $row) {
-                    $order->items()->create($row['item'] + ['config' => $row['config']]);
+                    // Setup choices from checkout (app address, AI provider; key already encrypted) travel with the item.
+                    $itemConfig = $row['config'] + (isset($setup[$row['item']['plan_id']]) ? ['setup' => $setup[$row['item']['plan_id']]] : []);
+                    $order->items()->create($row['item'] + ['config' => $itemConfig]);
                     foreach ($row['addons'] as $addonRow) {
                         $order->items()->create($addonRow);
                     }
@@ -332,6 +336,7 @@ class OrderService
                     'renews_at' => BillingCycle::advance(now(), $item->billing_interval),
                     'config' => ['addons' => $item->config['addons'] ?? []],
                 ]);
+                $this->applySetup($service, $item);
                 app(SubscriptionService::class)->createFromOrderItem($order, $item, $service);
             } else {
                 $project = Project::create([
@@ -341,6 +346,46 @@ class OrderService
                 $project->update(['number' => 'PRJ'.str_pad((string) $project->id, 5, '0', STR_PAD_LEFT)]);
             }
         }
+    }
+
+    /**
+     * Copy the checkout setup choices onto the new service: the customer's own domain (verified later by DNS TXT)
+     * or "default" (staff assign a subdomain), and the optional AI provider + key. The key is moved into the
+     * service's encrypted column and then removed from the order item, so it is stored in exactly one place.
+     */
+    private function applySetup(Service $service, OrderItem $item): void
+    {
+        $setup = $item->config['setup'] ?? null;
+        if (! is_array($setup)) {
+            return;
+        }
+        $config = $service->config ?? [];
+        $changes = [];
+
+        if ($service->needsDomain()) {
+            $config['domain_mode'] = ($setup['domain_mode'] ?? 'default') === 'own' && ! empty($setup['domain']) ? 'own' : 'default';
+            if ($config['domain_mode'] === 'own') {
+                $changes['custom_domain'] = strtolower((string) $setup['domain']);
+                $changes['domain_verified'] = false;
+                $config['domain_token'] ??= 'djet-verify-'.Str::lower(Str::random(24));
+            }
+        }
+
+        if ($service->usesAi() && ! empty($setup['ai_provider']) && ! empty($setup['ai_key'])) {
+            try {
+                $changes['ai_provider'] = $setup['ai_provider'];
+                $changes['ai_api_key'] = Crypt::decryptString($setup['ai_key']);
+                $config['ai_skipped'] = false;
+            } catch (\Throwable) {
+                unset($changes['ai_provider'], $changes['ai_api_key']); // unreadable: the customer adds it in the dashboard
+            }
+        }
+
+        $service->forceFill($changes + ['config' => $config])->save();
+
+        $itemConfig = $item->config;
+        unset($itemConfig['setup']['ai_key']);
+        $item->forceFill(['config' => $itemConfig])->save();
     }
 
     /** A paid renewal order extends the existing subscription/service instead of creating a new service. */

@@ -15,6 +15,10 @@
         $doneStages = collect($progress['stages'])->where('state', 'done')->count();
     @endphp
 
+    @if ($service->usesAi() && ! $service->aiConfigured() && ! ($service->config['ai_skipped'] ?? false))
+        <div class="flash flash-warning" role="status"><strong>One step left:</strong> add your AI provider API key so we can finish setting up {{ $registry->recipe($service->kind)['label'] ?? 'your service' }}. <a href="#ai">Add API key</a></div>
+    @endif
+
     <div class="panel">
         <div class="panel-head"><h2>Overview</h2><x-status-badge :status="$service->status" /></div>
         @if ($active && $service->url)
@@ -26,6 +30,7 @@
             <div><dt>Billing cycle</dt><dd>{{ $sub?->cycleLabel() ?? '—' }}</dd></div>
             <div><dt>Order</dt><dd>@if ($service->order)<a href="{{ route('dashboard.orders.show', $service->order) }}">{{ $service->order->number }}</a>@else — @endif</dd></div>
             <div><dt>Resources</dt><dd>{{ $rp ? $rp->summary() : 'To be confirmed' }}@if ($rp && $rp->status !== 'verified') <span class="badge badge-warn">unverified</span>@endif</dd></div>
+            @if ($service->needsDomain())<div><dt>App address</dt><dd>{{ $service->appDomain() ?? ($service->custom_domain ? $service->custom_domain.' (waiting for DNS verification)' : 'Being arranged by our team') }}</dd></div>@endif
             <div><dt>Service URL</dt><dd>{{ $active && $service->url ? $service->url : 'Available once your service is active' }}</dd></div>
             <div><dt>Renewal date</dt><dd>{{ $service->renews_at?->format('d M Y') ?? '—' }}</dd></div>
             <div><dt>Usage metrics</dt><dd>Not available yet</dd></div>
@@ -108,7 +113,7 @@
     </div>
 
     @if (in_array($service->kind, ['hermes_cli', 'hermes_workspace', 'bundle', 'openclaw', 'claude_code']))
-        <div class="panel"><h2>AI provider</h2>
+        <div class="panel" id="ai"><h2>AI provider</h2>
             @if ($service->aiConfigured())
                 <p><span class="badge badge-good">Configured</span> Provider: {{ $providers[$service->ai_provider] ?? $service->ai_provider }}. Your key is stored encrypted and cannot be displayed.</p>
             @else
@@ -125,7 +130,8 @@
 
     @if (in_array($service->kind, ['hermes_workspace', 'n8n', 'bundle', 'openclaw']))
         <div class="panel"><h2>Domain</h2>
-            <p class="muted">By default your service uses a DeveloperJet subdomain. HTTPS is configured during setup. To use your own domain, add it and verify ownership.</p>
+            <p class="muted">By default your service uses a DeveloperJet address. HTTPS is configured during setup. To use your own domain, add it and verify ownership.</p>
+            @if ($service->config['assigned_domain'] ?? null)<p>DeveloperJet address: <strong>{{ $service->config['assigned_domain'] }}</strong></p>@endif
             <form method="POST" action="{{ route('dashboard.services.domain', $service) }}" class="form-grid">@csrf
                 <label>Custom domain<input name="custom_domain" value="{{ old('custom_domain', $service->custom_domain) }}" placeholder="app.example.com" maxlength="190"></label>
                 <div class="btn-row"><button class="button-primary" type="submit">Save domain</button></div>

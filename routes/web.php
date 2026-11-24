@@ -204,6 +204,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/orders/{order}/refund-complete', [Admin\OrderController::class, 'refundComplete'])->name('admin.orders.refund-complete');
         Route::post('/orders/{order}/refund-reverse', [Admin\OrderController::class, 'reverseRefund'])->name('admin.orders.refund-reverse');
         Route::post('/services/{service}/assign-server', [Admin\DeploymentController::class, 'assign'])->name('admin.services.assign');
+        Route::post('/services/{service}/domain', [Admin\DeploymentController::class, 'domain'])->name('admin.services.domain');
         Route::post('/services/{service}/deploy', [Admin\DeploymentController::class, 'deploy'])->middleware('throttle:20,1')->name('admin.services.deploy');
         Route::get('/deployments/{deployment}', [Admin\DeploymentController::class, 'show'])->name('admin.deployments.show');
         Route::get('/infrastructure', [Admin\InfrastructureController::class, 'index'])->name('admin.infrastructure');

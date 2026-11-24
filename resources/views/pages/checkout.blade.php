@@ -29,6 +29,51 @@
                     </article>
                 @endforeach
 
+                @php($setupLines = collect($summary['lines'])->map(fn ($l) => ['plan' => $l['plan'], 'needs' => \App\Http\Controllers\CheckoutController::setupNeeds($l['plan'])])->filter(fn ($l) => $l['needs']['domain'] || $l['needs']['ai']))
+                @php($aiProviders = config('provisioning.ai_providers'))
+                @if ($setupLines->isNotEmpty())
+                    <div class="panel checkout-setup">
+                        <h2>Setup details</h2>
+                        <p class="muted">Optional. You can change both later from your dashboard.</p>
+                        @foreach ($setupLines as $s)
+                            @php($pid = $s['plan']->id)
+                            @php($mode = old('setup.'.$pid.'.domain_mode', 'default'))
+                            <fieldset class="setup-block">
+                                <legend>{{ $s['plan']->category->name }} · {{ $s['plan']->name }}</legend>
+
+                                @if ($s['needs']['domain'])
+                                    <p class="setup-label">App address <small>(where you open it in the browser)</small></p>
+                                    <div class="setup-choices" data-domain-choice>
+                                        <label class="setup-choice"><input type="radio" name="setup[{{ $pid }}][domain_mode]" value="default" @checked($mode !== 'own')>
+                                            <span><strong>Use a DeveloperJet address</strong><small>Our team sets up a secure subdomain for you. Nothing to do.</small></span></label>
+                                        <label class="setup-choice"><input type="radio" name="setup[{{ $pid }}][domain_mode]" value="own" @checked($mode === 'own')>
+                                            <span><strong>Use my own domain</strong><small>e.g. n8n.yourcompany.com. You verify it with one DNS record after ordering.</small></span></label>
+                                        <label class="setup-domain">Your domain
+                                            <input name="setup[{{ $pid }}][domain]" value="{{ old("setup.$pid.domain") }}" maxlength="190" placeholder="n8n.yourcompany.com" autocomplete="off" inputmode="url">
+                                        </label>
+                                    </div>
+                                @endif
+
+                                @if ($s['needs']['ai'])
+                                    <p class="setup-label">AI provider key <small>(optional — add it later if you prefer)</small></p>
+                                    <div class="form-grid">
+                                        <label>Provider
+                                            <select name="setup[{{ $pid }}][ai_provider]">
+                                                <option value="">Add later in dashboard</option>
+                                                @foreach ($aiProviders as $key => $label)<option value="{{ $key }}" @selected(old("setup.$pid.ai_provider") === $key)>{{ $label }}</option>@endforeach
+                                            </select>
+                                        </label>
+                                        <label>API key
+                                            <input type="password" name="setup[{{ $pid }}][ai_api_key]" maxlength="300" autocomplete="off" placeholder="sk-…">
+                                        </label>
+                                    </div>
+                                    <p class="setup-note"><x-icon name="lock" :size="16" /> Stored encrypted and used only to configure your service. We never show it again or email it. AI usage is billed by your provider.</p>
+                                @endif
+                            </fieldset>
+                        @endforeach
+                    </div>
+                @endif
+
                 <div class="panel">
                     <h2>Billing details</h2>
                     <p class="muted">Used on your invoice. GSTIN is optional.</p>
