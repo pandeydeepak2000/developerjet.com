@@ -134,7 +134,7 @@ class InfrastructureTest extends TestCase
         $this->assertSame('unmanaged', $registry->recipe('docker_vps')['access_model']);
         $this->assertFalse($registry->recipe('hermes_cli')['needs_domain']);
         $this->assertTrue($registry->recipe('hermes_workspace')['needs_domain']);
-        $this->assertSame('n8n_license', $registry->recipe('n8n')['gated']);
+        $this->assertArrayNotHasKey('gated', $registry->recipe('n8n'), 'Owner decision: n8n is self-hosted on the customer VPS, no licence gate.');
         $this->assertSame('claude', $registry->recipe('claude_code')['customer_credentials']);
     }
 
@@ -541,7 +541,8 @@ class InfrastructureTest extends TestCase
 
         $this->actingAs($service->user)->get(route('dashboard.services.show', $service))
             ->assertOk()->assertSee('203.0.113.50')->assertSee('Self-hosted VPS · full root access')->assertSee('Web console')->assertSee('Unavailable')
-            ->assertDontSee('TOPSECRETKEY')->assertDontSee('DesiVPS')->assertDontSee('Awaiting VPS assignment');
+            // Owner decision (2026-11-25): the customer gets root, so the password is shown — only in the masked field.
+            ->assertSee('type="password" value="TOPSECRETKEY"', false)->assertDontSee('DesiVPS')->assertDontSee('Awaiting VPS assignment');
 
         // Customer isolation.
         $this->actingAs($this->customer())->get(route('dashboard.services.show', $service))->assertForbidden();

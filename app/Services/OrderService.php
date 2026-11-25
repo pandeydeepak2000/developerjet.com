@@ -15,7 +15,6 @@ use App\Support\Audit;
 use App\Support\BillingCycle;
 use App\Support\Money;
 use App\Support\OrderStatus as S;
-use App\Support\Setting;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -186,9 +185,6 @@ class OrderService
             }
             if ($plan->stock !== null && $plan->stock <= 0) {
                 throw new OrderException("“{$plan->name}” is currently out of stock.");
-            }
-            if ($plan->category->slug === 'n8n' && ! Setting::bool('n8n.resale_verified')) {
-                throw new OrderException('n8n plans are not yet available for online purchase while commercial licensing is being verified.');
             }
         }
     }

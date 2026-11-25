@@ -15,9 +15,6 @@
         $doneStages = collect($progress['stages'])->where('state', 'done')->count();
     @endphp
 
-    @if ($service->usesAi() && ! $service->aiConfigured() && ! ($service->config['ai_skipped'] ?? false))
-        <div class="flash flash-warning" role="status"><strong>One step left:</strong> add your AI provider API key so we can finish setting up {{ $registry->recipe($service->kind)['label'] ?? 'your service' }}. <a href="#ai">Add API key</a></div>
-    @endif
 
     <div class="panel">
         <div class="panel-head"><h2>Overview</h2><x-status-badge :status="$service->status" /></div>
@@ -71,7 +68,7 @@
         <dl class="kv">
             <div><dt>Service type</dt><dd>{{ $registry->recipe($service->kind)['label'] ?? $service->kind }} · {{ $unmanaged ? 'Self-hosted VPS · full root access' : 'Restricted access (legacy plan)' }}</dd></div>
             <div><dt>Server status</dt><dd>@if ($active)<span class="badge badge-good">Active — setup complete</span>@elseif ($srv)<span class="badge badge-warn">Server assigned — setup pending</span>@else<span class="badge badge-warn">Awaiting VPS assignment</span>@endif</dd></div>
-            <div><dt>IP address</dt><dd>{{ $active && $srv ? $srv->ip_address : 'Shown once your service is active' }}</dd></div>
+            <div><dt>IP address</dt><dd>@if ($active && $srv)<a href="#access">{{ $srv->ip_address }} — see Server login</a>@else Shown once your service is active @endif</dd></div>
             <div><dt>Region</dt><dd>{{ $srv?->location ?? 'Assigned with your server' }}</dd></div>
             <div><dt>CPU / RAM / storage</dt><dd>{{ $srv ? "{$srv->cpu_capacity} vCPU · {$srv->ram_capacity_gb} GB RAM · {$srv->storage_capacity_gb} GB" : ($rp ? $rp->summary() : 'To be confirmed') }}</dd></div>
             <div><dt>Operating system</dt><dd>{{ $srv?->os_name ?? 'Set during setup' }}</dd></div>
@@ -112,37 +109,47 @@
         <p class="muted small">Renewal billing, paid-through dates and cancellation live under <a href="{{ route('dashboard.subscriptions') }}">Subscriptions &amp; renewals</a>.</p>
     </div>
 
-    @if (in_array($service->kind, ['hermes_cli', 'hermes_workspace', 'bundle', 'openclaw', 'claude_code']))
-        <div class="panel" id="ai"><h2>AI provider</h2>
-            @php $linked = $savedKeys->firstWhere('id', (int) ($service->config['api_key_id'] ?? 0)); @endphp
-            @if ($service->aiConfigured())
-                <p><span class="badge badge-good">Configured</span> {{ $providers[$service->ai_provider] ?? $service->ai_provider }}@if ($linked) · <strong>{{ $linked->label }}</strong> <code>{{ $linked->masked() }}</code>@endif. The key is encrypted and never shown again.</p>
+    @if ($active && $srv && $unmanaged)
+        @php
+            $secret = (string) $srv->ssh_credential;
+            $isKey = str_starts_with(ltrim($secret), '-----BEGIN');
+            $sshCmd = 'ssh '.$srv->ssh_user.'@'.$srv->ip_address.((int) $srv->ssh_port !== 22 ? ' -p '.$srv->ssh_port : '');
+        @endphp
+        <div class="panel server-login" id="access"><h2>Server login</h2>
+            <dl class="kv">
+                <div><dt>IP address</dt><dd><code>{{ $srv->ip_address }}</code> <button type="button" class="link-btn" data-copy-text="{{ $srv->ip_address }}">Copy</button></dd></div>
+                <div><dt>Username</dt><dd><code>{{ $srv->ssh_user }}</code></dd></div>
+                <div><dt>Password</dt><dd>
+                    @if ($secret !== '' && ! $isKey)
+                        <span class="secret-field"><input type="password" value="{{ $secret }}" readonly aria-label="Root password" data-secret>
+                        <button type="button" class="link-btn" data-reveal>Show</button>
+                        <button type="button" class="link-btn" data-copy-from-secret>Copy</button></span>
+                    @else
+                        <span class="muted">Your server uses an SSH key. <a href="{{ route('dashboard.tickets.create', ['service' => $service->id]) }}">Ask support</a> for access.</span>
+                    @endif
+                </dd></div>
+                <div><dt>SSH port</dt><dd>{{ $srv->ssh_port }}</dd></div>
+            </dl>
+            <h3>How to connect</h3>
+            <p><strong>Mac, Linux or Windows Terminal / PowerShell:</strong> run this, then paste the password when asked.</p>
+            <pre class="cmd"><code>{{ $sshCmd }}</code><button type="button" class="link-btn" data-copy-text="{{ $sshCmd }}">Copy</button></pre>
+            <p><strong>PuTTY (Windows):</strong> Host Name <code>{{ $srv->ip_address }}</code>, Port <code>{{ $srv->ssh_port }}</code>, Connection type SSH → Open → log in as <code>{{ $srv->ssh_user }}</code> → right-click to paste the password.</p>
+            <p class="muted small">For your security, change the password after your first login with <code>passwd</code>. You have full root access: your data and backups are your responsibility.</p>
+        </div>
+    @endif
+
+    @php $keyHelp = config('provisioning.key_help.'.$service->kind); @endphp
+    @if ($keyHelp)
+        <div class="panel" id="ai"><h2>Add your AI API key</h2>
+            @if ($active)
+                <p>{{ $keyHelp['intro'] }}</p>
+                @foreach ($keyHelp['commands'] as $cmd)
+                    <pre class="cmd"><code>{{ $cmd }}</code><button type="button" class="link-btn" data-copy-text="{{ $cmd }}">Copy</button></pre>
+                @endforeach
+                <p class="muted small">Replace <code>your-key-here</code> with your own key. Your key stays on your server — DeveloperJet never sees it.</p>
             @else
-                <div class="flash flash-info" role="note"><strong>Configuration incomplete.</strong> Your service works once installed, but needs an AI provider key to answer requests. Pick a saved key or add one.</div>
+                <p class="muted">Once your server is delivered, this box shows the exact command to add your own AI provider key (OpenRouter, OpenAI, Anthropic…) on your server.</p>
             @endif
-
-            @if ($savedKeys->isNotEmpty())
-                <form method="POST" action="{{ route('dashboard.services.ai', $service) }}" class="ai-pick" autocomplete="off">@csrf
-                    <label>Use a saved key
-                        <select name="api_key_id" required>
-                            @foreach ($savedKeys as $k)<option value="{{ $k->id }}" @selected($linked && $linked->id === $k->id)>{{ $k->label }} · {{ $k->providerLabel() }} · {{ $k->masked() }}</option>@endforeach
-                        </select>
-                    </label>
-                    <button class="button-primary" type="submit">Use this key</button>
-                </form>
-                <p class="muted small">Or add a new key below. Manage all keys under <a href="{{ route('dashboard.keys') }}">AI API keys</a>.</p>
-            @endif
-
-            <details class="ai-new" @if ($savedKeys->isEmpty()) open @endif>
-                <summary>{{ $savedKeys->isEmpty() ? 'Add your API key' : 'Add a new key' }}</summary>
-                <form method="POST" action="{{ route('dashboard.services.ai', $service) }}" class="form-grid" autocomplete="off">@csrf
-                    <label>Provider<select name="ai_provider">@foreach ($providers as $k => $l)<option value="{{ $k }}" @selected($service->ai_provider === $k)>{{ $l }}</option>@endforeach</select></label>
-                    <label>API key<input type="password" name="ai_api_key" autocomplete="new-password" maxlength="300" required placeholder="Paste your key"></label>
-                    <div class="btn-row span-2"><button class="button-primary" type="submit">Save and use</button></div>
-                </form>
-                <p class="muted small">The key is saved to your account (encrypted) so you can reuse it on other services.</p>
-            </details>
-            <form method="POST" action="{{ route('dashboard.services.ai', $service) }}">@csrf<input type="hidden" name="skip" value="1"><button class="link-danger" type="submit">Skip for now</button></form>
         </div>
     @endif
 
@@ -166,6 +173,6 @@
 
     <div class="panel"><h2>Help</h2>
         <div class="btn-row"><a class="button-primary" href="{{ route('dashboard.tickets.create', ['service' => $service->id]) }}">Contact support</a><a class="auth-secondary-action" href="{{ route('docs.index') }}">Documentation</a></div>
-        <p class="muted small">For your security, root passwords are never emailed or displayed. First-time access is arranged securely by our team.</p>
+        <p class="muted small">Your root password is shown only in the Server login box on this page, never by email.</p>
     </div>
 @endsection

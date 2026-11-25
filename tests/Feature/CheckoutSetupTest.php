@@ -34,21 +34,21 @@ class CheckoutSetupTest extends TestCase
         return Service::where('user_id', $user->id)->latest('id')->firstOrFail();
     }
 
-    public function test_checkout_asks_for_app_address_and_ai_key_only_where_relevant(): void
+    public function test_checkout_asks_only_web_apps_for_an_address_and_never_for_an_ai_key(): void
     {
         $user = $this->customer();
         $this->approve('hermes-workspace-launch');
         $this->actingAs($user)->post('/cart', ['plan' => 'hermes-workspace-launch', 'billing_interval' => 'monthly']);
         $this->get('/checkout')->assertOk()->assertSee('Setup details')->assertSee('Use a DeveloperJet address')
-            ->assertSee('Use my own domain')->assertSee('AI provider key')->assertSee('OpenRouter');
+            ->assertSee('Use my own domain')->assertDontSee('AI provider key');
 
         $other = $this->customer();
         $this->approve('hermes-cli-launch');
         $this->actingAs($other)->post('/cart', ['plan' => 'hermes-cli-launch', 'billing_interval' => 'monthly']);
-        $this->get('/checkout')->assertOk()->assertSee('AI provider key')->assertDontSee('Use my own domain');
+        $this->get('/checkout')->assertOk()->assertDontSee('AI provider key')->assertDontSee('Use my own domain')->assertDontSee('Setup details');
     }
 
-    public function test_own_domain_and_ai_key_reach_the_service_and_the_key_is_stored_once_encrypted(): void
+    public function test_own_domain_reaches_the_service_and_a_posted_ai_key_is_ignored(): void
     {
         $service = $this->paidOrder('hermes-workspace-launch', [
             'domain_mode' => 'own', 'domain' => 'Workspace.Example.com', 'ai_provider' => 'openai', 'ai_api_key' => self::KEY,
@@ -58,16 +58,14 @@ class CheckoutSetupTest extends TestCase
         $this->assertFalse($service->domain_verified);
         $this->assertNotEmpty($service->config['domain_token']);
         $this->assertSame('own', $service->config['domain_mode']);
-        $this->assertTrue($service->aiConfigured());
-        $this->assertSame('openai', $service->ai_provider);
-        $this->assertSame(self::KEY, $service->ai_api_key);
+        $this->assertFalse($service->aiConfigured(), 'Checkout no longer takes AI keys; the customer adds one on the server after delivery.');
         $this->assertNull($service->appDomain(), 'An unverified customer domain is never used by the installer.');
 
         // The key no longer sits on the order item, and is never stored in plain text anywhere.
         $item = OrderItem::where('order_id', $service->order_id)->whereNotNull('plan_id')->firstOrFail();
         $this->assertArrayNotHasKey('ai_key', $item->config['setup']);
         $this->assertStringNotContainsString(self::KEY, (string) $item->getRawOriginal('config'));
-        $this->assertStringNotContainsString(self::KEY, (string) $service->getRawOriginal('ai_api_key'));
+        $this->assertDatabaseCount('customer_api_keys', 0);
         $this->assertDatabaseMissing('audit_logs', ['meta' => self::KEY]);
     }
 
@@ -97,12 +95,12 @@ class CheckoutSetupTest extends TestCase
         $this->actingAs($this->staff('billing-staff'))->post(route('admin.services.domain', $service), ['assigned_domain' => 'x1.developerjet.com'])->assertForbidden();
     }
 
-    public function test_without_a_key_the_customer_is_asked_to_add_one(): void
+    public function test_before_delivery_the_customer_is_told_where_the_key_command_will_appear(): void
     {
         $service = $this->paidOrder('hermes-cli-launch', []);
         $this->assertFalse($service->aiConfigured());
         $this->actingAs($service->user, 'web')->get(route('dashboard.services.show', $service))->assertOk()
-            ->assertSee('One step left')->assertSee('Add API key');
+            ->assertSee('Add your AI API key')->assertSee('Once your server is delivered')->assertDontSee('One step left');
     }
 
     public function test_invalid_setup_is_rejected_and_the_key_is_never_flashed_to_the_session(): void

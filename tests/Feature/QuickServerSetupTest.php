@@ -153,7 +153,7 @@ class QuickServerSetupTest extends TestCase
         $this->assertSame('client1.developerjet.com', $service->appDomain());
         $this->assertSame(2, (int) $server->fresh()->cpu_capacity);
         $this->assertSame('assigned', $server->fresh()->status);
-        $this->get(route('admin.orders.show', $service->order_id))->assertSee('Check only (dry run)');
+        $this->get(route('admin.orders.show', $service->order_id))->assertSee('mark delivered');
     }
 
     public function test_a_server_saved_with_only_ip_and_password_takes_the_plan_size_when_assigned(): void
@@ -179,5 +179,35 @@ class QuickServerSetupTest extends TestCase
         $this->assertSame((int) $profile->vcpu, (int) $server->cpu_capacity);
         $this->assertSame((int) $profile->ram_gb, (int) $server->ram_capacity_gb);
         $this->assertSame((int) $profile->disk_gb, (int) $server->storage_capacity_gb);
+    }
+
+    public function test_mark_delivered_hands_the_server_to_the_customer_with_login_and_key_help(): void
+    {
+        $service = $this->paidService('hermes-cli-launch');
+        $admin = $this->staff('admin');
+        $customer = $service->user;
+
+        // Before delivery the customer sees no IP or password.
+        $this->actingAs($customer, 'web')->get(route('dashboard.services.show', $service))->assertOk()
+            ->assertDontSee('id="access"', false)->assertDontSee(self::PASSWORD);
+
+        $this->actingAs($admin)->post(route('admin.services.delivered', $service))->assertSessionHas('error'); // no server yet
+        $this->post(route('admin.services.setup', $service), ['ip_address' => '203.0.113.70', 'ssh_password' => self::PASSWORD])->assertSessionHas('success');
+        $this->post(route('admin.services.delivered', $service))->assertSessionHas('success');
+
+        $service->refresh();
+        $this->assertSame('active', $service->status);
+        $this->assertSame('active', $service->order->fresh()->status);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'service.delivered_manually']);
+
+        // The customer now sees IP, root user, the password (hidden until Show), the SSH command and the key command.
+        $page = $this->actingAs($customer, 'web')->get(route('dashboard.services.show', $service))->assertOk()
+            ->assertSee('Server login')->assertSee('203.0.113.70')->assertSee('ssh root@203.0.113.70')
+            ->assertSee('PuTTY')->assertSee('hermes config set OPENROUTER_API_KEY your-key-here');
+        $this->assertStringContainsString('type="password" value="'.self::PASSWORD.'"', $page->getContent());
+
+        // Another customer never sees it; staff without deploy rights cannot deliver.
+        $this->actingAs($this->customer(), 'web')->get(route('dashboard.services.show', $service))->assertForbidden();
+        $this->actingAs($this->staff('billing-staff'))->post(route('admin.services.delivered', $service))->assertForbidden();
     }
 }

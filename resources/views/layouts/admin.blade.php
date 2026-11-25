@@ -13,51 +13,40 @@
 @php
     $u = auth()->user();
     $alerts = \App\Support\AdminAlerts::summary();
+    // Daily work first; everything else stays one click away under "More" (nothing removed, permissions unchanged).
     $nav = [
-        'Overview' => [['Dashboard', 'admin.dashboard', 'dashboard.view', 'admin.dashboard']],
-        'People' => [
+        'Daily' => [
+            ['Dashboard', 'admin.dashboard', 'dashboard.view', 'admin.dashboard'],
+            ['Orders', 'admin.orders.index', 'orders.view', 'admin/orders*'],
+            ['Servers', 'admin.resource.index:servers', 'servers.view', 'admin/r/servers*'],
             ['User Manager', 'admin.users.index', 'customers.view', 'admin/users*'],
+            ['Support tickets', 'admin.tickets.index', 'tickets.view', 'admin/tickets*'],
+            ['Wallet', 'admin.wallet.index', 'wallet.view', 'admin/wallet*'],
+            ['Payments', 'admin.resource.index:payments', 'payments.view', 'admin/r/payments*'],
+            ['Invoices', 'admin.resource.index:invoices', 'invoices.view', 'admin/r/invoices*'],
+            ['Products & plans', 'admin.plans.index', 'plans.view', 'admin/plans*'],
+            ['Settings', 'admin.settings.edit', 'settings.view', 'admin/settings*'],
+        ],
+        'More' => [
+            ['Deployments', 'admin.resource.index:deployments', 'deployments.view', 'admin/r/deployments*'],
             ['Staff & roles', 'admin.staff.index', 'staff.view', 'admin/staff*'],
             ['Departments', 'admin.resource.index:departments', 'tickets.view', 'admin/r/departments*'],
-        ],
-        'Commerce' => [
-            ['Orders', 'admin.orders.index', 'orders.view', 'admin/orders*'],
-            ['Payments', 'admin.resource.index:payments', 'payments.view', 'admin/r/payments*'],
-            ['Wallet', 'admin.wallet.index', 'wallet.view', 'admin/wallet*'],
-            ['Invoices', 'admin.resource.index:invoices', 'invoices.view', 'admin/r/invoices*'],
             ['Billing & renewals', 'admin.billing.index', 'subscriptions.view', 'admin.billing.*'],
             ['Billing operations', 'admin.billing-ops', 'invoices.view', 'admin/billing-ops*'],
             ['Subscriptions', 'admin.resource.index:subscriptions', 'subscriptions.view', 'admin/r/subscriptions*'],
-        ],
-        'Catalogue' => [
-            ['Products & plans', 'admin.plans.index', 'plans.view', 'admin/plans*'],
             ['Categories', 'admin.resource.index:categories', 'categories.view', 'admin/r/categories*'],
             ['Add-ons', 'admin.resource.index:addons', 'addons.view', 'admin/r/addons*'],
-        ],
-        'Infrastructure' => [
-            ['Servers', 'admin.resource.index:servers', 'servers.view', 'admin/r/servers*'],
             ['Infrastructure', 'admin.infrastructure', 'servers.view', 'admin/infrastructure*'],
             ['Providers', 'admin.resource.index:providers', 'servers.view', 'admin/r/providers*'],
             ['Provider offers', 'admin.resource.index:provider_offers', 'servers.view', 'admin/r/provider_offers*'],
             ['Server pools', 'admin.resource.index:server_pools', 'servers.view', 'admin/r/server_pools*'],
-            ['Deployments', 'admin.resource.index:deployments', 'deployments.view', 'admin/r/deployments*'],
-        ],
-        'Sales' => [
             ['Automation leads', 'admin.leads.index', 'leads.view', 'admin/leads*'],
-        ],
-        'Services' => [
             ['Quote requests', 'admin.resource.index:service_requests', 'projects.view', 'admin/r/service_requests*'],
             ['Projects', 'admin.projects.index', 'projects.view', 'admin/projects*'],
             ['SEO services', 'admin.seo.index', 'seo.view', 'admin/seo*'],
-        ],
-        'Support' => [
-            ['Support tickets', 'admin.tickets.index', 'tickets.view', 'admin/tickets*'],
             ['Documentation', 'admin.resource.index:docs', 'docs.view', 'admin/r/docs*'],
             ['Doc categories', 'admin.resource.index:doc_categories', 'docs.view', 'admin/r/doc_categories*'],
-        ],
-        'Administration' => [
             ['Notifications', 'admin.resource.index:notifications', 'notifications.view', 'admin/r/notifications*'],
-            ['Settings', 'admin.settings.edit', 'settings.view', 'admin/settings*'],
             ['Security logs', 'admin.resource.index:security_logs', 'security_logs.view', 'admin/r/security_logs*'],
             ['Exports', 'admin.exports', '__export', 'admin/exports*'],
         ],
@@ -72,8 +61,9 @@
         <nav>
             @foreach ($nav as $group => $items)
                 @php $visible = collect($items)->filter(fn ($i) => $i[2] === '__export' ? app(\App\Services\ExportService::class)->allowedTypes($u) !== [] : $u->hasPermission($i[2])); @endphp
+                @php $moreOpen = $group === 'More' && $visible->contains(fn ($i) => request()->is($i[3]) || request()->routeIs($i[3])); @endphp
                 @if ($visible->isNotEmpty())
-                    <p class="admin-nav-group">{{ $group }}</p>
+                    @if ($group === 'More')<details class="admin-nav-more" @if ($moreOpen) open @endif><summary class="admin-nav-group">More</summary>@else<p class="admin-nav-group">{{ $group }}</p>@endif
                     @foreach ($visible as [$label, $route, , $pattern])
                         @php
                             [$name, $param] = array_pad(explode(':', $route), 2, null);
@@ -94,6 +84,7 @@
                         @endphp
                         <a href="{{ $href }}" @if (request()->is($pattern) || request()->routeIs($pattern)) aria-current="page" @endif><x-icon :name="$icon" :size="18" /><span>{{ $label }}</span></a>
                     @endforeach
+                    @if ($group === 'More')</details>@endif
                 @endif
             @endforeach
             <p class="admin-nav-group">Account</p>

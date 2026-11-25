@@ -175,3 +175,9 @@ a.dj-kpi:hover{border-color:#bfdbfe;transform:translateY(-1px)}
 .admin-body .admin-advanced{margin:12px 0 0}
 .admin-body .admin-advanced>summary{cursor:pointer;color:var(--a-accent,#2563eb);font-weight:600;font-size:14px;margin-bottom:10px}
 .admin-body .admin-setup-form [data-new-vps][hidden]{display:none}
+/* Sidebar "More": rarely used pages stay one click away */
+.admin-sidebar .admin-nav-more>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.admin-sidebar .admin-nav-more>summary::-webkit-details-marker{display:none}
+.admin-sidebar .admin-nav-more>summary::after{content:"+";font-size:15px;letter-spacing:0}
+.admin-sidebar .admin-nav-more[open]>summary::after{content:"−"}
+body.admin-nav-collapsed .admin-sidebar .admin-nav-more>summary{justify-content:center}

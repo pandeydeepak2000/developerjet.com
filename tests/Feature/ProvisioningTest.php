@@ -238,7 +238,7 @@ class ProvisioningTest extends TestCase
         app(AutomaticProvisioner::class)->allocate($service->order);
     }
 
-    public function test_gated_recipes_block_deployment(): void
+    public function test_n8n_deploys_without_the_old_licence_gate(): void
     {
         $this->approve('n8n-launch');
         Plan::where('slug', 'n8n-launch')->update(['resource_profile_id' => ResourceProfile::where('slug', 'displayed-2c-4g')->value('id')]);
@@ -248,10 +248,10 @@ class ProvisioningTest extends TestCase
         $this->placeOrder($user, 'n8n-launch', 't', ['use_wallet' => 1]);
         $service = Service::firstOrFail();
         app(DeploymentService::class)->assign($service, $this->server(), $this->staff());
-        Setting::set('n8n.resale_verified', '0'); // ...then licensing is revoked
+        Setting::set('n8n.resale_verified', '0'); // the old licence setting no longer blocks anything
 
-        $this->expectExceptionMessage('licensing');
-        app(DeploymentService::class)->deploy($service->fresh(), $this->staff(), 'dry_run');
+        $deployment = app(DeploymentService::class)->deploy($service->fresh(), $this->staff(), 'dry_run');
+        $this->assertSame('dry_run', $deployment->mode);
     }
 
     public function test_server_credentials_are_encrypted_hidden_and_never_shown(): void
@@ -293,7 +293,7 @@ class ProvisioningTest extends TestCase
         $this->actingAs($owner)->post(route('dashboard.services.ai', $service), ['ai_provider' => 'openai', 'ai_api_key' => 'sk-VERY-SECRET-KEY'])->assertSessionHas('success');
 
         $this->assertStringNotContainsString('sk-VERY-SECRET-KEY', $service->fresh()->getRawOriginal('ai_api_key'));
-        $this->get(route('dashboard.services.show', $service))->assertOk()->assertDontSee('sk-VERY-SECRET-KEY')->assertSee('Configured')->assertSee('Usage metrics');
+        $this->get(route('dashboard.services.show', $service))->assertOk()->assertDontSee('sk-VERY-SECRET-KEY')->assertSee('Add your AI API key')->assertSee('Usage metrics');
         $this->assertArrayNotHasKey('ai_api_key', $service->fresh()->toArray());
 
         $this->actingAs($this->customer())->get(route('dashboard.services.show', $service))->assertForbidden();
@@ -305,7 +305,7 @@ class ProvisioningTest extends TestCase
         $service = $this->paidService();
         $this->actingAs($service->user)->post(route('dashboard.services.ai', $service), ['skip' => 1]);
 
-        $this->get(route('dashboard.services.show', $service))->assertSee('Configuration incomplete');
+        $this->get(route('dashboard.services.show', $service))->assertSee('Once your server is delivered');
         $this->assertFalse($service->fresh()->aiConfigured());
     }
 

@@ -27,6 +27,46 @@ class DeploymentService
         return config('provisioning.worker') === 'ssh' ? app(SshWorker::class) : app(DryRunWorker::class);
     }
 
+    /**
+     * Staff installed the app themselves (over SSH) and hand the server over: the service becomes active, the
+     * customer is notified and sees IP / root login in their dashboard. Used until automatic install is live.
+     */
+    public function markDelivered(Service $service, User $actor): Service
+    {
+        if (! in_array($service->status, ['pending_provisioning', 'failed'], true)) {
+            throw new OrderException('This service is not waiting for setup.');
+        }
+        if (! $service->server_id) {
+            throw new OrderException('Add the server (IP and root password) first.');
+        }
+        $order = $service->order;
+        if (! $order || ! S::isPaidState($order->status)) {
+            throw new OrderException('The order has no verified payment.');
+        }
+        if (! in_array($order->status, [S::AWAITING_PROVISIONING, S::PROVISIONING], true)) {
+            throw new OrderException('The order is not awaiting setup (status: '.S::label($order->status).').');
+        }
+
+        DB::transaction(function () use ($service, $order, $actor) {
+            $domain = $service->appDomain();
+            $service->update(['status' => 'active', 'url' => $domain ? 'https://'.$domain : $service->url]);
+            $service->server?->update(['deployment_status' => 'succeeded']);
+            Audit::log('service.delivered_manually', $service, ['order_id' => $order->id], $actor->id);
+
+            if ($order->services()->where('status', '!=', 'active')->doesntExist()) {
+                if ($order->status === S::AWAITING_PROVISIONING) {
+                    $order = $this->orders->transition($order, S::PROVISIONING, $actor, 'Installed by our team.');
+                }
+                $this->orders->transition($order->fresh(), S::ACTIVE, $actor, 'Service delivered. Login details are in your dashboard.');
+            }
+        });
+
+        $this->notifier->customer('deployment_completed', "delivered:{$service->id}", $service->user, 'deployment_completed',
+            ['service' => $service->label, 'url' => route('dashboard.services.show', $service)]);
+
+        return $service->fresh();
+    }
+
     /** Admin assigns a VPS to a paid service after compatibility validation. For plans with no resource profile
      *  (n8n, Docker VPS, Claude Code, bundle, OpenClaw), staff record the required size explicitly — nothing invented. */
     public function assign(Service $service, Server $server, User $actor, ?array $confirmed = null): Service
@@ -166,9 +206,6 @@ class DeploymentService
             return 'No installation recipe exists for this service type.';
         }
         $gate = $recipe['gated'] ?? null;
-        if ($gate === 'n8n_license' && ! Setting::bool('n8n.resale_verified')) {
-            return 'n8n commercial resale licensing has not been verified.';
-        }
         if ($gate === 'openclaw_spec' && ! Setting::bool('openclaw.spec_approved')) {
             return 'The OpenClaw hosting specification has not been approved.';
         }

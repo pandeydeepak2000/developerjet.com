@@ -162,6 +162,20 @@ class DeploymentController extends Controller
         return back()->with('success', 'Server details saved'.($domain ? ' and app address set to '.$domain : '').'. Next: click Deploy.');
     }
 
+    /** The team installed the app by hand: hand the server over to the customer. */
+    public function delivered(Request $request, Service $service): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('deployments.deploy'), 403);
+
+        try {
+            $this->deployments->markDelivered($service, $request->user());
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Delivered. The customer has been emailed and can see the IP and root login in their dashboard.');
+    }
+
     private function domainTaken(Service $service, string $domain): bool
     {
         return Service::where('id', '!=', $service->id)

@@ -119,11 +119,13 @@
                             <div class="btn-row">
                                 <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form" onsubmit="return confirm('Install {{ $service->plan?->name ?? 'the app' }} on {{ $srv->ip_address }}?')">@csrf
                                     <input type="hidden" name="mode" value="live"><button class="admin-btn" type="submit">Deploy</button></form>
-                                <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form">@csrf
-                                    <input type="hidden" name="mode" value="dry_run"><button class="admin-btn admin-btn-quiet" type="submit">Check only (dry run)</button></form>
+                                @if ($canSetup)
+                                    <form method="POST" action="{{ route('admin.services.delivered', $service) }}" class="admin-inline-form" onsubmit="return confirm('Installed it yourself? The customer will be emailed and will see the IP and root login.')">@csrf
+                                        <button class="admin-btn admin-btn-quiet" type="submit">I installed it myself — mark delivered</button></form>
+                                @endif
                             </div>
                             @unless (config('provisioning.live_enabled'))
-                                <p class="admin-setup-note">Automatic install is not switched on yet, so Deploy will stop safely without installing anything. Until it is approved and tested on a real VPS, install the app over SSH yourself.</p>
+                                <p class="admin-setup-note">Automatic install is not switched on yet, so Deploy will stop safely without installing anything. Until then, install the app over SSH yourself and press "mark delivered".</p>
                             @endunless
                         </div>
                     @endif

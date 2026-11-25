@@ -17,6 +17,38 @@ return [
         'openrouter' => 'OpenRouter',
     ],
 
+    /*
+    | Shown to the customer after delivery: how to add their own AI key on the server. Only commands from the official
+    | docs (checked 2026-11-25): Hermes Agent (hermes-agent.nousresearch.com), OpenClaw (docs.openclaw.ai),
+    | Claude Code (code.claude.com), n8n (keys are added as Credentials in the n8n editor).
+    */
+    'key_help' => [
+        'hermes_cli' => [
+            'intro' => 'Connect over SSH, then save your OpenRouter key (or run "hermes model" to pick another provider):',
+            'commands' => ['hermes config set OPENROUTER_API_KEY your-key-here', 'hermes model', 'hermes'],
+        ],
+        'hermes_workspace' => [
+            'intro' => 'Connect over SSH, save your key for the Hermes agent, then restart it:',
+            'commands' => ['hermes config set OPENROUTER_API_KEY your-key-here', 'hermes model', 'hermes gateway restart'],
+        ],
+        'openclaw' => [
+            'intro' => 'Connect over SSH and run the OpenClaw setup for OpenRouter (it asks for the key):',
+            'commands' => ['openclaw onboard --auth-choice openrouter-api-key', 'openclaw models status'],
+        ],
+        'claude_code' => [
+            'intro' => 'Connect over SSH, then sign in with your Claude account or use your Anthropic API key:',
+            'commands' => ['claude auth login', 'export ANTHROPIC_API_KEY=your-key-here', 'claude'],
+        ],
+        'n8n' => [
+            'intro' => 'Open your n8n address, create the owner account, then add AI keys under Credentials (for example "OpenAI" or "OpenRouter").',
+            'commands' => [],
+        ],
+        'bundle' => [
+            'intro' => 'Connect over SSH and save your key for the Hermes agent; for n8n add keys under Credentials in the n8n editor:',
+            'commands' => ['hermes config set OPENROUTER_API_KEY your-key-here', 'hermes model'],
+        ],
+    ],
+
     // Engineering safeguards (editable defaults, not product promises).
     'min_free_disk_gb' => (int) env('PROVISIONING_MIN_FREE_DISK_GB', 10),
     'supported_os' => ['ubuntu' => ['22.04', '24.04'], 'debian' => ['12']],
@@ -63,9 +95,9 @@ return [
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_hermes_cli', 'configure_auth', 'configure_monitoring', 'health_check', 'record_state']],
         'hermes_workspace' => ['version' => '1.1.0', 'label' => 'Hermes Workspace', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_workspace', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
-        'n8n' => ['version' => '1.1.0', 'label' => 'n8n', 'needs_domain' => true, 'gated' => 'n8n_license', 'access_model' => 'unmanaged',
+        'n8n' => ['version' => '1.1.0', 'label' => 'n8n', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_n8n', 'configure_persistence', 'configure_backup', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
-        'bundle' => ['version' => '1.1.0', 'label' => 'AI Complete Bundle', 'needs_domain' => true, 'gated' => 'n8n_license', 'access_model' => 'unmanaged',
+        'bundle' => ['version' => '1.1.0', 'label' => 'AI Complete Bundle', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_runtime_once', 'install_hermes_workspace', 'install_n8n', 'configure_network_isolation', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
         'openclaw' => ['version' => '0.2.0', 'label' => 'OpenClaw', 'needs_domain' => true, 'gated' => 'openclaw_spec', 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'create_isolated_user', 'install_openclaw', 'configure_gateway_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],

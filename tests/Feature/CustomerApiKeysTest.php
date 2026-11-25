@@ -57,7 +57,7 @@ class CustomerApiKeysTest extends TestCase
         $foreign = CustomerApiKey::store($this->customer(), 'openai', 'sk-OTHER-zzzz9999');
 
         $this->actingAs($user, 'web')->get(route('dashboard.services.show', $service))->assertOk()
-            ->assertSee('Use a saved key')->assertSee('Claude key');
+            ->assertSee('Add your AI API key')->assertDontSee('Use a saved key');
 
         $this->post(route('dashboard.services.ai', $service), ['api_key_id' => $foreign->id])->assertNotFound();
         $this->assertFalse($service->fresh()->aiConfigured());
@@ -97,7 +97,7 @@ class CustomerApiKeysTest extends TestCase
         $this->delete(route('dashboard.keys.destroy', $other))->assertNotFound();
     }
 
-    public function test_checkout_offers_saved_keys_and_applies_the_chosen_one(): void
+    public function test_checkout_no_longer_asks_for_keys(): void
     {
         $user = $this->customer();
         $key = CustomerApiKey::store($user, 'openrouter', 'sk-or-FAKE-7777', 'Router');
@@ -105,11 +105,10 @@ class CustomerApiKeysTest extends TestCase
         $plan = $this->approve('hermes-cli-launch');
 
         $this->actingAs($user, 'web')->post('/cart', ['plan' => 'hermes-cli-launch', 'billing_interval' => 'monthly']);
-        $this->get('/checkout')->assertOk()->assertSee('Use saved: Router')->assertSee('Add a new key');
+        $this->get('/checkout')->assertOk()->assertDontSee('Use saved: Router')->assertDontSee('Add a new key');
 
         $this->placeOrder($user, 'hermes-cli-launch', 'tok-key', ['use_wallet' => 1, 'setup' => [$plan->id => ['api_key_id' => (string) $key->id]]]);
         $service = Service::where('user_id', $user->id)->latest('id')->firstOrFail();
-        $this->assertSame('openrouter', $service->ai_provider);
-        $this->assertSame($key->id, $service->config['api_key_id']);
+        $this->assertNull($service->ai_provider);
     }
 }

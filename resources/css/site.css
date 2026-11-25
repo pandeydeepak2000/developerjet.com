@@ -1178,4 +1178,10 @@ body.dj-drawer-open { overflow: hidden; }
 .dj-body .ai-new summary{cursor:pointer;font-weight:700;color:#2563eb}
 .dj-body .ai-new[open] summary{margin-bottom:10px}
 .dj-body .ai-choice{display:grid;gap:10px}
-.dj-body .ai-choice>label{display:grid;gap:6px;font-weight:600}
+.dj-body .ai-choice>label{display:grid;gap:6px;font-weight:600}/* Customer server login panel */
+.server-login .secret-field{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+.server-login .secret-field input{font-family:Consolas,monospace;min-width:0;width:16ch;padding:4px 8px;border:1px solid var(--line,#d9dce6);border-radius:6px;background:transparent;color:inherit}
+.panel pre.cmd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:8px;background:#0f172a;color:#e2e8f0;overflow-x:auto}
+.panel pre.cmd code{background:none;color:inherit;white-space:pre}
+.panel pre.cmd .link-btn{color:#93c5fd;flex:none}
+.link-btn{background:none;border:0;padding:0;color:var(--accent,#2563eb);font-weight:600;cursor:pointer;font-size:13px}

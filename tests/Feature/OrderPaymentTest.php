@@ -98,18 +98,13 @@ class OrderPaymentTest extends TestCase
         $this->get('/checkout')->assertSee('Pricing pending approval');
     }
 
-    public function test_n8n_is_gated_until_licensing_verified(): void
+    public function test_n8n_can_be_ordered_without_a_licence_setting(): void
     {
+        // Owner decision (2026-11-25): n8n is installed self-hosted on the customer's own VPS; no licence gate.
         $this->approve('n8n-launch');
-        $user = $this->customer();
-        $this->actingAs($user);
+        $this->actingAs($this->customer());
         $this->post('/cart', ['plan' => 'n8n-launch', 'billing_interval' => 'monthly']);
-        $this->withSession(['checkout_token' => 't'])->post('/checkout', ['accept_terms' => 1])->assertSessionHas('error');
-        $this->assertDatabaseCount('orders', 0);
-
-        Setting::set('n8n.resale_verified', '1');
-        $this->post('/cart', ['plan' => 'n8n-launch', 'billing_interval' => 'monthly']);
-        $this->withSession(['checkout_token' => 't2'])->post('/checkout', ['accept_terms' => 1]);
+        $this->withSession(['checkout_token' => 't'])->post('/checkout', ['accept_terms' => 1]);
         $this->assertDatabaseCount('orders', 1);
     }
 

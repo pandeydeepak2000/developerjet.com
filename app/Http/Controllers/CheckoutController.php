@@ -121,7 +121,9 @@ class CheckoutController extends Controller
 
         return [
             'domain' => $plan->kind === 'hosting' && in_array($kind, Service::DOMAIN_KINDS, true),
-            'ai' => $plan->kind === 'hosting' && in_array($kind, Service::AI_KINDS, true),
+            // Owner decision (2026-11-25): no AI key at checkout. After delivery the customer's dashboard shows the
+            // command to add their own key on the server.
+            'ai' => false,
         ];
     }
 

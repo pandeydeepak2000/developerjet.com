@@ -643,3 +643,23 @@ document.querySelectorAll('[data-setup-form]').forEach((form) => {
     select.addEventListener('change', sync);
     sync();
 });
+
+// Customer server login: show/hide and copy the root password, copy IP and commands.
+document.querySelectorAll('[data-reveal]').forEach((btn) => {
+    const input = btn.closest('.secret-field')?.querySelector('[data-secret]');
+    if (!input) return;
+    btn.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.textContent = show ? 'Hide' : 'Show';
+    });
+});
+const copyWithFeedback = async (btn, text) => {
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; } catch (e) { btn.textContent = 'Press Ctrl+C'; }
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+};
+document.querySelectorAll('[data-copy-text]').forEach((btn) => btn.addEventListener('click', () => copyWithFeedback(btn, btn.dataset.copyText)));
+document.querySelectorAll('[data-copy-from-secret]').forEach((btn) => btn.addEventListener('click', () => {
+    const input = btn.closest('.secret-field')?.querySelector('[data-secret]');
+    if (input) copyWithFeedback(btn, input.value);
+}));
