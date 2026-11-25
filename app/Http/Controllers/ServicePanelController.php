@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\CustomerApiKey;
 use App\Models\Service;
 use App\Services\Infrastructure\ControlPanelCapabilities;
+use App\Services\OrderException;
 use App\Services\Provisioning\RecipeRegistry;
+use App\Services\Provisioning\ServerActions;
 use App\Support\Audit;
 use App\Support\DeploymentProgress;
 use Illuminate\Http\JsonResponse;
@@ -42,7 +44,23 @@ class ServicePanelController extends Controller
             'progress' => DeploymentProgress::for($service),
             'invoices' => $invoices,
             'health' => $health,
+            'actions' => $service->status === 'active' ? app(ServerActions::class)->available($service, true) : [],
         ]);
+    }
+
+    /** Customer one-click actions on their own delivered server (reboot, restart app, reset app login). */
+    public function action(Request $request, Service $service, string $action, ServerActions $actions): RedirectResponse
+    {
+        $this->authorize('view', $service);
+        abort_unless($service->status === 'active' && array_key_exists($action, $actions->available($service, true)), 404);
+
+        try {
+            $result = $actions->run($service, $action, $request->user());
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with($result['ok'] ? 'success' : 'error', $result['message'].($result['ok'] && $action === 'reset_login' ? ' Open your app and create the owner account again — your workflows are kept.' : ''));
     }
 
     /** Polling endpoint for the setup timeline: owner-only, DB-derived, no internal diagnostics, never cached. */

@@ -34,6 +34,10 @@
         </div>
     </section>
 
+    @if ($service->status === 'suspended')
+        <div class="flash-warning" role="status"><strong>This service is suspended.</strong> {{ $appName }} is stopped; your data is kept. @if ($openInvoice && $openInvoice->order_id)Pay the open invoice to restore it, or @endif <a href="{{ route('dashboard.tickets.create', ['service' => $service->id]) }}">contact support</a>.</div>
+    @endif
+
     @if ($openInvoice && $openInvoice->order_id)
         <div class="flash-warning" role="status">
             Renewal invoice <strong>{{ $openInvoice->number }}</strong> for {{ \App\Support\Money::inr($openInvoice->total_minor) }} is due on {{ $openInvoice->due_at?->format('d M Y') }}.
@@ -117,6 +121,7 @@
                             <li><strong>Create your owner account</strong> — the first account created becomes the owner, so do this straight away.</li>
                             <li><strong>Add your AI keys</strong> — in n8n go to <em>Credentials → Add credential</em> and choose OpenAI, OpenRouter or another provider.</li>
                         </ol>
+                        @if (isset($actions['reset_login']))<p class="small" style="margin-top:10px"><strong>Forgot your n8n password?</strong> Use <em>“Forgot n8n password? Reset login”</em> under Manage — you set a new owner account and keep your workflows.</p>@endif
                         <p class="muted small">Add your AI API key inside n8n — your keys stay on your server; DeveloperJet never sees them.</p>
                     @else
                         <p>{{ $keyHelp['intro'] }}</p>
@@ -168,12 +173,24 @@
                 @foreach ($availableControls as $c)
                     <p class="small" style="margin:0 0 6px"><span class="badge badge-good">Available</span> {{ $c['label'] }}</p>
                 @endforeach
+                @php
+                    $actionConfirms = [
+                        'reboot' => 'Reboot your server now? It will be back in about 1–2 minutes.',
+                        'restart_app' => 'Restart '.$appName.' now? It is unavailable for a few seconds.',
+                        'reset_login' => 'Reset the '.$appName.' login? You will create the owner account again on the next visit. Your workflows and credentials are kept.',
+                    ];
+                    $actionLabels = ['reboot' => 'Reboot server', 'restart_app' => 'Restart '.$appName, 'reset_login' => 'Forgot '.$appName.' password? Reset login'];
+                @endphp
                 <div class="svc-manage">
+                    @foreach ($actions as $key => $label)
+                        <form method="POST" action="{{ route('dashboard.services.action', [$service, $key]) }}" data-submit-once="Working…" onsubmit="return confirm(@js($actionConfirms[$key] ?? 'Run this action now?'))">@csrf
+                            <button class="button-secondary" type="submit">{{ $actionLabels[$key] ?? $label }}</button></form>
+                    @endforeach
                     <a class="button-secondary" href="{{ route('dashboard.tickets.create', ['service' => $service->id]) }}">Request upgrade</a>
-                    <a class="button-secondary" href="{{ route('dashboard.tickets.create', ['service' => $service->id]) }}">Reboot or reinstall</a>
+                    @unless (isset($actions['reboot']))<a class="button-secondary" href="{{ route('dashboard.tickets.create', ['service' => $service->id]) }}">Reboot or reinstall</a>@endunless
                     <a class="button-secondary" href="{{ route('docs.index') }}">Documentation</a>
                 </div>
-                <p class="muted small">Need a reboot, reinstall or a bigger plan? Our team handles it from a support ticket.</p>
+                <p class="muted small">Need a full reinstall or a bigger plan? Our team handles it from a support ticket.</p>
             </div>
 
             @if ($health->isNotEmpty())

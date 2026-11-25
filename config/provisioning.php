@@ -96,17 +96,33 @@ return [
      | Versioned installation recipes. `gated` blocks deploy until the owner lifts it. `access_model` is what the
      | customer receives. Steps reference the catalogue above; RecipeRegistry validates this on every load.
      */
+    /*
+     | One-click server actions over the same SSH channel (admin order page + customer panel). A recipe's `actions`
+     | supply the app-specific scripts; an action with no script is simply not offered for that product.
+     | `customer` = also offered in the customer's panel.
+     */
+    'server_actions' => [
+        'reboot' => ['label' => 'Reboot server', 'command' => '@common/reboot', 'customer' => true],
+        'restart_app' => ['label' => 'Restart app', 'command' => null, 'customer' => true],
+        'reset_login' => ['label' => 'Reset app login (forgot password)', 'command' => null, 'customer' => true],
+        'stop_app' => ['label' => 'Stop app', 'command' => null, 'customer' => false],
+        'start_app' => ['label' => 'Start app', 'command' => null, 'customer' => false],
+        'wipe_app' => ['label' => 'Delete app and all its data', 'command' => null, 'customer' => false],
+    ],
+
     'recipes' => [
         // v2.0.0 tested on Ubuntu 24.04 (2026-11-25): Hermes Agent v0.23.4 via the official non-interactive installer.
         'hermes_cli' => ['version' => '2.0.0', 'label' => 'Hermes CLI', 'needs_domain' => false, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_hermes_cli', 'health_check', 'record_state'],
-            'commands' => ['health_check' => '@hermes_cli/health']],
+            'commands' => ['health_check' => '@hermes_cli/health'],
+            'actions' => ['wipe_app' => '@hermes_cli/wipe']],
         'hermes_workspace' => ['version' => '1.1.0', 'label' => 'Hermes Workspace', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_workspace', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
         // v2.0.0 tested end-to-end on Ubuntu 24.04 (2026-11-25): Docker + n8n + Caddy (Let's Encrypt), data in a Docker volume.
         'n8n' => ['version' => '2.0.0', 'label' => 'n8n', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'open_web_ports', 'install_n8n', 'health_check', 'record_state'],
-            'commands' => ['health_check' => '@n8n/health']],
+            'commands' => ['health_check' => '@n8n/health'],
+            'actions' => ['restart_app' => '@n8n/restart', 'reset_login' => '@n8n/reset_login', 'stop_app' => '@n8n/stop', 'start_app' => '@n8n/start', 'wipe_app' => '@n8n/wipe']],
         'bundle' => ['version' => '1.1.0', 'label' => 'AI Complete Bundle', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_runtime_once', 'install_hermes_workspace', 'install_n8n', 'configure_network_isolation', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
         'openclaw' => ['version' => '0.2.0', 'label' => 'OpenClaw', 'needs_domain' => true, 'gated' => 'openclaw_spec', 'access_model' => 'unmanaged',
@@ -115,7 +131,8 @@ return [
         // v1.0.0 tested on Ubuntu 24.04 (2026-11-25): Claude Code 2.1.332 via Anthropic's official installer.
         'claude_code' => ['version' => '1.0.0', 'label' => 'Claude Code', 'needs_domain' => false, 'access_model' => 'unmanaged', 'customer_credentials' => 'claude',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_claude_code', 'health_check', 'record_state'],
-            'commands' => ['health_check' => '@claude_code/health']],
+            'commands' => ['health_check' => '@claude_code/health'],
+            'actions' => ['wipe_app' => '@claude_code/wipe']],
         // Self-hosted developer VPS: Docker Engine + Compose only. A management UI is out of scope until one is approved.
         'docker_vps' => ['version' => '1.0.0', 'label' => 'Docker Engine and Compose', 'needs_domain' => false, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'health_check', 'record_state'],

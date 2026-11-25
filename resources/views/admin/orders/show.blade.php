@@ -32,7 +32,8 @@
             $askAddress = $service->needsDomain() && ! ($service->domain_verified && $service->custom_domain);
             $profile = $service->plan?->resourceProfile;
             $srv = $service->server;
-            $delivered = $service->status === 'active';
+            $delivered = in_array($service->status, ['active', 'suspended'], true);
+            $serverActions = $delivered ? app(\App\Services\Provisioning\ServerActions::class)->available($service) : [];
             $lastDeployment = \App\Models\Deployment::where('service_id', $service->id)->latest('id')->first();
             $step = $delivered ? 3 : ($srv && (! $askAddress || $service->appDomain()) ? 2 : 1);
         @endphp
@@ -157,14 +158,49 @@
 
             @if ($delivered)
                 <div class="dj-step-card">
-                    <h3><span class="admin-step-num">3</span> Delivered</h3>
-                    <p style="margin:0">The customer can see the IP, root login{{ $service->url ? ' and app link' : '' }} in their dashboard. @if ($lastDeployment)<a class="admin-strong-link" href="{{ route('admin.deployments.show', $lastDeployment) }}">View install log</a>@endif</p>
-                    @if ($u->hasPermission('servers.edit') && $u->hasPermission('deployments.deploy') && $service->server_id)
-                        <details class="admin-advanced">
-                            <summary>Suspend this server</summary>
-                            <form method="POST" action="{{ route('admin.servers.suspend', $service->server_id) }}" class="admin-inline-form" onsubmit="return confirm('Log a suspension request for this server?')">@csrf
-                                <input name="reason" placeholder="Suspension reason" required maxlength="500" aria-label="Suspension reason"><button class="admin-btn admin-btn-danger" type="submit">Request suspension</button></form>
-                        </details>
+                    <h3><span class="admin-step-num">3</span> {{ $service->status === 'suspended' ? 'Suspended' : 'Delivered' }}</h3>
+                    @if ($service->status === 'suspended')
+                        <p class="admin-setup-note" style="margin:0 0 10px">The app is <strong>stopped</strong> and the customer sees this service as suspended. Their data is kept — Unsuspend starts it again.</p>
+                    @else
+                        <p style="margin:0">The customer can see the IP, root login{{ $service->url ? ' and app link' : '' }} in their dashboard. @if ($lastDeployment)<a class="admin-strong-link" href="{{ route('admin.deployments.show', $lastDeployment) }}">View install log</a>@endif</p>
+                    @endif
+
+                    @if ($serverActions && $u->hasPermission('deployments.deploy'))
+                        @php
+                            $confirms = [
+                                'reboot' => 'Reboot the whole server now? Everything on it restarts (1–2 minutes).',
+                                'restart_app' => 'Restart the app now? It is unavailable for a few seconds.',
+                                'reset_login' => 'Reset the app login? The customer must create the owner account again (workflows are kept).',
+                                'stop_app' => 'Suspend this service? The app stops for the customer until you unsuspend it.',
+                                'start_app' => 'Unsuspend and start the app again?',
+                            ];
+                            $canSuspend = $u->hasPermission('servers.edit');
+                        @endphp
+                        <div class="dj-deploy-row" style="margin-top:12px">
+                            @foreach (['reboot', 'restart_app', 'reset_login'] as $a)
+                                @isset($serverActions[$a])
+                                    <form method="POST" action="{{ route('admin.services.action', [$service, $a]) }}" class="admin-inline-form" data-submit-once="Working…" onsubmit="return confirm(@js($confirms[$a]))">@csrf
+                                        <button class="admin-btn admin-btn-quiet" type="submit">{{ $serverActions[$a] }}</button></form>
+                                @endisset
+                            @endforeach
+                            @if ($canSuspend && $service->status === 'active' && isset($serverActions['stop_app']))
+                                <form method="POST" action="{{ route('admin.services.action', [$service, 'stop_app']) }}" class="admin-inline-form" data-submit-once="Suspending…" onsubmit="return confirm(@js($confirms['stop_app']))">@csrf
+                                    <button class="admin-btn admin-btn-danger" type="submit">Suspend</button></form>
+                            @elseif ($canSuspend && $service->status === 'suspended' && isset($serverActions['start_app']))
+                                <form method="POST" action="{{ route('admin.services.action', [$service, 'start_app']) }}" class="admin-inline-form" data-submit-once="Starting…" onsubmit="return confirm(@js($confirms['start_app']))">@csrf
+                                    <button class="admin-btn" type="submit">Unsuspend</button></form>
+                            @endif
+                        </div>
+                        @if ($canSuspend && isset($serverActions['wipe_app']))
+                            <details class="admin-advanced dj-reset">
+                                <summary>Reinstall fresh (delete everything)</summary>
+                                <p class="muted small">Deletes {{ config('provisioning.recipes.'.$service->kind.'.label', 'the app') }} and <strong>all its data</strong> on this server, then installs it again like new. The customer's other files and the operating system are not touched — for a full OS reinstall use your VPS supplier's panel.</p>
+                                <form method="POST" action="{{ route('admin.services.reinstall', $service) }}" class="admin-inline-form" data-submit-once="Deleting…" onsubmit="return confirm('Delete the app and ALL its data, then reinstall fresh? This cannot be undone.')">@csrf
+                                    <button class="admin-btn admin-btn-danger" type="submit">Delete app &amp; reinstall fresh</button></form>
+                            </details>
+                        @endif
+                    @elseif (! $serverActions)
+                        <p class="muted small" style="margin-top:8px">Reboot, suspend and reinstall buttons appear here when automatic install (SSH) is switched on.</p>
                     @endif
                 </div>
             @endif

@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified', 'impersonation.readonly'])->group(functio
         Route::post('/services/{service}/ai', [ServicePanelController::class, 'configureAi'])->middleware('throttle:20,1')->name('dashboard.services.ai');
         Route::post('/services/{service}/domain', [ServicePanelController::class, 'domain'])->middleware('throttle:20,1')->name('dashboard.services.domain');
         Route::post('/services/{service}/verify-domain', [ServicePanelController::class, 'verifyDomain'])->middleware('throttle:10,1')->name('dashboard.services.verify-domain');
+        Route::post('/services/{service}/action/{action}', [ServicePanelController::class, 'action'])->whereIn('action', ['reboot', 'restart_app', 'reset_login'])->middleware('throttle:6,1')->name('dashboard.services.action');
 
         Route::get('/wallet', [DashboardController::class, 'wallet'])->name('dashboard.wallet');
         Route::post('/wallet/topup', [WalletTopupController::class, 'store'])->middleware('throttle:10,1')->name('dashboard.wallet.topup');
@@ -213,6 +214,8 @@ Route::prefix('admin')->group(function () {
         Route::post('/services/{service}/setup', [Admin\DeploymentController::class, 'setup'])->name('admin.services.setup');
         Route::post('/services/{service}/delivered', [Admin\DeploymentController::class, 'delivered'])->name('admin.services.delivered');
         Route::post('/services/{service}/reset', [Admin\DeploymentController::class, 'reset'])->name('admin.services.reset');
+        Route::post('/services/{service}/action/{action}', [Admin\DeploymentController::class, 'action'])->whereIn('action', ['reboot', 'restart_app', 'reset_login', 'stop_app', 'start_app'])->name('admin.services.action');
+        Route::post('/services/{service}/reinstall', [Admin\DeploymentController::class, 'reinstall'])->name('admin.services.reinstall');
         Route::post('/services/{service}/deploy', [Admin\DeploymentController::class, 'deploy'])->middleware('throttle:20,1')->name('admin.services.deploy');
         Route::get('/deployments/{deployment}', [Admin\DeploymentController::class, 'show'])->name('admin.deployments.show');
         Route::get('/deployments/{deployment}/log', [Admin\DeploymentController::class, 'log'])->name('admin.deployments.log');

@@ -51,6 +51,8 @@ class SshTransport implements RemoteTransport
             throw new TransportException('Login failed: check the username and root password (or SSH key).');
         }
 
+        // Long installs can be silent for minutes; keep-alives stop NAT/firewalls from dropping the idle connection.
+        $ssh->setKeepAlive((int) config('provisioning.ssh_keepalive', 20));
         $this->ssh = $ssh;
 
         return $fingerprint;

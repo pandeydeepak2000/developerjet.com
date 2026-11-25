@@ -198,7 +198,11 @@ class DeploymentService
         if (! $service->order || ! S::isPaidState($service->order->status)) {
             return 'The order has no verified payment.';
         }
-        if (! in_array($service->order->status, [S::AWAITING_PROVISIONING, S::PROVISIONING], true)) {
+        if (! in_array($service->status, ['pending_provisioning', 'failed'], true)) {
+            return 'This service is already delivered.';
+        }
+        // ACTIVE is allowed only for a "reinstall fresh" of an already-delivered order (the service is pending again).
+        if (! in_array($service->order->status, [S::AWAITING_PROVISIONING, S::PROVISIONING, S::ACTIVE], true)) {
             return 'The order is not awaiting provisioning.';
         }
         $recipe = app(RecipeRegistry::class)->recipe($service->kind);
@@ -252,9 +256,16 @@ class DeploymentService
 
             $attempt = Deployment::where('service_id', $service->id)->count() + 1;
 
-            // Safe retry: resume after steps already confirmed by a previous failed LIVE attempt on the same server/recipe version.
-            $previous = $mode === 'live' ? Deployment::where('service_id', $service->id)->where('server_id', $service->server_id)
-                ->where('mode', 'live')->where('status', 'failed')->where('recipe_version', $recipe['version'])->latest('id')->first() : null;
+            // Safe retry: resume after steps already confirmed by a previous failed LIVE attempt on the same server/recipe version —
+            // but never across a successful install or a "reinstall fresh" wipe (the app was deleted since then).
+            $previous = null;
+            if ($mode === 'live') {
+                $after = Deployment::where('service_id', $service->id)->where('mode', 'live')->where('status', 'succeeded')->max('id') ?? 0;
+                $previous = Deployment::where('service_id', $service->id)->where('server_id', $service->server_id)->where('id', '>', $after)
+                    ->where('mode', 'live')->where('status', 'failed')->where('recipe_version', $recipe['version'])
+                    ->when($service->config['wiped_at'] ?? null, fn ($q, $at) => $q->where('created_at', '>', $at))
+                    ->latest('id')->first();
+            }
 
             return Deployment::create([
                 'service_id' => $service->id, 'server_id' => $service->server_id, 'order_id' => $service->order_id,
@@ -336,8 +347,9 @@ class DeploymentService
             $domain = $service->appDomain();
             $service->update(['status' => 'active', 'url' => $domain ? 'https://'.$domain : $service->url]);
 
-            if ($service->order->services()->where('status', '!=', 'active')->doesntExist()) {
-                $this->orders->transition($service->order->fresh(), S::ACTIVE, null, 'All services provisioned.');
+            $order = $service->order()->first();
+            if ($order->status !== S::ACTIVE && $order->services()->where('status', '!=', 'active')->doesntExist()) {
+                $this->orders->transition($order, S::ACTIVE, null, 'All services provisioned.');
             }
 
             $this->notifier->admin('deployment_completed', "deployment:{$deployment->id}", "Deployment #{$deployment->id} completed for {$service->label}.");

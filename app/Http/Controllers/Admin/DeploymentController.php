@@ -8,6 +8,7 @@ use App\Models\Server;
 use App\Models\Service;
 use App\Services\DeploymentService;
 use App\Services\OrderException;
+use App\Services\Provisioning\ServerActions;
 use App\Support\Audit;
 use App\Support\Setting;
 use Illuminate\Http\JsonResponse;
@@ -193,6 +194,54 @@ class DeploymentController extends Controller
         }
 
         return back()->with('success', 'Setup reset. Start again from step 1.');
+    }
+
+    /** One-click server actions on a delivered service: reboot, restart app, reset app login, suspend / unsuspend. */
+    public function action(Request $request, Service $service, string $action, ServerActions $actions): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('deployments.deploy'), 403);
+        if (in_array($action, ['stop_app', 'start_app'], true)) {
+            abort_unless($request->user()->hasPermission('servers.edit'), 403);
+        }
+        abort_unless(array_key_exists($action, $actions->available($service)), 404);
+        $allowed = match ($action) {
+            'start_app' => $service->status === 'suspended',
+            'stop_app' => $service->status === 'active',
+            default => in_array($service->status, ['active', 'suspended'], true),
+        };
+        if (! $allowed) {
+            return back()->with('error', 'This action does not apply to the service in its current state.');
+        }
+
+        try {
+            $result = $actions->run($service, $action, $request->user());
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $message = match (true) {
+            ! $result['ok'] => $result['message'].' '.$result['output'],
+            $action === 'stop_app' => 'Suspended: the app is stopped and the customer sees the service as suspended. Data is kept.',
+            $action === 'start_app' => 'Unsuspended: the app is running again.',
+            default => $result['message'],
+        };
+
+        return back()->with($result['ok'] ? 'success' : 'error', $message);
+    }
+
+    /** Reinstall fresh: delete the app and all its data, then watch a brand-new install in the terminal. */
+    public function reinstall(Request $request, Service $service, ServerActions $actions): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('deployments.deploy') && $request->user()->hasPermission('servers.edit'), 403);
+        abort_unless(array_key_exists('wipe_app', $actions->available($service)), 404);
+
+        try {
+            $deployment = $actions->reinstall($service, $request->user());
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.deployments.show', $deployment)->with('success', 'Old app and data deleted. The fresh install is running below.');
     }
 
     /** The team installed the app by hand: hand the server over to the customer. */
