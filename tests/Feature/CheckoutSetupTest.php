@@ -81,7 +81,7 @@ class CheckoutSetupTest extends TestCase
 
         $admin = $this->staff('admin');
         $this->actingAs($admin)->get(route('admin.orders.show', $service->order_id))->assertOk()
-            ->assertSee('VPS details')->assertSee('App address (subdomain)');
+            ->assertSee('VPS IP address')->assertSee('App address (subdomain)');
 
         $this->post(route('admin.services.domain', $service), ['assigned_domain' => 'http://bad/'])->assertSessionHasErrors('assigned_domain');
         $this->post(route('admin.services.domain', $service), ['assigned_domain' => 'Client1.DeveloperJet.com'])->assertSessionHas('success');

@@ -105,6 +105,8 @@
         </nav>
         <p class="admin-sidebar-user"><strong>{{ $u->name }}</strong><small>{{ $u->email }}</small></p>
     </aside>
+    {{-- Keep the sidebar where it was between pages (runs before paint, so no jump); always keep the current item in view. --}}
+    <script>(function(){var s=document.getElementById('admin-sidebar');if(!s)return;var k='dj-admin-sidebar-scroll';try{var v=sessionStorage.getItem(k);if(v!==null)s.scrollTop=+v;}catch(e){}var a=s.querySelector('nav a[aria-current="page"]');if(a){var r=a.getBoundingClientRect(),b=s.getBoundingClientRect();if(r.top<b.top||r.bottom>b.bottom)s.scrollTop+=r.top-b.top-b.height/2+r.height/2;}var save=function(){try{sessionStorage.setItem(k,String(s.scrollTop));}catch(e){}};s.addEventListener('click',save);window.addEventListener('pagehide',save);})();</script>
     <div class="admin-overlay" data-admin-overlay hidden></div>
     <div class="admin-main-wrap">
         <header class="admin-topbar">

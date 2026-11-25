@@ -44,7 +44,7 @@ class QuickServerSetupTest extends TestCase
 
         $admin = $this->staff('admin');
         $this->actingAs($admin)->get(route('admin.orders.show', $service->order_id))->assertOk()
-            ->assertSee('VPS details')->assertSee('Root password')->assertDontSee('App address (subdomain)');
+            ->assertSee('VPS IP address')->assertSee('Root password')->assertDontSee('App address (subdomain)');
 
         $this->post(route('admin.services.setup', $service), ['ip_address' => '203.0.113.10'])->assertSessionHasErrors('ssh_password');
         $this->post(route('admin.services.setup', $service), ['ip_address' => 'not-an-ip', 'ssh_password' => self::PASSWORD])->assertSessionHasErrors('ip_address');
@@ -127,6 +127,33 @@ class QuickServerSetupTest extends TestCase
         $this->actingAs($this->staff('admin'))->get(route('admin.resource.create', 'servers'))->assertOk()
             ->assertSee('More details (optional)')->assertSee('Root password or SSH key')
             ->assertSee('name="ssh_port" value="22"', false)->assertSee('name="ssh_user" value="root"', false);
+    }
+
+    public function test_a_server_added_under_servers_is_picked_on_the_order_page_with_the_subdomain(): void
+    {
+        Setting::set('n8n.resale_verified', '1');
+        $server = $this->server(['label' => '160.187.68.125', 'ip_address' => '160.187.68.125', 'cpu_capacity' => 0, 'ram_capacity_gb' => 0, 'storage_capacity_gb' => 0, 'access_model' => 'unmanaged']);
+        $service = $this->paidService('n8n-launch');
+        $admin = $this->staff('admin');
+        $size = ['vcpu' => 2, 'ram_gb' => 4, 'disk_gb' => 40];
+
+        // The added server is offered in the same form as the subdomain; the dashboard links straight to it.
+        $this->actingAs($admin)->get(route('admin.orders.show', $service->order_id))->assertOk()
+            ->assertSee('New VPS — I will type the IP and password below')->assertSee('160.187.68.125 (size from plan)')
+            ->assertSee('App address (subdomain)');
+        $this->get(route('admin.dashboard'))->assertOk()->assertSee('Set up server')->assertSee('dj-admin-sidebar-scroll', false);
+
+        // Picking a server still needs the subdomain for n8n; no IP or password is asked again.
+        $this->post(route('admin.services.setup', $service), ['server_id' => $server->id] + $size)->assertSessionHasErrors('assigned_domain');
+        $this->post(route('admin.services.setup', $service), ['server_id' => $server->id, 'assigned_domain' => 'client1.developerjet.com'] + $size)
+            ->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $service->refresh();
+        $this->assertSame($server->id, $service->server_id);
+        $this->assertSame('client1.developerjet.com', $service->appDomain());
+        $this->assertSame(2, (int) $server->fresh()->cpu_capacity);
+        $this->assertSame('assigned', $server->fresh()->status);
+        $this->get(route('admin.orders.show', $service->order_id))->assertSee('Check only (dry run)');
     }
 
     public function test_a_server_saved_with_only_ip_and_password_takes_the_plan_size_when_assigned(): void

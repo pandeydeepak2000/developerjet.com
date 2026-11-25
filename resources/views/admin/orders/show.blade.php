@@ -37,7 +37,7 @@
 
     @if ($order->services->isNotEmpty())
         <section class="admin-card">
-            <h2>Services & provisioning</h2>
+            <h2 id="setup">Services & provisioning</h2>
             @foreach ($order->services as $service)
                 @php
                     $canSetup = $u->hasPermission('servers.assign') && in_array($service->status, ['pending_provisioning', 'failed']);
@@ -53,7 +53,7 @@
                     </div>
 
                     <dl class="admin-setup-facts">
-                        <div><dt>Server</dt><dd>@if ($srv)<strong>{{ $srv->ip_address }}</strong> <small class="muted">({{ $srv->ssh_user.'@'.$srv->ip_address.':'.$srv->ssh_port }} ·{{ $srv->getRawOriginal('ssh_credential') ? 'password/key saved' : 'no password saved' }})</small>@else<span class="badge badge-warn">Not added yet</span>@endif</dd></div>
+                        <div><dt>Server</dt><dd>@if ($srv)<strong>{{ $srv->ip_address }}</strong> <small class="muted">({{ $srv->ssh_user.'@'.$srv->ip_address.':'.$srv->ssh_port }} · {{ $srv->getRawOriginal('ssh_credential') ? 'password/key saved' : 'no password saved' }})</small>@else<span class="badge badge-warn">Not added yet</span>@endif</dd></div>
                         @if ($service->needsDomain())
                             <div><dt>App address</dt><dd>
                                 @if ($service->appDomain())<strong>{{ $service->appDomain() }}</strong>
@@ -71,21 +71,36 @@
                     </dl>
 
                     @if ($canSetup)
-                        <form method="POST" action="{{ route('admin.services.setup', $service) }}" class="admin-form admin-setup-form" data-loading-form>@csrf
-                            <h3><span class="admin-step-num">1</span> VPS details</h3>
+                        @php
+                            $pickable = $srv ? collect() : $servers;
+                            $picked = (string) old('server_id', '');
+                        @endphp
+                        <form method="POST" action="{{ route('admin.services.setup', $service) }}" class="admin-form admin-setup-form" data-loading-form data-setup-form>@csrf
+                            <h3><span class="admin-step-num">1</span> Server {{ $askAddress ? '& app address' : '' }}</h3>
                             <div class="admin-form-grid">
-                                <label>VPS IP address <input name="ip_address" value="{{ old('ip_address', $srv?->ip_address) }}" placeholder="203.0.113.10" required inputmode="decimal"></label>
-                                <label>Username <input name="ssh_user" value="{{ old('ssh_user', $srv?->ssh_user ?? 'root') }}" placeholder="root"></label>
-                                <label>Root password
-                                    <input type="password" name="ssh_password" autocomplete="new-password" @unless ($srv?->getRawOriginal('ssh_credential')) required @endunless
+                                @if ($pickable->isNotEmpty())
+                                    <label class="span-2">Server
+                                        <select name="server_id" data-setup-server>
+                                            <option value="">New VPS — I will type the IP and password below</option>
+                                            @foreach ($pickable as $s)
+                                                <option value="{{ $s->id }}" @selected($picked === (string) $s->id)>{{ $s->label.($s->label !== $s->ip_address ? ' — '.$s->ip_address : '').' ('.($s->sizeUnknown() ? 'size from plan' : $s->cpu_capacity.'c/'.$s->ram_capacity_gb.'G/'.$s->storage_capacity_gb.'G').')' }}</option>
+                                            @endforeach
+                                        </select>
+                                        <small class="muted">Already added this VPS under Servers? Pick it here.</small>
+                                    </label>
+                                @endif
+                                <label data-new-vps>VPS IP address <input name="ip_address" value="{{ old('ip_address', $srv?->ip_address) }}" placeholder="203.0.113.10" inputmode="decimal"></label>
+                                <label data-new-vps>Username <input name="ssh_user" value="{{ old('ssh_user', $srv?->ssh_user ?? 'root') }}" placeholder="root"></label>
+                                <label data-new-vps>Root password
+                                    <input type="password" name="ssh_password" autocomplete="new-password"
                                            placeholder="{{ $srv?->getRawOriginal('ssh_credential') ? '•••• saved — leave blank to keep' : 'From the VPS supplier email' }}">
                                     <small class="muted">Stored encrypted, never shown again.</small>
                                 </label>
-                                <label>SSH port <input type="number" name="ssh_port" value="{{ old('ssh_port', $srv?->ssh_port ?? 22) }}" min="1" max="65535"></label>
+                                <label data-new-vps>SSH port <input type="number" name="ssh_port" value="{{ old('ssh_port', $srv?->ssh_port ?? 22) }}" min="1" max="65535"></label>
                                 @if ($askAddress)
                                     <label class="span-2">App address (subdomain)
                                         <input name="assigned_domain" value="{{ old('assigned_domain', $service->config['assigned_domain'] ?? $service->custom_domain) }}" placeholder="client1.developerjet.com" maxlength="190" required>
-                                        <small class="muted">Add a DNS A record for this name pointing to the VPS IP.</small>
+                                        <small class="muted">The app will open on this address. Add a DNS A record for it pointing to the VPS IP.</small>
                                     </label>
                                 @endif
                                 @unless ($profile)
@@ -94,23 +109,8 @@
                                     <label>Disk (GB) <input type="number" name="disk_gb" min="1" max="65536" required value="{{ old('disk_gb', $service->config['confirmed_resources']['disk_gb'] ?? '') }}"></label>
                                 @endunless
                             </div>
-                            <div class="admin-form-actions"><button class="admin-btn" type="submit">{{ $srv ? 'Update details' : 'Save details' }}</button></div>
+                            <div class="admin-form-actions"><button class="admin-btn" type="submit">{{ $srv ? 'Update' : 'Save' }}</button></div>
                         </form>
-
-                        @if ($servers->isNotEmpty())
-                            <details class="admin-advanced">
-                                <summary>Or use a server already in inventory</summary>
-                                <form method="POST" action="{{ route('admin.services.assign', $service) }}" class="admin-inline-form">@csrf
-                                    <select name="server_id" aria-label="Server"><option value="">Select server…</option>@foreach ($servers as $s)<option value="{{ $s->id }}">{{ $s->label.($s->label !== $s->ip_address ? ' — '.$s->ip_address : '').' ('.($s->sizeUnknown() ? 'size from plan' : $s->cpu_capacity.'c/'.$s->ram_capacity_gb.'G/'.$s->storage_capacity_gb.'G').')' }}</option>@endforeach</select>
-                                    @unless ($profile)
-                                        <input type="number" name="vcpu" min="1" max="256" placeholder="vCPU" required aria-label="Required vCPU">
-                                        <input type="number" name="ram_gb" min="1" max="4096" placeholder="RAM GB" required aria-label="Required RAM in GB">
-                                        <input type="number" name="disk_gb" min="1" max="65536" placeholder="Disk GB" required aria-label="Required disk in GB">
-                                    @endunless
-                                    <button class="admin-btn admin-btn-quiet" type="submit">Assign</button>
-                                </form>
-                            </details>
-                        @endif
                     @endif
 
                     @if ($u->hasPermission('deployments.deploy') && $service->server_id)

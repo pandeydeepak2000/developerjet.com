@@ -66,11 +66,13 @@ class DeploymentController extends Controller
         $profile = $service->plan?->resourceProfile;
 
         $data = $request->validate([
-            'ip_address' => ['required', 'ip'],
+            // Either a server already added under Infrastructure → Servers, or a new VPS typed in here.
+            'server_id' => ['nullable', 'integer', 'exists:servers,id'],
+            'ip_address' => ['required_without:server_id', 'nullable', 'ip'],
             'ssh_port' => ['nullable', 'integer', 'between:1,65535'],
             'ssh_user' => ['nullable', 'alpha_dash', 'max:40'],
             // Root password or private key: stored encrypted (Server::ssh_credential), never displayed again.
-            'ssh_password' => [$service->server_id ? 'nullable' : 'required', 'string', 'max:8000'],
+            'ssh_password' => [$service->server_id ? 'nullable' : 'required_without:server_id', 'nullable', 'string', 'max:8000'],
             'assigned_domain' => [$needsAddress ? 'required' : 'nullable', 'string', 'max:190', 'regex:/^(?=.{4,190}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/i'],
             // Only for plans without a catalogue size.
             'vcpu' => [$profile ? 'nullable' : 'required', 'integer', 'min:1', 'max:256'],
@@ -78,6 +80,8 @@ class DeploymentController extends Controller
             'disk_gb' => [$profile ? 'nullable' : 'required', 'integer', 'min:1', 'max:65536'],
         ], [
             'ssh_password.required' => 'Enter the root password (or SSH key) of the VPS.',
+            'ssh_password.required_without' => 'Enter the root password (or SSH key) of the VPS, or pick a server you already added.',
+            'ip_address.required_without' => 'Enter the VPS IP address, or pick a server you already added.',
             'assigned_domain.required' => 'This app needs a web address, e.g. client1.developerjet.com.',
             'assigned_domain.regex' => 'Enter a hostname like client1.developerjet.com (no http:// or slashes).',
         ]);
@@ -91,6 +95,24 @@ class DeploymentController extends Controller
         $size = $profile
             ? ['vcpu' => (int) $profile->vcpu, 'ram_gb' => (int) $profile->ram_gb, 'disk_gb' => (int) $profile->disk_gb]
             : ['vcpu' => (int) $data['vcpu'], 'ram_gb' => (int) $data['ram_gb'], 'disk_gb' => (int) $data['disk_gb']];
+
+        // A server already in inventory: just set the address and assign it (size/access checks run in assign()).
+        if (! empty($data['server_id'])) {
+            try {
+                DB::transaction(function () use ($request, $service, $data, $domain, $profile, $size) {
+                    if ($domain) {
+                        $this->saveDomain($service, $domain);
+                    }
+                    if ((int) $service->server_id !== (int) $data['server_id']) {
+                        $this->deployments->assign($service->fresh(), Server::findOrFail($data['server_id']), $request->user(), $profile ? null : $size);
+                    }
+                });
+            } catch (OrderException $e) {
+                return back()->withInput($request->except('ssh_password'))->with('error', $e->getMessage());
+            }
+
+            return back()->with('success', 'Server assigned'.($domain ? ' and app address set to '.$domain : '').'. Next: click Deploy.');
+        }
 
         // The same IP may already be in inventory: reuse it only if it is this service's server or free.
         $server = Server::where('ip_address', $data['ip_address'])->where('ssh_port', $port)->first();

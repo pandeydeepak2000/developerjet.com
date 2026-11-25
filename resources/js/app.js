@@ -631,3 +631,15 @@ document.querySelectorAll('[data-customer-picker]').forEach((picker) => {
     input.addEventListener('blur', () => setTimeout(close, 120));
 });
 
+
+// Admin order page: picking a server that is already in inventory hides the "new VPS" fields.
+document.querySelectorAll('[data-setup-form]').forEach((form) => {
+    const select = form.querySelector('[data-setup-server]');
+    if (!select) return;
+    const sync = () => {
+        const existing = select.value !== '';
+        form.querySelectorAll('[data-new-vps]').forEach((el) => { el.hidden = existing; });
+    };
+    select.addEventListener('change', sync);
+    sync();
+});

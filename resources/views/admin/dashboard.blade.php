@@ -64,10 +64,10 @@
                 <a class="admin-list-row" href="{{ route('admin.orders.show', $o) }}"><span>{{ $o->number }} <small>{{ $o->user->email }}</small></span><span>{{ \App\Support\Money::inr($o->total_minor) }} <x-status-badge :status="$o->status" /></span></a>
             @empty<p class="muted">No orders yet.</p>@endforelse
         </section>
-        <section class="admin-card"><h2>Pending deployments</h2>
+        <section class="admin-card"><h2>Orders waiting for server setup</h2>
             @forelse ($pendingProvisioning as $o)
-                <a class="admin-list-row" href="{{ route('admin.orders.show', $o) }}"><span>{{ $o->number }} <small>{{ $o->user->email }}</small></span><x-status-badge :status="$o->status" /></a>
-            @empty<p class="muted">Nothing awaiting provisioning.</p>@endforelse
+                <a class="admin-list-row" href="{{ route('admin.orders.show', $o) }}#setup"><span>{{ $o->number }} <small>{{ $o->user->email }}</small></span><span class="admin-chip">Set up server →</span></a>
+            @empty<p class="muted">Nothing waiting. New paid orders appear here.</p>@endforelse
         </section>
         @endcan
         @can('tickets.view')
