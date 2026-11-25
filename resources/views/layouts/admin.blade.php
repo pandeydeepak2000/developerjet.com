@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'Admin') · DeveloperJet Admin</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-mark.png') }}">
-    @vite(['resources/css/app.css', 'resources/css/refine.css', 'resources/css/site.css', 'resources/css/admin.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/refine.css', 'resources/css/site.css', 'resources/css/admin.css', 'resources/css/admin-theme.css', 'resources/js/app.js'])
     <script>try{var t=localStorage.getItem('dj-admin-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body class="admin-body">
@@ -129,9 +129,12 @@
             </div>
         </header>
         <main id="admin-main" class="admin-content">
-            @if (session('success'))<div class="flash flash-success">{{ session('success') }}</div>@endif
-            @if (session('error'))<div class="flash flash-error" role="alert">{{ session('error') }}</div>@endif
-            @if ($errors->any())<div class="flash flash-error" role="alert">{{ $errors->first() }}</div>@endif
+            {{-- Messages float top-right so they are seen wherever the page is scrolled (success hides itself). --}}
+            <div class="admin-toasts" aria-live="polite">
+                @if (session('success'))<div class="flash flash-success" data-toast data-autohide><span>{{ session('success') }}</span><button type="button" aria-label="Close" data-toast-close>&times;</button></div>@endif
+                @if (session('error'))<div class="flash flash-error" role="alert" data-toast><span>{{ session('error') }}</span><button type="button" aria-label="Close" data-toast-close>&times;</button></div>@endif
+                @if ($errors->any())<div class="flash flash-error" role="alert" data-toast><span>{{ $errors->first() }}</span><button type="button" aria-label="Close" data-toast-close>&times;</button></div>@endif
+            </div>
             <nav class="dj-crumbs" aria-label="Breadcrumb"><a href="{{ route('admin.dashboard') }}">Admin</a><span aria-hidden="true">/</span><span aria-current="page">@yield('title', 'Admin')</span></nav>
             <div class="admin-page-head"><h1>@yield('heading')</h1><div class="admin-page-actions">@yield('actions')</div></div>
             @yield('content')

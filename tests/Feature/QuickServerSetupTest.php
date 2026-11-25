@@ -69,7 +69,7 @@ class QuickServerSetupTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'server.created_from_order']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'server.assigned']);
         $page = $this->get(route('admin.orders.show', $service->order_id))->assertOk()
-            ->assertSee('password/key saved')->assertSee('Deploy')->assertSee('saved — leave blank to keep');
+            ->assertSee('password saved')->assertSee('Deploy')->assertSee('saved — leave blank to keep');
         $this->assertStringNotContainsString(self::PASSWORD, $page->getContent());
     }
 

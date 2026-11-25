@@ -663,3 +663,49 @@ document.querySelectorAll('[data-copy-from-secret]').forEach((btn) => btn.addEve
     const input = btn.closest('.secret-field')?.querySelector('[data-secret]');
     if (input) copyWithFeedback(btn, input.value);
 }));
+
+// Admin toasts: close button, success messages hide themselves after a few seconds.
+document.querySelectorAll('[data-toast]').forEach((toast) => {
+    const close = () => { toast.classList.add('is-leaving'); setTimeout(() => toast.remove(), 300); };
+    toast.querySelector('[data-toast-close]')?.addEventListener('click', close);
+    if (toast.hasAttribute('data-autohide')) setTimeout(close, 6000);
+});
+
+// Admin install terminal: reveal lines one by one, then follow new lines while the install is running.
+document.querySelectorAll('[data-terminal]').forEach((term) => {
+    const body = term.querySelector('[data-term-body]');
+    const statusEl = term.querySelector('[data-term-status]');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lines = [...body.querySelectorAll('[data-ln]')];
+    if (!reduce && lines.length) {
+        lines.forEach((ln) => { ln.style.display = 'none'; });
+        lines.forEach((ln, i) => setTimeout(() => { ln.style.display = ''; body.scrollTop = body.scrollHeight; }, 90 * (i + 1)));
+    } else {
+        body.scrollTop = body.scrollHeight;
+    }
+    if (term.dataset.running !== '1') return;
+    let lastId = Number(term.dataset.lastId || 0);
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const tick = async () => {
+        try {
+            const res = await fetch(`${term.dataset.feed}?after=${lastId}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+            if (!res.ok) throw new Error(String(res.status));
+            const data = await res.json();
+            const wait = body.querySelector('[data-term-wait]');
+            data.lines.forEach((l) => {
+                lastId = Math.max(lastId, l.id);
+                const cls = l.level === 'info' ? 'ok' : (l.level === 'warn' ? 'warn' : (l.level === 'error' ? 'error' : 'muted'));
+                const html = `<span class="ln ln-${cls}"><time>${esc(l.time)}</time><span class="tag">[${esc(l.step)}]</span>${esc(l.message)}</span>\n`;
+                if (wait) wait.insertAdjacentHTML('beforebegin', html); else body.insertAdjacentHTML('beforeend', html);
+            });
+            body.scrollTop = body.scrollHeight;
+            if (data.finished) {
+                if (statusEl) statusEl.textContent = data.status.replace(/_/g, ' ');
+                setTimeout(() => window.location.reload(), 1200);
+                return;
+            }
+        } catch (e) { /* network hiccup: try again */ }
+        setTimeout(tick, 2000);
+    };
+    setTimeout(tick, 1500);
+});

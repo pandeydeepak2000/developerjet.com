@@ -10,8 +10,10 @@ use App\Services\DeploymentService;
 use App\Services\OrderException;
 use App\Support\Audit;
 use App\Support\Setting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -24,6 +26,23 @@ class DeploymentController extends Controller
         abort_unless($request->user()->hasPermission('deployments.view'), 403);
 
         return view('admin.deployments.show', ['deployment' => $deployment->load('service.order', 'server', 'logs')]);
+    }
+
+    /** Live terminal feed: new log lines after `after` (log id) plus the current status. Never includes secrets. */
+    public function log(Request $request, Deployment $deployment): JsonResponse
+    {
+        abort_unless($request->user()->hasPermission('deployments.view'), 403);
+        $after = (int) $request->query('after', 0);
+
+        return response()->json([
+            'status' => $deployment->status,
+            'finished' => ! in_array($deployment->status, ['queued', 'preflight', 'running'], true),
+            'completed_steps' => $deployment->completed_steps ?? [],
+            'failed_step' => $deployment->failed_step,
+            'lines' => $deployment->logs()->where('id', '>', $after)->orderBy('id')->limit(500)->get()
+                ->map(fn ($l) => ['id' => $l->id, 'time' => Carbon::parse($l->created_at)->format('H:i:s'), 'level' => $l->level, 'step' => $l->step, 'message' => $l->message])
+                ->values(),
+        ]);
     }
 
     /**
@@ -219,17 +238,30 @@ class DeploymentController extends Controller
         abort_unless($request->user()->hasPermission('deployments.deploy'), 403);
         $data = $request->validate(['mode' => ['required', 'in:dry_run,live']]);
 
+        // While automatic install is switched off, Deploy runs a test run so staff still see every step in the terminal.
+        $liveOff = $data['mode'] === 'live' && (! config('provisioning.live_enabled') || ! $this->deployments->worker()->isLive());
+        $mode = $liveOff ? 'dry_run' : $data['mode'];
+
         try {
             if ($service->order?->status === 'failed') {
                 $this->deployments->prepareRetry($service, $request->user());
                 $service->load('order');
             }
-            $deployment = $this->deployments->deploy($service->fresh('order', 'server', 'plan.resourceProfile'), $request->user(), $data['mode']);
+            $deployment = $this->deployments->deploy($service->fresh('order', 'server', 'plan.resourceProfile'), $request->user(), $mode);
         } catch (OrderException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('admin.deployments.show', $deployment)->with('success', $data['mode'] === 'dry_run' ? 'Dry run queued — nothing will be installed.' : 'Deployment queued.');
+        // A test run is instant and needs no background worker: run it now (the queued job skips it afterwards).
+        if ($mode === 'dry_run' && $deployment->fresh()->status === 'queued') {
+            $this->deployments->execute($deployment->fresh());
+        }
+
+        return redirect()->route('admin.deployments.show', $deployment)->with('success', match (true) {
+            $liveOff => 'Automatic install is switched off, so this ran as a test run — nothing was installed. Install over SSH, then press "mark delivered".',
+            $mode === 'dry_run' => 'Test run finished — nothing was installed.',
+            default => 'Install started. Follow it in the terminal below.',
+        });
     }
 
     public function mode(Request $request): RedirectResponse

@@ -18,8 +18,10 @@ class DryRunWorker implements ProvisioningWorker
     public function run(Deployment $deployment, array $steps): WorkerResult
     {
         $log = [];
+        $recipes = app(RecipeRegistry::class);
+        $target = $deployment->server->ip_address ?: $deployment->server->label;
         foreach ($steps as $step) {
-            $log[] = ['step' => $step, 'level' => 'info', 'message' => '[dry run] would execute recipe step "'.$step.'" on '.$deployment->server->label.' — no changes made.'];
+            $log[] = ['step' => $step, 'level' => 'info', 'message' => '[dry run] '.$recipes->label($step).' — would run on '.$target.', no changes made.'];
         }
 
         return new WorkerResult(true, $log, null, false);

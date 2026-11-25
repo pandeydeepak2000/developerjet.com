@@ -214,6 +214,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/services/{service}/delivered', [Admin\DeploymentController::class, 'delivered'])->name('admin.services.delivered');
         Route::post('/services/{service}/deploy', [Admin\DeploymentController::class, 'deploy'])->middleware('throttle:20,1')->name('admin.services.deploy');
         Route::get('/deployments/{deployment}', [Admin\DeploymentController::class, 'show'])->name('admin.deployments.show');
+        Route::get('/deployments/{deployment}/log', [Admin\DeploymentController::class, 'log'])->name('admin.deployments.log');
         Route::get('/infrastructure', [Admin\InfrastructureController::class, 'index'])->name('admin.infrastructure');
         Route::post('/servers/{server}/request-suspension', [Admin\InfrastructureController::class, 'requestSuspension'])->middleware('throttle:20,1')->name('admin.servers.suspend');
         Route::post('/settings/test-notification', [Admin\InfrastructureController::class, 'testNotification'])->middleware('throttle:10,1')->name('admin.settings.test-notification');

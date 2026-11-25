@@ -148,15 +148,23 @@ class ProvisioningTest extends TestCase
         $this->assertSame('simulated', $server->healthChecks()->first()->status);
     }
 
-    public function test_live_deploy_is_blocked_while_live_provisioning_disabled(): void
+    public function test_live_deploy_runs_as_a_test_run_while_live_provisioning_is_disabled(): void
     {
         $service = $this->paidService();
         app(DeploymentService::class)->assign($service, $this->server(), $this->staff());
         $admin = $this->staff('developer');
 
-        $this->actingAs($admin)->post(route('admin.services.deploy', $service), ['mode' => 'live'])->assertSessionHas('error');
-        $this->assertDatabaseCount('deployments', 0);
+        $response = $this->actingAs($admin)->post(route('admin.services.deploy', $service), ['mode' => 'live']);
+        $deployment = Deployment::firstOrFail();
+        $response->assertRedirect(route('admin.deployments.show', $deployment))->assertSessionHas('success');
+        $this->assertSame('dry_run', $deployment->mode, 'Nothing live may run while live provisioning is off.');
+        $this->assertNotSame('queued', $deployment->fresh()->status, 'The test run finishes immediately, without a worker.');
         $this->assertSame('pending_provisioning', $service->fresh()->status);
+
+        // The terminal page and its feed show the steps; nothing secret is in them.
+        $this->get(route('admin.deployments.show', $deployment))->assertOk()->assertSee('Test run')->assertSee('[dry run]');
+        $this->getJson(route('admin.deployments.log', $deployment))->assertOk()->assertJsonPath('finished', true)->assertJsonStructure(['status', 'lines' => [['id', 'time', 'level', 'step', 'message']]]);
+        $this->actingAs($this->staff('billing-staff'))->getJson(route('admin.deployments.log', $deployment))->assertForbidden();
     }
 
     public function test_deploy_requires_deploy_permission_and_assignment_requires_assign_permission(): void

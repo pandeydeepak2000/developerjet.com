@@ -1,33 +1,54 @@
 @extends('layouts.admin')
 
 @section('title', 'Deployment #'.$deployment->id)
-@section('heading', 'Deployment #'.$deployment->id)
+@section('heading', 'Install log · '.$deployment->service->label)
 @section('actions')<x-status-badge :status="$deployment->status" />@endsection
 
 @section('content')
+    @php
+        $registry = app(\App\Services\Provisioning\RecipeRegistry::class);
+        $done = $deployment->completed_steps ?? [];
+        $running = in_array($deployment->status, ['queued', 'preflight', 'running'], true);
+        $server = $deployment->server;
+        $prompt = ($server->ssh_user ?? 'root').'@'.($server->ip_address ?? $server->label);
+    @endphp
+
     @if ($deployment->mode === 'dry_run')
-        <div class="flash flash-info" role="note"><strong>Dry run.</strong> This is a simulation. Nothing was installed or changed on the server, and the service was not activated.</div>
+        <div class="admin-setup-note" role="note" style="margin-bottom:14px"><strong>Test run.</strong> Nothing was installed or changed on the server, and the service was not activated.</div>
     @endif
-    <section class="admin-card">
-        <dl class="kv">
-            <div><dt>Service</dt><dd>{{ $deployment->service->label }}</dd></div>
-            <div><dt>Server</dt><dd>{{ $deployment->server->label }}</dd></div>
-            <div><dt>Failed step</dt><dd>{{ $deployment->failed_step ?? '—' }}</dd></div>
-            <div><dt>Recipe</dt><dd>{{ $deployment->recipe }} v{{ $deployment->recipe_version }}</dd></div>
-            <div><dt>Attempt</dt><dd>{{ $deployment->attempt }}</dd></div>
-            <div><dt>Mode</dt><dd>{{ $deployment->mode }}</dd></div>
-            <div><dt>Error</dt><dd>{{ $deployment->error_summary ?? '—' }}</dd></div>
-        </dl>
-    </section>
-    @php $registry = app(\App\Services\Provisioning\RecipeRegistry::class); $done = $deployment->completed_steps ?? []; @endphp
-    <section class="admin-card"><h2>Installation progress</h2>
-        <ol class="timeline">@foreach ($registry->steps($deployment->recipe) as $step)
-            <li><strong>{{ $registry->label($step) }}</strong><span>@if ($deployment->failed_step === $step && $deployment->status === 'failed')<span class="badge badge-bad">failed here</span>@elseif (in_array($step, $done, true))<span class="badge badge-good">done</span>@elseif ($deployment->mode === 'dry_run')<span class="badge badge-neutral">simulated</span>@elseif (! $registry->approved($step))<span class="badge badge-warn">command not yet approved</span>@else<span class="badge badge-neutral">pending</span>@endif</span></li>
-        @endforeach</ol>
-    </section>
-    <section class="admin-card"><h2>Log</h2>
-        @forelse ($deployment->logs as $l)
-            <div class="admin-log admin-log-{{ $l->level }}"><time>{{ \Illuminate\Support\Carbon::parse($l->created_at)->format('H:i:s') }}</time><code>{{ $l->step }}</code> {{ $l->message }}</div>
-        @empty<p class="muted">No log entries yet.</p>@endforelse
-    </section>
+
+    <div class="dj-terminal" data-terminal data-feed="{{ route('admin.deployments.log', $deployment) }}" data-running="{{ $running ? '1' : '0' }}" data-last-id="{{ $deployment->logs->max('id') ?? 0 }}">
+        <div class="dj-terminal-bar"><i></i><i></i><i></i><span>{{ $prompt }} · {{ $registry->recipe($deployment->recipe)['label'] ?? $deployment->recipe }}{{ $deployment->mode === 'dry_run' ? ' · test run' : '' }}</span>
+            <span class="dj-term-status" data-term-status>{{ $running ? 'Running…' : \Illuminate\Support\Str::headline($deployment->status) }}</span></div>
+        <pre class="dj-terminal-body" data-term-body><span class="ln ln-muted">$ deploy {{ $deployment->recipe }} --attempt={{ $deployment->attempt }}{{ $deployment->mode === 'dry_run' ? ' --dry-run' : '' }}</span>
+@foreach ($deployment->logs as $l)<span class="ln ln-{{ $l->level === 'info' ? 'ok' : ($l->level === 'warn' ? 'warn' : ($l->level === 'error' ? 'error' : 'muted')) }}" data-ln><time>{{ \Illuminate\Support\Carbon::parse($l->created_at)->format('H:i:s') }}</time><span class="tag">[{{ $l->step }}]</span>{{ $l->message }}</span>
+@endforeach
+@if ($running)<span class="ln ln-muted" data-term-wait>{{ $deployment->status === 'queued' ? 'Waiting for the background worker to pick this up…' : 'Working…' }} <span class="cursor"></span></span>@else<span class="ln {{ $deployment->status === 'succeeded' ? 'ln-ok' : ($deployment->status === 'failed' ? 'ln-error' : 'ln-muted') }}">— {{ $deployment->status === 'failed' ? 'Stopped: '.($deployment->error_summary ?? 'see the lines above') : 'Finished ('.\Illuminate\Support\Str::headline($deployment->status).')' }}</span>@endif</pre>
+    </div>
+
+    <ul class="dj-steps-mini" aria-label="Steps">
+        @foreach ($registry->steps($deployment->recipe) as $step)
+            <li class="{{ $deployment->failed_step === $step && $deployment->status === 'failed' ? 'is-failed' : (in_array($step, $done, true) || $deployment->status === 'dry_run_ok' ? 'is-done' : '') }}">{{ $registry->label($step) }}</li>
+        @endforeach
+    </ul>
+
+    <div class="admin-grid-2" style="margin-top:18px">
+        <section class="admin-card">
+            <h2>Details</h2>
+            <dl class="kv">
+                <div><dt>Order</dt><dd>@if ($deployment->service->order)<a class="admin-strong-link" href="{{ route('admin.orders.show', $deployment->service->order) }}#setup">{{ $deployment->service->order->number }}</a>@else — @endif</dd></div>
+                <div><dt>Server</dt><dd>{{ $server->ip_address }} <small class="muted">{{ $server->label }}</small></dd></div>
+                <div><dt>Mode</dt><dd>{{ $deployment->mode === 'dry_run' ? 'Test run' : 'Live install' }} · attempt {{ $deployment->attempt }}</dd></div>
+                <div><dt>Recipe</dt><dd>{{ $deployment->recipe }} v{{ $deployment->recipe_version }}</dd></div>
+                @if ($deployment->error_summary)<div><dt>Error</dt><dd>{{ $deployment->error_summary }}</dd></div>@endif
+            </dl>
+        </section>
+        <section class="admin-card">
+            <h2>Next</h2>
+            @if ($deployment->service->order)
+                <p><a class="admin-btn" href="{{ route('admin.orders.show', $deployment->service->order) }}#setup">Back to the order</a></p>
+            @endif
+            <p class="muted small">Passwords and keys are never written to this log.</p>
+        </section>
+    </div>
 @endsection
