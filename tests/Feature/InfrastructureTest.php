@@ -575,7 +575,7 @@ class InfrastructureTest extends TestCase
         $service->update(['server_id' => $server->id, 'status' => 'active']);
 
         $this->actingAs($service->user)->get(route('dashboard.services.show', $service))
-            ->assertOk()->assertSee('203.0.113.50')->assertSee('Self-hosted VPS · full root access')->assertSee('Web console')->assertSee('Unavailable')
+            ->assertOk()->assertSee('203.0.113.50')->assertSee('Full root access')->assertSee('Reboot or reinstall')->assertDontSee('Unavailable')
             // Owner decision (2026-11-25): the customer gets root, so the password is shown — only in the masked field.
             ->assertSee('type="password" value="TOPSECRETKEY"', false)->assertDontSee('DesiVPS')->assertDontSee('Awaiting VPS assignment');
 

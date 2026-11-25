@@ -132,6 +132,7 @@ class DeploymentAutomationTest extends TestCase
         $this->assertContains('health_check', $live->completed_steps);
         $this->assertContains('security_baseline', $live->completed_steps);
         $this->assertFalse($transport->connected); // always disconnected in finally
+        $this->assertSame('Ubuntu 24.04.5 LTS', $service->fresh()->server->os_name, 'OS name recorded for the customer page');
 
         foreach (config('provisioning.recipes.'.$kind.'.steps') as $step) {
             $this->assertContains($step, $live->completed_steps, "{$slug}: {$step}");

@@ -110,7 +110,13 @@
             @if ($u->hasPermission('deployments.deploy') && $service->server_id && ! $delivered)
                 <div class="dj-step-card">
                     <h3><span class="admin-step-num">2</span> Install</h3>
-                    @php $inFlight = $lastDeployment && in_array($lastDeployment->status, ['queued', 'preflight', 'running'], true); @endphp
+                    @php
+                        $inFlight = $lastDeployment && in_array($lastDeployment->status, ['queued', 'preflight', 'running'], true);
+                        $registry = app(\App\Services\Provisioning\RecipeRegistry::class);
+                        $liveOn = config('provisioning.live_enabled') && config('provisioning.worker') === 'ssh';
+                        $missingStep = collect($registry->steps($service->kind))->first(fn ($s) => ! $registry->approved($s, $service->kind));
+                        $autoReady = $liveOn && $missingStep === null;
+                    @endphp
                     @if ($lastDeployment)
                         <p class="dj-run-status dj-run-{{ $inFlight ? 'running' : ($lastDeployment->status === 'failed' ? 'failed' : 'ok') }}">
                             <span class="dj-dot" aria-hidden="true"></span>
@@ -126,14 +132,17 @@
                             <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form" data-submit-once="Starting…" onsubmit="return confirm('Start the install on {{ $srv->ip_address }}?')">@csrf
                                 <input type="hidden" name="mode" value="live"><button class="admin-btn admin-btn-lg" type="submit">▶ {{ $lastDeployment ? 'Deploy again' : 'Deploy' }}</button></form>
                         @endif
-                        @if ($canSetup && ! $inFlight)
+                        {{-- Manual hand-over only where automatic install cannot do the job (switched off, or no approved installer for this product yet). --}}
+                        @if ($canSetup && ! $inFlight && ! $autoReady)
                             <form method="POST" action="{{ route('admin.services.delivered', $service) }}" class="admin-inline-form" data-submit-once="Saving…" onsubmit="return confirm('Installed it yourself? The customer will be emailed and will see the IP and root login.')">@csrf
                                 <button class="admin-btn admin-btn-quiet" type="submit">I installed it myself — mark delivered</button></form>
                         @endif
                     </div>
-                    @unless (config('provisioning.live_enabled'))
+                    @if (! $liveOn)
                         <p class="admin-setup-note">Automatic install is not switched on yet. Deploy opens the install terminal and runs a <strong>test run</strong> (nothing is installed). Install over SSH yourself, then press "mark delivered".</p>
-                    @endunless
+                    @elseif (! $autoReady)
+                        <p class="admin-setup-note">Automatic install for <strong>{{ $registry->recipe($service->kind)['label'] ?? $service->kind }}</strong> is not ready yet (step "{{ $registry->label($missingStep) }}" has no approved installer), so Deploy will stop there. Until it is added, install it over SSH and press "mark delivered".</p>
+                    @endif
                 </div>
             @endif
 

@@ -301,7 +301,7 @@ class ProvisioningTest extends TestCase
         $this->actingAs($owner)->post(route('dashboard.services.ai', $service), ['ai_provider' => 'openai', 'ai_api_key' => 'sk-VERY-SECRET-KEY'])->assertSessionHas('success');
 
         $this->assertStringNotContainsString('sk-VERY-SECRET-KEY', $service->fresh()->getRawOriginal('ai_api_key'));
-        $this->get(route('dashboard.services.show', $service))->assertOk()->assertDontSee('sk-VERY-SECRET-KEY')->assertSee('Add your AI API key')->assertSee('Usage metrics');
+        $this->get(route('dashboard.services.show', $service))->assertOk()->assertDontSee('sk-VERY-SECRET-KEY')->assertSee('Add your AI API key')->assertSee('Plan &amp; billing', false);
         $this->assertArrayNotHasKey('ai_api_key', $service->fresh()->toArray());
 
         $this->actingAs($this->customer())->get(route('dashboard.services.show', $service))->assertForbidden();

@@ -74,6 +74,6 @@ class CustomerDashboardCompletenessTest extends TestCase
         $this->withSession(['checkout_token' => 'tok-m'])->post('/checkout', ['accept_terms' => 1, 'use_wallet' => 1]);
         $service = $customer->services()->firstOrFail();
 
-        $this->get('/dashboard/services/'.$service->id)->assertOk()->assertSee('Usage metrics')->assertSee('Not available yet')->assertDontSee('CPU usage: ', false);
+        $this->get('/dashboard/services/'.$service->id)->assertOk()->assertDontSee('CPU usage: ', false)->assertDontSee('Usage metrics'); // no invented numbers, no empty placeholder rows
     }
 }

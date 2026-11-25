@@ -1185,3 +1185,39 @@ body.dj-drawer-open { overflow: hidden; }
 .panel pre.cmd code{background:none;color:inherit;white-space:pre}
 .panel pre.cmd .link-btn{color:#93c5fd;flex:none}
 .link-btn{background:none;border:0;padding:0;color:var(--accent,#2563eb);font-weight:600;cursor:pointer;font-size:13px}
+
+/* ---------- Customer service page (server panel) ---------- */
+.svc-hero{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;margin-bottom:16px;border-radius:18px;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#312e81 100%);color:#fff;box-shadow:0 12px 30px rgba(30,27,75,.25)}
+.svc-hero-main{display:flex;align-items:center;gap:14px;min-width:0}
+.svc-hero-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#a855f7);font-size:24px;font-weight:800;flex:none}
+.svc-hero-title{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.svc-hero h2{margin:0;font-size:22px;color:#fff;letter-spacing:-.01em}
+.svc-hero p.muted{margin:4px 0 0;color:#c7d2fe}
+.svc-hero-actions{display:flex;flex-wrap:wrap;gap:10px}
+.svc-hero .button-secondary{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25)}
+.svc-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.svc-stat{display:grid;gap:4px;padding:14px 16px;border:1px solid var(--line,#e2e8f0);border-radius:14px;background:var(--surface,#fff);min-width:0}
+.svc-stat span{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#64748b)}
+.svc-stat strong{font-size:15px;overflow-wrap:anywhere}
+.svc-stat code{font-size:15px;background:none;padding:0}
+.svc-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.svc-main,.svc-side{display:grid;gap:16px;min-width:0}
+.svc-main .panel,.svc-side .panel{margin:0}
+.cred-rows{display:grid;border:1px solid var(--line,#e2e8f0);border-radius:12px;overflow:hidden}
+.cred-row{display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line,#e2e8f0)}
+.cred-row:first-child{border-top:0}
+.cred-row > span:first-child{font-size:13px;font-weight:600;color:var(--muted,#64748b)}
+.cred-row code{font-size:14px;overflow-wrap:anywhere}
+.cred-row .secret-field{grid-column:2 / 4}
+.connect-help{margin-top:14px}
+.connect-help>summary{cursor:pointer;font-weight:700;margin-bottom:8px}
+.start-steps{margin:0;padding-left:20px;display:grid;gap:8px}
+.svc-invoices{list-style:none;margin:12px 0 6px;padding:0;display:grid;gap:6px}
+.svc-invoices li{display:flex;align-items:center;gap:8px;font-size:14px}
+.svc-invoices li span{margin-left:auto}
+.svc-manage{display:grid;gap:8px;margin:4px 0 8px}
+.svc-manage .button-secondary{justify-content:center;text-align:center}
+.svc-note{background:var(--surface-2,#f8fafc)}
+.svc-note p{margin:0 0 8px}
+@media (max-width:1100px){.svc-grid{grid-template-columns:minmax(0,1fr)}.svc-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.svc-stats{grid-template-columns:minmax(0,1fr)}.svc-hero{padding:16px}.svc-hero-actions{width:100%}.svc-hero-actions a{flex:1;text-align:center;justify-content:center}.cred-row{grid-template-columns:minmax(0,1fr) auto}.cred-row > span:first-child{grid-column:1 / -1}.cred-row .secret-field{grid-column:1 / -1}}

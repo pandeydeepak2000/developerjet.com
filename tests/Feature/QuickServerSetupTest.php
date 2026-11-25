@@ -218,6 +218,25 @@ class QuickServerSetupTest extends TestCase
         $this->actingAs($this->staff('billing-staff'))->post(route('admin.services.reset', $service))->assertForbidden();
     }
 
+    public function test_with_automatic_install_on_only_deploy_is_offered_for_supported_products(): void
+    {
+        config(['provisioning.live_enabled' => true, 'provisioning.worker' => 'ssh']);
+        $admin = $this->staff('admin');
+
+        // Hermes CLI has an approved installer: no manual "mark delivered", no test-run note.
+        $cli = $this->paidService('hermes-cli-launch');
+        $this->actingAs($admin)->post(route('admin.services.setup', $cli), ['ip_address' => '203.0.113.90', 'ssh_password' => self::PASSWORD])->assertSessionHas('success');
+        $this->get(route('admin.orders.show', $cli->order_id))->assertOk()
+            ->assertSee('▶ Deploy')->assertDontSee('mark delivered')->assertDontSee('test run');
+
+        // Hermes Workspace has no approved installer yet: say so, and keep the manual fallback.
+        $ws = $this->paidService('hermes-workspace-launch');
+        $r = $this->actingAs($admin)->post(route('admin.services.setup', $ws), ['ip_address' => '203.0.113.91', 'ssh_password' => self::PASSWORD, 'assigned_domain' => 'ws9.developerjet.com']);
+        $r->assertSessionHas('success');
+        $this->get(route('admin.orders.show', $ws->order_id))->assertOk()
+            ->assertSee('is not ready yet')->assertSee('mark delivered');
+    }
+
     public function test_mark_delivered_hands_the_server_to_the_customer_with_login_and_key_help(): void
     {
         $service = $this->paidService('hermes-cli-launch');

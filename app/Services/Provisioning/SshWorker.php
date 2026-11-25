@@ -109,6 +109,9 @@ class SshWorker implements ProvisioningWorker
                 if ($problem = $this->validateProbe($step, $result['stdout'])) {
                     return $fail($step, '✗ '.$problem, $problem);
                 }
+                if ($step === 'check_os' && preg_match('/^PRETTY_NAME="?([^"\n]+)"?/m', $result['stdout'], $os)) {
+                    $server->forceFill(['os_name' => mb_substr(trim($os[1]), 0, 40)])->save(); // shown to the customer
+                }
 
                 $done[] = $step;
                 $deployment->update(['completed_steps' => $done]);

@@ -22,7 +22,7 @@ class FakeTransport implements RemoteTransport
 
     public bool $hostKeyMismatch = false;
 
-    public string $os = "ID=ubuntu\nVERSION_ID=\"24.04\"\n";
+    public string $os = "PRETTY_NAME=\"Ubuntu 24.04.5 LTS\"\nID=ubuntu\nVERSION_ID=\"24.04\"\n";
 
     public string $arch = 'x86_64';
 
