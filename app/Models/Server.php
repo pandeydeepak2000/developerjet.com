@@ -12,6 +12,28 @@ class Server extends Model
 
     protected $hidden = ['ssh_credential'];
 
+    protected static function booted(): void
+    {
+        // Name and size are optional in the admin form: a blank name becomes the IP, a blank size stays 0 and is
+        // filled from the order's plan when the server is assigned (see DeploymentService::assign).
+        static::saving(function (Server $server) {
+            if (blank($server->label)) {
+                $server->label = (string) $server->ip_address;
+            }
+            foreach (['cpu_capacity', 'ram_capacity_gb', 'storage_capacity_gb'] as $column) {
+                if ($server->{$column} === null || $server->{$column} === '') {
+                    $server->{$column} = 0;
+                }
+            }
+        });
+    }
+
+    /** No size entered: the VPS was bought for one order, so it takes that plan's size when assigned. */
+    public function sizeUnknown(): bool
+    {
+        return (int) $this->cpu_capacity === 0 && (int) $this->ram_capacity_gb === 0 && (int) $this->storage_capacity_gb === 0;
+    }
+
     protected function casts(): array
     {
         return [

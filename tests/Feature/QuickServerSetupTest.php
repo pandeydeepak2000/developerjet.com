@@ -128,4 +128,29 @@ class QuickServerSetupTest extends TestCase
             ->assertSee('More details (optional)')->assertSee('Root password or SSH key')
             ->assertSee('name="ssh_port" value="22"', false)->assertSee('name="ssh_user" value="root"', false);
     }
+
+    public function test_a_server_saved_with_only_ip_and_password_takes_the_plan_size_when_assigned(): void
+    {
+        $admin = $this->staff('admin');
+        $this->actingAs($admin)->post(route('admin.resource.store', 'servers'), [
+            'ip_address' => '203.0.113.60', 'provider_id' => '', 'ssh_user' => 'root', 'ssh_credential' => self::PASSWORD,
+            'ssh_port' => 22, 'role' => 'customer_vps', 'access_model' => 'unmanaged', 'architecture' => 'x86_64',
+            'billing_period' => 'monthly', 'status' => 'available',
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $server = Server::where('ip_address', '203.0.113.60')->firstOrFail();
+        $this->assertSame('203.0.113.60', $server->label, 'A blank name falls back to the IP.');
+        $this->assertTrue($server->sizeUnknown());
+
+        $service = $this->paidService('hermes-cli-launch');
+        $profile = $service->plan->resourceProfile;
+        $this->actingAs($admin)->get(route('admin.orders.show', $service->order_id))->assertSee('size from plan');
+        $this->post(route('admin.services.assign', $service), ['server_id' => $server->id])->assertSessionHas('success');
+
+        $server->refresh();
+        $this->assertSame($server->id, $service->fresh()->server_id);
+        $this->assertSame((int) $profile->vcpu, (int) $server->cpu_capacity);
+        $this->assertSame((int) $profile->ram_gb, (int) $server->ram_capacity_gb);
+        $this->assertSame((int) $profile->disk_gb, (int) $server->storage_capacity_gb);
+    }
 }

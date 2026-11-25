@@ -101,7 +101,7 @@
                             <details class="admin-advanced">
                                 <summary>Or use a server already in inventory</summary>
                                 <form method="POST" action="{{ route('admin.services.assign', $service) }}" class="admin-inline-form">@csrf
-                                    <select name="server_id" aria-label="Server"><option value="">Select server…</option>@foreach ($servers as $s)<option value="{{ $s->id }}">{{ $s->label }} — {{ $s->ip_address }} ({{ $s->cpu_capacity }}c/{{ $s->ram_capacity_gb }}G/{{ $s->storage_capacity_gb }}G)</option>@endforeach</select>
+                                    <select name="server_id" aria-label="Server"><option value="">Select server…</option>@foreach ($servers as $s)<option value="{{ $s->id }}">{{ $s->label.($s->label !== $s->ip_address ? ' — '.$s->ip_address : '').' ('.($s->sizeUnknown() ? 'size from plan' : $s->cpu_capacity.'c/'.$s->ram_capacity_gb.'G/'.$s->storage_capacity_gb.'G').')' }}</option>@endforeach</select>
                                     @unless ($profile)
                                         <input type="number" name="vcpu" min="1" max="256" placeholder="vCPU" required aria-label="Required vCPU">
                                         <input type="number" name="ram_gb" min="1" max="4096" placeholder="RAM GB" required aria-label="Required RAM in GB">

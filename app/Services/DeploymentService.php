@@ -56,6 +56,10 @@ class DeploymentService
 
         DB::transaction(function () use ($service, $server, $actor, $requirement, $newConfig) {
             $locked = Server::whereKey($server->id)->lockForUpdate()->firstOrFail();
+            // A server added without a size was bought for this order: it takes the plan's size.
+            if ($locked->sizeUnknown() && $requirement->vcpu && $requirement->ram_gb && $requirement->disk_gb) {
+                $locked->forceFill(['cpu_capacity' => $requirement->vcpu, 'ram_capacity_gb' => $requirement->ram_gb, 'storage_capacity_gb' => $requirement->disk_gb])->save();
+            }
             $reason = $this->planner->incompatibility($locked, $requirement);
 
             $reason ??= $this->accessModelMismatch($locked, $service) ?? $this->economicsProblem($locked, $service);
