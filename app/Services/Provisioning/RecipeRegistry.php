@@ -34,10 +34,21 @@ class RecipeRegistry
         return $this->step($id)['label'] ?? $id;
     }
 
-    /** True when the owner has approved a command template for the step. */
-    public function approved(string $id): bool
+    /**
+     * The command template for a step: a recipe-specific override (recipes.<kind>.commands.<step>) wins over the
+     * shared catalogue. Null = not approved. "@path" means the script file resources/provisioning/<path>.sh.
+     */
+    public function command(string $id, ?string $kind = null): ?string
     {
-        return ($this->step($id)['command'] ?? null) !== null;
+        $override = $kind ? ($this->recipe($kind)['commands'][$id] ?? null) : null;
+
+        return $override ?? ($this->step($id)['command'] ?? null);
+    }
+
+    /** True when the owner has approved a command template for the step (for this recipe, when given). */
+    public function approved(string $id, ?string $kind = null): bool
+    {
+        return $this->command($id, $kind) !== null;
     }
 
     /** Recipe-level problems (unknown steps, bad versions, duplicates). Empty = valid. */
@@ -64,6 +75,20 @@ class RecipeRegistry
         return $problems;
     }
 
+    /** A reviewed installer script shipped in the repo (resources/provisioning/<name>.sh). */
+    public static function script(string $name): string
+    {
+        if (! preg_match('#^[a-z0-9_-]+(/[a-z0-9_-]+)*$#', $name)) {
+            throw new InvalidArgumentException("Invalid script name {$name}.");
+        }
+        $path = resource_path('provisioning/'.$name.'.sh');
+        if (! is_file($path)) {
+            throw new InvalidArgumentException("Installer script {$name} is missing.");
+        }
+
+        return str_replace("\r\n", "\n", (string) file_get_contents($path));
+    }
+
     /** POSIX single-quote escaping (the remote shell is Linux; PHP's escapeshellarg is OS-dependent). */
     public static function posixQuote(string $value): string
     {
@@ -71,11 +96,14 @@ class RecipeRegistry
     }
 
     /** Fixed command with the only allowed placeholder substituted by a validated, quoted domain. */
-    public function render(string $id, ?string $domain): string
+    public function render(string $id, ?string $domain, ?string $kind = null): string
     {
-        $template = $this->step($id)['command'] ?? null;
+        $template = $this->command($id, $kind);
         if ($template === null) {
             throw new InvalidArgumentException("Step {$id} has no approved command.");
+        }
+        if (str_starts_with($template, '@')) {
+            $template = self::script(substr($template, 1));
         }
         if (str_contains($template, '{domain}')) {
             if ($domain === null || ! preg_match(self::DOMAIN_REGEX, $domain)) {

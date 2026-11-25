@@ -16,12 +16,16 @@ class RunDeployment implements ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 900;
+    public int $timeout = 3600;
 
     public function __construct(public int $deploymentId) {}
 
     public function handle(DeploymentService $service): void
     {
+        // An install can take several minutes (and may run after the response on shared hosting).
+        @set_time_limit(0);
+        @ignore_user_abort(true);
+
         $deployment = Deployment::find($this->deploymentId);
 
         // Guard against queue redelivery: only a queued deployment may start.

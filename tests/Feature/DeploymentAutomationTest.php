@@ -111,6 +111,11 @@ class DeploymentAutomationTest extends TestCase
             $this->assertSame($admin->id, $service->config['confirmed_resources']['confirmed_by']);
         }
 
+        // Web apps need their address before a live install (HTTPS); staff set a DeveloperJet subdomain.
+        if (config('provisioning.recipes.'.$kind.'.needs_domain')) {
+            $service->refresh()->forceFill(['config' => array_merge($service->config ?? [], ['assigned_domain' => str_replace('_', '-', $kind).'.example.com'])])->save();
+        }
+
         // 3. Dry run first: records the plan but NEVER runs anything or activates the service.
         $dry = app(DeploymentService::class)->deploy($service->fresh(), $admin, 'dry_run');
         $dry = app(DeploymentService::class)->execute($dry->fresh());
@@ -129,10 +134,10 @@ class DeploymentAutomationTest extends TestCase
         $this->assertFalse($transport->connected); // always disconnected in finally
 
         foreach (config('provisioning.recipes.'.$kind.'.steps') as $step) {
-            if (config('provisioning.step_catalog.'.$step.'.needs_domain')) {
-                continue; // skipped without a verified domain, by design
-            }
             $this->assertContains($step, $live->completed_steps, "{$slug}: {$step}");
+        }
+        if (config('provisioning.recipes.'.$kind.'.needs_domain')) {
+            $this->assertSame('https://'.str_replace('_', '-', $kind).'.example.com', $service->fresh()->url);
         }
 
         // 5. Customer timeline is Ready, polling stops, completion notifications and audit exist.

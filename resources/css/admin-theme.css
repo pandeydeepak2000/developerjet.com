@@ -175,3 +175,5 @@
 .admin-body .admin-btn:disabled { opacity: .65; cursor: not-allowed; transform: none; box-shadow: none; }
 .admin-body .dj-reset { margin-top: 14px; }
 .admin-body .dj-reset > summary { color: var(--a-bad); }
+.dj-terminal-body .ln-step { color: #ffffff; font-weight: 700; margin-top: 6px; }
+.dj-terminal-body .ln-muted .tag, .dj-terminal-body .ln-step .tag { display: none; }

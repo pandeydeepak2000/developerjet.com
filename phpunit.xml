@@ -27,6 +27,7 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="PROVISIONING_DISPATCH" value="queue"/>
         <env name="SESSION_DRIVER" value="array"/>
         <!-- Mandatory Super Admin MFA is ON by default; StaffPortalTest switches it on explicitly. -->
         <env name="STAFF_ENFORCE_PRIVILEGED_MFA" value="false"/>

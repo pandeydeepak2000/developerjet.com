@@ -694,8 +694,8 @@ document.querySelectorAll('[data-terminal]').forEach((term) => {
             const wait = body.querySelector('[data-term-wait]');
             data.lines.forEach((l) => {
                 lastId = Math.max(lastId, l.id);
-                const cls = l.level === 'info' ? 'ok' : (l.level === 'warn' ? 'warn' : (l.level === 'error' ? 'error' : 'muted'));
-                const html = `<span class="ln ln-${cls}"><time>${esc(l.time)}</time><span class="tag">[${esc(l.step)}]</span>${esc(l.message)}</span>\n`;
+                const cls = ({ info: 'ok', warn: 'warn', error: 'error', step: 'step' })[l.level] || 'muted';
+                const html = `<span class="ln ln-${cls}"><time>${esc(l.time)}</time><span class="tag">[${esc(l.step)}]</span>${esc(l.message)}</span>`;
                 if (wait) wait.insertAdjacentHTML('beforebegin', html); else body.insertAdjacentHTML('beforeend', html);
             });
             body.scrollTop = body.scrollHeight;

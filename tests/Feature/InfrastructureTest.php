@@ -138,11 +138,27 @@ class InfrastructureTest extends TestCase
         $this->assertSame('claude', $registry->recipe('claude_code')['customer_credentials']);
     }
 
-    public function test_only_read_only_probe_commands_are_approved_by_default(): void
+    public function test_only_reviewed_commands_are_approved_and_every_script_exists(): void
     {
         $registry = app(RecipeRegistry::class);
         $approved = collect(array_keys(config('provisioning.step_catalog')))->filter(fn ($s) => $registry->approved($s))->values()->all();
-        $this->assertSame(['check_ssh', 'check_os', 'check_arch', 'check_resources'], $approved);
+        // Tested on Ubuntu 24.04 on 2026-11-25 (owner-approved): the shared steps + n8n. Others stay unapproved.
+        $this->assertSame(['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies',
+            'install_docker', 'open_web_ports', 'install_hermes_cli', 'install_n8n', 'install_claude_code', 'record_state'], $approved);
+        $this->assertFalse($registry->approved('install_hermes_workspace'));
+        $this->assertTrue($registry->approved('health_check', 'n8n'));
+        $this->assertTrue($registry->approved('health_check', 'hermes_cli'));
+        $this->assertFalse($registry->approved('health_check', 'hermes_workspace'));
+
+        foreach (config('provisioning.recipes') as $kind => $recipe) {
+            foreach ($recipe['steps'] as $step) {
+                $cmd = $registry->command($step, $kind);
+                if ($cmd !== null && str_starts_with($cmd, '@')) {
+                    $this->assertFileExists(resource_path('provisioning/'.substr($cmd, 1).'.sh'), "{$kind}: {$step}");
+                }
+            }
+        }
+        $this->assertStringContainsString("D='client9.example.com'", $registry->render('install_n8n', 'client9.example.com', 'n8n'));
     }
 
     public function test_domain_placeholder_rejects_shell_injection(): void
@@ -179,17 +195,27 @@ class InfrastructureTest extends TestCase
         $this->assertStringNotContainsString('SHA256', (string) $deployment->error_summary);
     }
 
-    public function test_missing_host_fingerprint_aborts_before_any_command(): void
+    public function test_first_connection_pins_the_host_key_and_a_changed_key_later_aborts(): void
     {
+        $this->approveAllCommands();
         $t = new FakeTransport;
         [$service, $admin, $server] = $this->liveSetup($t);
         $server->update(['ssh_host_fingerprint' => null]);
 
         $deployment = $this->runDeploy($service, $admin);
+        $this->assertSame('succeeded', $deployment->status);
+        $this->assertSame('SHA256:testfingerprint', $server->fresh()->ssh_host_fingerprint, 'Trust on first use: the key is saved.');
+        $this->assertStringContainsString('identity saved', $deployment->logs()->pluck('message')->implode(' '));
 
-        $this->assertSame('failed', $deployment->status);
-        $this->assertSame([], $t->commands);
-        $this->assertFalse($t->connected);
+        // Same server reinstalled / swapped (different key): the next run stops before any command.
+        $t2 = new FakeTransport;
+        $t2->fingerprint = 'SHA256:someotherkey';
+        $this->app->instance(RemoteTransport::class, $t2);
+        $service->refresh()->update(['status' => 'pending_provisioning']);
+        $service->order->forceFill(['status' => 'awaiting_provisioning'])->save();
+        $second = $this->runDeploy($service->fresh(), $admin);
+        $this->assertSame('failed', $second->status);
+        $this->assertSame([], $t2->commands);
     }
 
     public function test_host_key_mismatch_aborts_before_any_command(): void
@@ -209,13 +235,16 @@ class InfrastructureTest extends TestCase
     {
         $t = new FakeTransport;
         [$service, $admin] = $this->liveSetup($t);
+        $service->forceFill(['kind' => 'hermes_workspace', 'config' => array_merge($service->config ?? [], ['assigned_domain' => 'ws1.example.com'])])->save();
 
-        $deployment = $this->runDeploy($service, $admin);
+        $deployment = $this->runDeploy($service->fresh(), $admin);
 
+        // Hermes Workspace: the shared steps are approved, its own install step is not yet → stops there, nothing guessed.
         $this->assertSame('failed', $deployment->status);
-        $this->assertSame('security_baseline', $deployment->failed_step);
-        $this->assertSame(['check_ssh', 'check_os', 'check_arch', 'check_resources'], $deployment->completed_steps);
-        $this->assertSame(['echo ok', 'cat /etc/os-release', 'uname -m', 'df -Pk /'], $t->commands); // only fixed read-only probes ran
+        $this->assertSame('install_hermes_workspace', $deployment->failed_step);
+        $this->assertSame(['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker'], $deployment->completed_steps);
+        $this->assertSame(['echo ok', 'cat /etc/os-release', 'uname -m', 'df -Pk /'], array_slice($t->commands, 0, 4));
+        $this->assertCount(7, $t->commands); // 4 probes + 3 reviewed scripts, nothing else
         $this->assertSame('pending_provisioning', $service->fresh()->status);
         $this->assertFalse($t->connected);
     }
@@ -263,7 +292,9 @@ class InfrastructureTest extends TestCase
     {
         $this->approveAllCommands();
         $t = new FakeTransport;
-        $t->failCommands = ['noop install_hermes_cli'];
+        $installCmd = app(RecipeRegistry::class)->render('install_hermes_cli', null, 'hermes_cli');
+        $baselineCmd = app(RecipeRegistry::class)->render('security_baseline', null, 'hermes_cli');
+        $t->failCommands = [$installCmd];
         [$service, $admin] = $this->liveSetup($t);
 
         $first = $this->runDeploy($service, $admin);
@@ -279,13 +310,13 @@ class InfrastructureTest extends TestCase
 
         $this->assertSame('succeeded', $second->status);
         $this->assertSame(2, $second->attempt);
-        $this->assertNotContains('noop security_baseline', $t->commands); // already confirmed — not repeated
+        $this->assertNotContains($baselineCmd, $t->commands); // already confirmed — not repeated
         $this->assertNotContains('cat /etc/os-release', $t->commands);
-        $this->assertContains('noop install_hermes_cli', $t->commands);
+        $this->assertContains($installCmd, $t->commands);
         $this->assertSame('active', $service->fresh()->status);
     }
 
-    public function test_domain_steps_are_skipped_without_a_verified_domain_and_never_use_unverified_input(): void
+    public function test_web_app_without_a_usable_address_is_not_deployed_and_unverified_input_never_runs(): void
     {
         $this->approveAllCommands();
         config(['provisioning.step_catalog.configure_domain.command' => 'setup-domain {domain}']);
@@ -293,26 +324,30 @@ class InfrastructureTest extends TestCase
         [$service, $admin] = $this->liveSetup($t);
         $service->update(['kind' => 'hermes_workspace', 'custom_domain' => 'evil.com; id', 'domain_verified' => false]);
 
-        $deployment = $this->runDeploy($service->fresh(), $admin);
-
-        $this->assertSame('succeeded', $deployment->status);
-        foreach ($t->commands as $cmd) {
-            $this->assertStringNotContainsString('evil', $cmd);
-            $this->assertStringNotContainsString('setup-domain', $cmd);
+        try {
+            app(DeploymentService::class)->deploy($service->fresh(), $admin, 'live');
+            $this->fail('A web app without a usable address must not deploy live.');
+        } catch (OrderException $e) {
+            $this->assertStringContainsString('app address', $e->getMessage());
         }
-        $this->assertStringContainsString('Skipped', $deployment->logs()->where('step', 'configure_domain')->value('message'));
+        $this->assertSame([], $t->commands);
+        $this->assertDatabaseCount('deployments', 0);
     }
 
-    public function test_worker_never_logs_raw_command_output(): void
+    public function test_worker_streams_output_but_never_the_server_password(): void
     {
         $this->approveAllCommands();
         $t = new FakeTransport;
-        $t->os = "ID=ubuntu\nVERSION_ID=\"24.04\"\nSECRET_TOKEN=abc123\n";
-        [$service, $admin] = $this->liveSetup($t);
+        [$service, $admin, $server] = $this->liveSetup($t);
+        $server->update(['ssh_credential' => 'Root-Pass-XYZ-123']);
+        $t->os = "ID=ubuntu\nVERSION_ID=\"24.04\"\nECHOED Root-Pass-XYZ-123\n";
 
         $deployment = $this->runDeploy($service, $admin);
+        $text = $deployment->logs->pluck('message')->implode(' ');
 
-        $this->assertStringNotContainsString('abc123', $deployment->logs->pluck('message')->implode(' '));
+        $this->assertStringContainsString('VERSION_ID', $text, 'Command output is shown in the live terminal.');
+        $this->assertStringNotContainsString('Root-Pass-XYZ-123', $text);
+        $this->assertStringContainsString('ECHOED ••••', $text);
     }
 
     // ---- assignment guard-rails ----------------------------------------------------------------------------

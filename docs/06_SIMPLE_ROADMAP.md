@@ -92,6 +92,18 @@ Settings mein ek toggle rahega: **Manual** ya **Automatic**.
 - Install poora hone par apne aap Active + client email + dashboard mein details.
 - Pehle ek test VPS par har product kam se kam ek baar poora install karke dikhana, tab hi live par on.
 
+**Status (25 Nov 2026):** SSH (phpseclib) + live terminal + auto-Active ban gaya. Test VPS (Ubuntu 24.04) par app ke apne code se poora chala:
+
+| Product | Live install | Kya test hua |
+|---|---|---|
+| n8n | **Tayaar** | Docker + n8n + Caddy HTTPS, `https://client1.developerjet.com` live, order apne aap Active |
+| Docker VPS | **Tayaar** | Docker engine + compose + test container |
+| Hermes CLI | **Tayaar** | Official installer, Hermes Agent v0.23.4 (15 minute, ~3 GB) |
+| Claude Code | **Tayaar** | Official installer, Claude Code 2.1.332 |
+| Hermes Workspace, OpenClaw, Bundle | Abhi band | Script aur test baaki; Deploy us step par safely ruk jaata hai |
+
+**Live par chalu karne ke liye (cPanel):** `composer install --no-dev`, `.env` mein `PROVISIONING_LIVE_ENABLED=true` aur `PROVISIONING_WORKER=ssh`, phir `php artisan config:cache`. cPanel server se VPS ka port 22 khula hona chahiye.
+
 ### Phase 3: Automatic mode (Proxmox)
 - Dedicated server + Proxmox add karna admin panel mein.
 - Order aate hi chhota VPS bana ke Phase 2 wala install apne aap.

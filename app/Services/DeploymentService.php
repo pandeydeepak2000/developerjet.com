@@ -205,6 +205,9 @@ class DeploymentService
         if (! $recipe) {
             return 'No installation recipe exists for this service type.';
         }
+        if ($mode === 'live' && ($recipe['needs_domain'] ?? false) && $service->appDomain() === null) {
+            return 'Set the app address (subdomain) in step 1 first — this app needs it for HTTPS.';
+        }
         $gate = $recipe['gated'] ?? null;
         if ($gate === 'openclaw_spec' && ! Setting::bool('openclaw.spec_approved')) {
             return 'The OpenClaw hosting specification has not been approved.';
@@ -263,7 +266,12 @@ class DeploymentService
 
         if ($deployment->wasRecentlyCreated) {
             Audit::log('deployment.requested', $deployment, ['mode' => $mode], $actor->id);
-            RunDeployment::dispatch($deployment->id)->afterCommit();
+            if ($mode === 'live' && config('provisioning.dispatch') === 'after_response') {
+                // Shared hosting without a queue worker: run in this PHP process right after the page is sent.
+                RunDeployment::dispatchAfterResponse($deployment->id);
+            } else {
+                RunDeployment::dispatch($deployment->id)->afterCommit();
+            }
         }
 
         return $deployment;
@@ -325,7 +333,8 @@ class DeploymentService
         if ($success) {
             $deployment->update(['status' => 'succeeded', 'finished_at' => now(), 'error_summary' => null]);
             $server->update(['deployment_status' => 'succeeded']);
-            $service->update(['status' => 'active']);
+            $domain = $service->appDomain();
+            $service->update(['status' => 'active', 'url' => $domain ? 'https://'.$domain : $service->url]);
 
             if ($service->order->services()->where('status', '!=', 'active')->doesntExist()) {
                 $this->orders->transition($service->order->fresh(), S::ACTIVE, null, 'All services provisioned.');

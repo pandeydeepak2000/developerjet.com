@@ -53,3 +53,9 @@ Read first: `PROJECT_CONTEXT.md`, `DeveloperJet_SRS_v0.1.md`, `docs/01_DEVELOPER
 - No proration/refund engine, no automatic data deletion: ended services open a `retention_review` staff task.
 - Exports are CSV (`App\Services\ExportService`) — keep the column allow-lists free of secrets/PII.
 - Browser QA: `C:\tmp\djet-qa\sprint-setup.sh` builds `qa-sprint.sqlite`; `serve-sprint.sh` serves it on :8001; run scripts with `MSYS_NO_PATHCONV=1` in Git Bash.
+
+## v0.6 notes (live install)
+- Owner approved live SSH install (2026-11-25): staff enter IP + root password on the order page → Deploy → install → auto Active.
+- Install steps are reviewed, idempotent scripts in `resources/provisioning/*.sh`, referenced as `@path` in `config/provisioning.php`. Only add/approve a script after running it on a real test VPS; keep unapproved steps `null` (Deploy stops safely there).
+- Host keys use trust-on-first-use (pinned on first connect). Never log the server password (SshWorker redacts it).
+- Production needs `composer install` (phpseclib), `PROVISIONING_LIVE_ENABLED=true`, `PROVISIONING_WORKER=ssh`, and outbound port 22 from the host.

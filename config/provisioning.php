@@ -8,6 +8,11 @@ return [
      */
     'live_enabled' => env('PROVISIONING_LIVE_ENABLED', false),
     'worker' => env('PROVISIONING_WORKER', 'dry_run'),
+    // How a live install runs: 'after_response' (in the web process after the page is sent; no queue worker or cron
+    // needed) or 'queue' (a queue:work process must be running).
+    'dispatch' => env('PROVISIONING_DISPATCH', 'after_response'),
+    'ssh_connect_timeout' => (int) env('PROVISIONING_SSH_CONNECT_TIMEOUT', 15),
+    'ssh_command_timeout' => (int) env('PROVISIONING_SSH_COMMAND_TIMEOUT', 1800),
 
     // Allowed AI providers for the optional customer-supplied key (key itself is encrypted, write-only).
     'ai_providers' => [
@@ -64,15 +69,16 @@ return [
         'check_os' => ['label' => 'Check operating system support', 'command' => 'cat /etc/os-release'],
         'check_arch' => ['label' => 'Check CPU architecture', 'command' => 'uname -m'],
         'check_resources' => ['label' => 'Check available disk', 'command' => 'df -Pk /'],
-        'security_baseline' => ['label' => 'Apply approved security baseline (firewall, SSH hardening, updates)', 'command' => null],
-        'install_dependencies' => ['label' => 'Install required dependencies', 'command' => null],
-        'install_docker' => ['label' => 'Install Docker Engine and Compose', 'command' => null],
-        'install_hermes_cli' => ['label' => 'Install Hermes CLI', 'command' => null],
+        'security_baseline' => ['label' => 'Security baseline (keep SSH reachable, report firewall)', 'command' => '@common/security'],
+        'install_dependencies' => ['label' => 'Install required dependencies', 'command' => '@common/dependencies'],
+        'install_docker' => ['label' => 'Install Docker Engine and Compose', 'command' => '@common/docker'],
+        'open_web_ports' => ['label' => 'Open web ports 80/443 in the firewall', 'command' => '@common/web_ports'],
+        'install_hermes_cli' => ['label' => 'Install Hermes CLI (official installer, can take 10–20 minutes)', 'command' => '@hermes_cli/install'],
         'install_hermes_runtime_once' => ['label' => 'Install the shared Hermes runtime', 'command' => null],
         'install_hermes_workspace' => ['label' => 'Install Hermes Workspace', 'command' => null],
-        'install_n8n' => ['label' => 'Install n8n', 'command' => null],
+        'install_n8n' => ['label' => 'Install n8n (Docker) with automatic HTTPS', 'command' => '@n8n/install', 'needs_domain' => true],
         'install_openclaw' => ['label' => 'Install OpenClaw', 'command' => null],
-        'install_claude_code' => ['label' => 'Install Claude Code CLI', 'command' => null],
+        'install_claude_code' => ['label' => 'Install Claude Code CLI (official installer)', 'command' => '@claude_code/install'],
         'create_isolated_user' => ['label' => 'Create an isolated service user', 'command' => null],
         'configure_persistence' => ['label' => 'Configure persistent storage', 'command' => null],
         'configure_backup' => ['label' => 'Configure backups', 'command' => null],
@@ -83,7 +89,7 @@ return [
         'configure_https' => ['label' => 'Issue HTTPS certificate', 'command' => null, 'needs_domain' => true],
         'configure_monitoring' => ['label' => 'Configure health monitoring', 'command' => null],
         'health_check' => ['label' => 'Run application health check', 'command' => null],
-        'record_state' => ['label' => 'Record final deployment state', 'command' => null],
+        'record_state' => ['label' => 'Record final deployment state', 'command' => '@common/record'],
     ],
 
     /*
@@ -91,21 +97,28 @@ return [
      | customer receives. Steps reference the catalogue above; RecipeRegistry validates this on every load.
      */
     'recipes' => [
-        'hermes_cli' => ['version' => '1.1.0', 'label' => 'Hermes CLI', 'needs_domain' => false, 'access_model' => 'unmanaged',
-            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_hermes_cli', 'configure_auth', 'configure_monitoring', 'health_check', 'record_state']],
+        // v2.0.0 tested on Ubuntu 24.04 (2026-11-25): Hermes Agent v0.23.4 via the official non-interactive installer.
+        'hermes_cli' => ['version' => '2.0.0', 'label' => 'Hermes CLI', 'needs_domain' => false, 'access_model' => 'unmanaged',
+            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_hermes_cli', 'health_check', 'record_state'],
+            'commands' => ['health_check' => '@hermes_cli/health']],
         'hermes_workspace' => ['version' => '1.1.0', 'label' => 'Hermes Workspace', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_workspace', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
-        'n8n' => ['version' => '1.1.0', 'label' => 'n8n', 'needs_domain' => true, 'access_model' => 'unmanaged',
-            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_n8n', 'configure_persistence', 'configure_backup', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
+        // v2.0.0 tested end-to-end on Ubuntu 24.04 (2026-11-25): Docker + n8n + Caddy (Let's Encrypt), data in a Docker volume.
+        'n8n' => ['version' => '2.0.0', 'label' => 'n8n', 'needs_domain' => true, 'access_model' => 'unmanaged',
+            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'open_web_ports', 'install_n8n', 'health_check', 'record_state'],
+            'commands' => ['health_check' => '@n8n/health']],
         'bundle' => ['version' => '1.1.0', 'label' => 'AI Complete Bundle', 'needs_domain' => true, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'install_hermes_runtime_once', 'install_hermes_workspace', 'install_n8n', 'configure_network_isolation', 'configure_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
         'openclaw' => ['version' => '0.2.0', 'label' => 'OpenClaw', 'needs_domain' => true, 'gated' => 'openclaw_spec', 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'create_isolated_user', 'install_openclaw', 'configure_gateway_auth', 'configure_domain', 'configure_https', 'configure_monitoring', 'health_check', 'record_state']],
         // The customer supplies an eligible Claude subscription/API credential. Access is never resold implicitly.
-        'claude_code' => ['version' => '0.1.0', 'label' => 'Claude Code', 'needs_domain' => false, 'access_model' => 'unmanaged', 'customer_credentials' => 'claude',
-            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'create_isolated_user', 'install_claude_code', 'configure_monitoring', 'health_check', 'record_state']],
+        // v1.0.0 tested on Ubuntu 24.04 (2026-11-25): Claude Code 2.1.332 via Anthropic's official installer.
+        'claude_code' => ['version' => '1.0.0', 'label' => 'Claude Code', 'needs_domain' => false, 'access_model' => 'unmanaged', 'customer_credentials' => 'claude',
+            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_claude_code', 'health_check', 'record_state'],
+            'commands' => ['health_check' => '@claude_code/health']],
         // Self-hosted developer VPS: Docker Engine + Compose only. A management UI is out of scope until one is approved.
-        'docker_vps' => ['version' => '0.1.0', 'label' => 'Docker Engine and Compose', 'needs_domain' => false, 'access_model' => 'unmanaged',
-            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'configure_monitoring', 'health_check', 'record_state']],
+        'docker_vps' => ['version' => '1.0.0', 'label' => 'Docker Engine and Compose', 'needs_domain' => false, 'access_model' => 'unmanaged',
+            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'health_check', 'record_state'],
+            'commands' => ['health_check' => '@docker/health']],
     ],
 ];

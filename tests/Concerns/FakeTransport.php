@@ -28,15 +28,19 @@ class FakeTransport implements RemoteTransport
 
     public string $df = "Filesystem 1024-blocks Used Available Capacity Mounted on\n/dev/vda1 83886080 10485760 73400320 13% /";
 
-    public function connect(Server $server, string $pinnedFingerprint): void
+    public string $fingerprint = 'SHA256:testfingerprint';
+
+    public function connect(Server $server, ?string $pinnedFingerprint): string
     {
-        if ($this->hostKeyMismatch) {
+        if ($this->hostKeyMismatch || ($pinnedFingerprint !== null && $pinnedFingerprint !== $this->fingerprint)) {
             throw new TransportException('Host key mismatch');
         }
         $this->connected = true;
+
+        return $this->fingerprint;
     }
 
-    public function exec(string $command): array
+    public function exec(string $command, ?callable $onOutput = null): array
     {
         $this->commands[] = $command;
         $out = match ($command) {
@@ -45,6 +49,11 @@ class FakeTransport implements RemoteTransport
             'df -Pk /' => $this->df,
             default => 'ok',
         };
+
+        if ($onOutput) {
+            $onOutput($out.'
+');
+        }
 
         return ['exit' => in_array($command, $this->failCommands, true) ? 1 : 0, 'stdout' => $out];
     }

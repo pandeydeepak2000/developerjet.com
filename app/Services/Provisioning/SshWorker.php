@@ -5,15 +5,18 @@ namespace App\Services\Provisioning;
 use App\Models\Deployment;
 
 /**
- * Live worker. Runs recipe steps over a RemoteTransport using ONLY the fixed, owner-approved command catalogue.
- *  - Host identity is pinned: no fingerprint, or a mismatch, aborts before any command.
+ * Live worker. Runs recipe steps over a RemoteTransport using ONLY the fixed, owner-approved recipe scripts.
+ *  - Host identity: the first successful connection pins the server's SSH host key (trust on first use); every later
+ *    connection must present the same key or the run stops before any command (and before the password is sent).
  *  - Steps with no approved command stop the run safely (nothing is guessed).
- *  - Completed steps are persisted, so a retry resumes instead of repeating work (idempotent).
- *  - Raw command output is never stored or shown; only the step name and a safe summary.
- * With the shipped SshTransport (inert) every live run fails safely at connection.
+ *  - Completed steps are persisted, so a retry resumes instead of repeating work (scripts are idempotent too).
+ *  - Output is streamed line by line into the deployment log for the live admin terminal. The server password is
+ *    redacted from output, lines are length-capped and noisy steps are truncated.
  */
 class SshWorker implements ProvisioningWorker
 {
+    private const MAX_LINES_PER_STEP = 300;
+
     public function __construct(private RemoteTransport $transport, private RecipeRegistry $recipes) {}
 
     public function isLive(): bool
@@ -25,23 +28,33 @@ class SshWorker implements ProvisioningWorker
     {
         $server = $deployment->server;
         $service = $deployment->service;
-        $log = [];
+        $kind = $deployment->recipe;
+        $secret = (string) $server->ssh_credential;
 
-        $fail = function (string $step, string $message, string $safe) use (&$log, $deployment) {
-            $log[] = ['step' => $step, 'level' => 'error', 'message' => $message];
+        $emit = function (string $step, string $level, string $message) use ($deployment, $secret) {
+            if ($secret !== '' && strlen($secret) >= 4) {
+                $message = str_replace($secret, '••••', $message);
+            }
+            $deployment->logs()->create(['level' => $level, 'step' => $step, 'message' => mb_substr($message, 0, 500)]);
+        };
+        $fail = function (string $step, string $message, string $safe) use ($emit, $deployment) {
+            $emit($step, 'error', $message);
             $deployment->update(['failed_step' => $step]);
 
-            return new WorkerResult(false, $log, $safe, true);
+            return new WorkerResult(false, [], $safe, true);
         };
 
-        if (! $server->ssh_host_fingerprint) {
-            return $fail('check_ssh', 'No pinned SSH host fingerprint is recorded for this server.', 'The server host identity is not verified.');
-        }
-
+        $emit('check_ssh', 'info', 'Connecting to '.$server->ssh_user.'@'.$server->ip_address.':'.$server->ssh_port.' …');
         try {
-            $this->transport->connect($server, $server->ssh_host_fingerprint);
+            $fingerprint = $this->transport->connect($server, $server->ssh_host_fingerprint ?: null);
         } catch (TransportException $e) {
-            return $fail('check_ssh', 'Connection failed: '.mb_substr($e->getMessage(), 0, 200), 'Could not establish a verified connection to the server.');
+            return $fail('check_ssh', mb_substr($e->getMessage(), 0, 300), 'Could not establish a verified connection to the server.');
+        }
+        if (! $server->ssh_host_fingerprint) {
+            $server->forceFill(['ssh_host_fingerprint' => $fingerprint])->save();
+            $emit('check_ssh', 'info', 'Connected. Server identity saved ('.$fingerprint.') — future runs must match it.');
+        } else {
+            $emit('check_ssh', 'info', 'Connected. Server identity verified.');
         }
 
         $done = $deployment->completed_steps ?? [];
@@ -49,42 +62,77 @@ class SshWorker implements ProvisioningWorker
 
         try {
             foreach ($steps as $step) {
-                $meta = $this->recipes->step($step);
+                $meta = $this->recipes->step($step) ?? [];
+                $label = $this->recipes->label($step);
 
                 if (in_array($step, $done, true)) {
-                    $log[] = ['step' => $step, 'level' => 'info', 'message' => 'Skipped — already completed in a previous attempt.'];
+                    $emit($step, 'info', '↷ '.$label.' — already done in an earlier attempt, skipped.');
 
                     continue;
                 }
                 if (($meta['needs_domain'] ?? false) && $domain === null) {
-                    $log[] = ['step' => $step, 'level' => 'warn', 'message' => 'Skipped — no verified customer domain and no staff-assigned subdomain yet.'];
-
-                    continue;
+                    return $fail($step, 'Stopped: this app needs its web address (subdomain). Set it in step 1 and deploy again.', 'The app address is not set yet.');
                 }
-                if (! $this->recipes->approved($step)) {
-                    return $fail($step, 'Stopped: no owner-approved command exists for "'.$this->recipes->label($step).'".', 'This setup step has not been approved for automation yet.');
+                if (! $this->recipes->approved($step, $kind)) {
+                    return $fail($step, 'Stopped: "'.$label.'" has no approved install command yet for this product.', 'This setup step has not been approved for automation yet.');
                 }
 
-                $result = $this->transport->exec($this->recipes->render($step, $domain));
+                $emit($step, 'step', '▶ '.$label);
+                [$buffer, $lines, $hidden] = ['', 0, 0];
+                $onOutput = function (string $chunk) use (&$buffer, &$lines, &$hidden, $emit, $step) {
+                    $buffer .= $chunk;
+                    while (($pos = strpos($buffer, "\n")) !== false) {
+                        $line = self::clean(substr($buffer, 0, $pos));
+                        $buffer = substr($buffer, $pos + 1);
+                        if ($line === '') {
+                            continue;
+                        }
+                        if ($lines++ < self::MAX_LINES_PER_STEP) {
+                            $emit($step, 'out', $line);
+                        } else {
+                            $hidden++;
+                        }
+                    }
+                };
+
+                $result = $this->transport->exec($this->recipes->render($step, $domain, $kind), $onOutput);
+                if (($rest = self::clean($buffer)) !== '') {
+                    $emit($step, 'out', $rest);
+                }
+                if ($hidden > 0) {
+                    $emit($step, 'out', "… {$hidden} more lines not shown");
+                }
 
                 if ($result['exit'] !== 0) {
-                    return $fail($step, 'Step "'.$this->recipes->label($step).'" failed (exit '.$result['exit'].').', 'A setup step failed; the team has been notified.');
+                    return $fail($step, '✗ '.$label.' failed (exit '.$result['exit'].'). See the lines above.', 'A setup step failed: '.$label.'.');
                 }
                 if ($problem = $this->validateProbe($step, $result['stdout'])) {
-                    return $fail($step, $problem, $problem);
+                    return $fail($step, '✗ '.$problem, $problem);
                 }
 
                 $done[] = $step;
                 $deployment->update(['completed_steps' => $done]);
-                $log[] = ['step' => $step, 'level' => 'info', 'message' => $this->recipes->label($step).' — completed.'];
+                $emit($step, 'info', '✓ '.$label);
             }
         } catch (TransportException|\InvalidArgumentException $e) {
-            return $fail('worker', 'Aborted: '.mb_substr($e->getMessage(), 0, 200), 'The setup was interrupted safely.');
+            return $fail('worker', 'Aborted: '.mb_substr($e->getMessage(), 0, 300), 'The setup was interrupted safely.');
         } finally {
             $this->transport->disconnect();
         }
 
-        return new WorkerResult(true, $log, null, true);
+        return new WorkerResult(true, [], null, true);
+    }
+
+    /** Strip ANSI colour codes / carriage-return progress bars from a terminal line. */
+    private static function clean(string $line): string
+    {
+        $line = preg_replace('/\x1B\[[0-9;?]*[ -\/]*[@-~]/', '', $line) ?? $line;
+        if (str_contains($line, "\r")) {
+            $parts = explode("\r", $line);
+            $line = (string) end($parts);
+        }
+
+        return trim($line);
     }
 
     /** Interprets the read-only preflight probes. Returns a safe problem message, or null when fine. */
