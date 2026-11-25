@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Deployment;
 use App\Models\Server;
 use App\Models\Service;
 use App\Services\WalletService;
@@ -179,6 +180,42 @@ class QuickServerSetupTest extends TestCase
         $this->assertSame((int) $profile->vcpu, (int) $server->cpu_capacity);
         $this->assertSame((int) $profile->ram_gb, (int) $server->ram_capacity_gb);
         $this->assertSame((int) $profile->disk_gb, (int) $server->storage_capacity_gb);
+    }
+
+    public function test_deploy_shows_last_run_locks_while_running_and_reset_starts_over(): void
+    {
+        Setting::set('n8n.resale_verified', '1');
+        $service = $this->paidService('n8n-launch');
+        $admin = $this->staff('admin');
+        $size = ['vcpu' => 2, 'ram_gb' => 4, 'disk_gb' => 40];
+        $this->actingAs($admin)->post(route('admin.services.setup', $service), ['ip_address' => '203.0.113.80', 'ssh_password' => self::PASSWORD, 'assigned_domain' => 'reset1.developerjet.com'] + $size)->assertSessionHas('success');
+
+        // First Deploy (live is off → test run): the order page shows the last run and offers "Deploy again".
+        $this->post(route('admin.services.deploy', $service), ['mode' => 'live'])->assertRedirect();
+        $this->get(route('admin.orders.show', $service->order_id))->assertOk()
+            ->assertSee('Last run:')->assertSee('Test run')->assertSee('Deploy again')->assertSee('data-submit-once', false);
+
+        // While an install is in flight the button is locked and a second deploy returns the same run.
+        $running = Deployment::create(['service_id' => $service->id, 'server_id' => $service->fresh()->server_id, 'order_id' => $service->order_id,
+            'requested_by' => $admin->id, 'recipe' => 'n8n', 'recipe_version' => '1.1.0', 'mode' => 'live', 'status' => 'running', 'attempt' => 9, 'idempotency_key' => 'deploy:test:9']);
+        $this->get(route('admin.orders.show', $service->order_id))->assertSee('Install in progress')->assertSee('Installing…')->assertDontSee('Deploy again');
+        $this->post(route('admin.services.reset', $service))->assertSessionHas('error'); // never mid-install
+        $running->update(['status' => 'failed']);
+
+        // Reset: server back to inventory (not wiped), address cleared, order back to step 1.
+        $serverId = $service->fresh()->server_id;
+        $this->post(route('admin.services.reset', $service))->assertSessionHas('success');
+        $service->refresh();
+        $this->assertNull($service->server_id);
+        $this->assertNull($service->appDomain());
+        $this->assertSame('pending_provisioning', $service->status);
+        $this->assertSame('awaiting_provisioning', $service->order->fresh()->status);
+        $this->assertSame('available', Server::find($serverId)->status);
+        $this->assertNull(Server::find($serverId)->assigned_order_id);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'service.setup_reset']);
+
+        // Billing staff cannot reset.
+        $this->actingAs($this->staff('billing-staff'))->post(route('admin.services.reset', $service))->assertForbidden();
     }
 
     public function test_mark_delivered_hands_the_server_to_the_customer_with_login_and_key_help(): void

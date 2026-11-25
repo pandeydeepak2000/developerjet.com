@@ -351,6 +351,38 @@ class DeploymentService
     }
 
     /** Safe retry: only after a failure; the order returns to awaiting provisioning and a fresh attempt is queued by deploy(). */
+    /**
+     * Start the setup again from step 1: the server goes back to inventory (it is NOT wiped), the app address and
+     * size notes are cleared, and the order returns to "awaiting setup". Only before delivery and never mid-install.
+     * Logs and past deployments stay for the audit trail.
+     */
+    public function resetSetup(Service $service, User $actor): Service
+    {
+        if (! in_array($service->status, ['pending_provisioning', 'failed'], true)) {
+            throw new OrderException('A delivered service cannot be reset here.');
+        }
+        if (Deployment::where('service_id', $service->id)->whereIn('status', ['queued', 'preflight', 'running'])->exists()) {
+            throw new OrderException('An install is running. Wait for it to finish before resetting.');
+        }
+
+        DB::transaction(function () use ($service, $actor) {
+            if ($service->server_id) {
+                Server::whereKey($service->server_id)->update(['status' => 'available', 'assigned_user_id' => null, 'assigned_order_id' => null, 'deployment_status' => 'none']);
+            }
+            $config = $service->config ?? [];
+            unset($config['assigned_domain'], $config['confirmed_resources']);
+            $service->update(['server_id' => null, 'status' => 'pending_provisioning', 'config' => $config]);
+
+            $order = $service->order;
+            if ($order && in_array($order->status, [S::PROVISIONING, S::FAILED], true)) {
+                $this->orders->transition($order, S::AWAITING_PROVISIONING, $actor, 'Setup reset by our team.');
+            }
+            Audit::log('service.setup_reset', $service, ['order_id' => $service->order_id], $actor->id);
+        });
+
+        return $service->fresh();
+    }
+
     public function prepareRetry(Service $service, User $actor): void
     {
         $order = $service->order;

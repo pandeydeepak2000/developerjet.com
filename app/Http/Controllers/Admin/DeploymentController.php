@@ -181,6 +181,20 @@ class DeploymentController extends Controller
         return back()->with('success', 'Server details saved'.($domain ? ' and app address set to '.$domain : '').'. Next: click Deploy.');
     }
 
+    /** Start the setup again from step 1 (server back to inventory, address cleared). The VPS itself is not touched. */
+    public function reset(Request $request, Service $service): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('servers.assign'), 403);
+
+        try {
+            $this->deployments->resetSetup($service, $request->user());
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Setup reset. Start again from step 1.');
+    }
+
     /** The team installed the app by hand: hand the server over to the customer. */
     public function delivered(Request $request, Service $service): RedirectResponse
     {

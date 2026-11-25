@@ -110,12 +110,24 @@
             @if ($u->hasPermission('deployments.deploy') && $service->server_id && ! $delivered)
                 <div class="dj-step-card">
                     <h3><span class="admin-step-num">2</span> Install</h3>
+                    @php $inFlight = $lastDeployment && in_array($lastDeployment->status, ['queued', 'preflight', 'running'], true); @endphp
+                    @if ($lastDeployment)
+                        <p class="dj-run-status dj-run-{{ $inFlight ? 'running' : ($lastDeployment->status === 'failed' ? 'failed' : 'ok') }}">
+                            <span class="dj-dot" aria-hidden="true"></span>
+                            @if ($inFlight)<strong>Install in progress</strong> — started {{ $lastDeployment->created_at->diffForHumans() }}. Deploy is locked until it finishes.
+                            @else<strong>Last run:</strong> {{ $lastDeployment->mode === 'dry_run' ? 'Test run' : 'Live install' }} · {{ \Illuminate\Support\Str::headline($lastDeployment->status) }} · {{ $lastDeployment->created_at->format('d M, H:i') }}@endif
+                            <a class="admin-strong-link" href="{{ route('admin.deployments.show', $lastDeployment) }}">{{ $inFlight ? 'Watch the terminal' : 'View log' }}</a>
+                        </p>
+                    @endif
                     <div class="dj-deploy-row">
-                        <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form" onsubmit="return confirm('Start the install on {{ $srv->ip_address }}?')">@csrf
-                            <input type="hidden" name="mode" value="live"><button class="admin-btn admin-btn-lg" type="submit">▶ Deploy</button></form>
-                        @if ($lastDeployment)<a class="admin-btn admin-btn-quiet" href="{{ route('admin.deployments.show', $lastDeployment) }}">View last log</a>@endif
-                        @if ($canSetup)
-                            <form method="POST" action="{{ route('admin.services.delivered', $service) }}" class="admin-inline-form" onsubmit="return confirm('Installed it yourself? The customer will be emailed and will see the IP and root login.')">@csrf
+                        @if ($inFlight)
+                            <button class="admin-btn admin-btn-lg" type="button" disabled aria-disabled="true">⏳ Installing…</button>
+                        @else
+                            <form method="POST" action="{{ route('admin.services.deploy', $service) }}" class="admin-inline-form" data-submit-once="Starting…" onsubmit="return confirm('Start the install on {{ $srv->ip_address }}?')">@csrf
+                                <input type="hidden" name="mode" value="live"><button class="admin-btn admin-btn-lg" type="submit">▶ {{ $lastDeployment ? 'Deploy again' : 'Deploy' }}</button></form>
+                        @endif
+                        @if ($canSetup && ! $inFlight)
+                            <form method="POST" action="{{ route('admin.services.delivered', $service) }}" class="admin-inline-form" data-submit-once="Saving…" onsubmit="return confirm('Installed it yourself? The customer will be emailed and will see the IP and root login.')">@csrf
                                 <button class="admin-btn admin-btn-quiet" type="submit">I installed it myself — mark delivered</button></form>
                         @endif
                     </div>
@@ -123,6 +135,15 @@
                         <p class="admin-setup-note">Automatic install is not switched on yet. Deploy opens the install terminal and runs a <strong>test run</strong> (nothing is installed). Install over SSH yourself, then press "mark delivered".</p>
                     @endunless
                 </div>
+            @endif
+
+            @if ($canSetup && ($srv || ($service->config['assigned_domain'] ?? null)))
+                <details class="admin-advanced dj-reset">
+                    <summary>Start over</summary>
+                    <p class="muted small">Puts this order back to step 1: the server returns to your Servers list (unassigned) and the app address is cleared. The VPS itself is <strong>not</strong> wiped — to wipe it, reinstall the OS from your VPS supplier's panel. Logs are kept.</p>
+                    <form method="POST" action="{{ route('admin.services.reset', $service) }}" class="admin-inline-form" data-submit-once="Resetting…" onsubmit="return confirm('Reset this setup and start again from step 1?')">@csrf
+                        <button class="admin-btn admin-btn-danger" type="submit">Reset setup</button></form>
+                </details>
             @endif
 
             @if ($delivered)

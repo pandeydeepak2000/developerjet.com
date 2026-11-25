@@ -709,3 +709,17 @@ document.querySelectorAll('[data-terminal]').forEach((term) => {
     };
     setTimeout(tick, 1500);
 });
+
+// One-click protection: after the first submit the button is disabled and says what is happening.
+document.querySelectorAll('form[data-submit-once]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        if (form.dataset.sent === '1') { event.preventDefault(); return; }
+        if (event.defaultPrevented) return; // the confirm() dialog was cancelled
+        form.dataset.sent = '1';
+        form.querySelectorAll('button[type="submit"]').forEach((btn) => {
+            btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+            btn.textContent = form.dataset.submitOnce || 'Working…';
+        });
+    });
+});

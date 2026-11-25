@@ -212,6 +212,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/services/{service}/domain', [Admin\DeploymentController::class, 'domain'])->name('admin.services.domain');
         Route::post('/services/{service}/setup', [Admin\DeploymentController::class, 'setup'])->name('admin.services.setup');
         Route::post('/services/{service}/delivered', [Admin\DeploymentController::class, 'delivered'])->name('admin.services.delivered');
+        Route::post('/services/{service}/reset', [Admin\DeploymentController::class, 'reset'])->name('admin.services.reset');
         Route::post('/services/{service}/deploy', [Admin\DeploymentController::class, 'deploy'])->middleware('throttle:20,1')->name('admin.services.deploy');
         Route::get('/deployments/{deployment}', [Admin\DeploymentController::class, 'show'])->name('admin.deployments.show');
         Route::get('/deployments/{deployment}/log', [Admin\DeploymentController::class, 'log'])->name('admin.deployments.log');

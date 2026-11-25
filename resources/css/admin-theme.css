@@ -166,3 +166,12 @@
     .admin-body .admin-content, .admin-body .admin-card, .admin-toasts .flash, .dj-terminal, .dj-terminal-body .ln, .admin-body .dj-stepper li.is-current b { animation: none !important; }
     .admin-body .admin-sidebar nav a:hover, .admin-body .admin-btn:hover, .admin-body a.dj-kpi:hover { transform: none; }
 }
+
+/* ---------- Install status line + reset ---------- */
+.admin-body .dj-run-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--a-card); border: 1px solid var(--a-line); font-size: 14px; }
+.admin-body .dj-run-status .dj-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--a-ok); flex: none; }
+.admin-body .dj-run-running .dj-dot { background: var(--a-accent); animation: dj-pulse 1.6s infinite; }
+.admin-body .dj-run-failed .dj-dot { background: var(--a-bad); }
+.admin-body .admin-btn:disabled { opacity: .65; cursor: not-allowed; transform: none; box-shadow: none; }
+.admin-body .dj-reset { margin-top: 14px; }
+.admin-body .dj-reset > summary { color: var(--a-bad); }
