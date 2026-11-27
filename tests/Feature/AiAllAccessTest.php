@@ -4,16 +4,23 @@ namespace Tests\Feature;
 
 use App\Models\DocArticle;
 use App\Models\Plan;
+use App\Models\Service;
 use App\Models\ServiceRequest;
+use App\Services\WalletService;
 use Database\Seeders\AiAccessSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BuildsFixtures;
 use Tests\TestCase;
 
-/** AI All-Access (BYOK workspace): coming soon, draft plans, request-access only, never sellable. */
+/**
+ * AI All-Access (owner decision 2026-11-27): one API key for many AI models with a monthly usage credit.
+ * Four approved plans; paying creates an ai_access service; staff deliver the key; the customer sees it in the panel.
+ */
 class AiAllAccessTest extends TestCase
 {
     use BuildsFixtures, RefreshDatabase;
+
+    private const KEY = 'mg-test-FAKE-KEY-1234567890';
 
     protected function setUp(): void
     {
@@ -21,143 +28,147 @@ class AiAllAccessTest extends TestCase
         $this->bootFixtures();
     }
 
-    public function test_three_draft_plans_exist_unpriced_and_unpurchasable(): void
+    public function test_four_approved_plans_with_owner_prices_and_yearly_twelve_times_monthly(): void
     {
         $plans = Plan::where('kind', 'ai_access')->with('prices')->orderBy('sort_order')->get();
 
-        $this->assertSame(['AI Access Starter', 'AI Access Team', 'AI Access Business'], $plans->pluck('name')->all());
+        $this->assertSame(['AI Starter', 'AI Pro', 'AI Team', 'AI Business'], $plans->pluck('name')->all());
+        $this->assertSame([99900, 249900, 599900, 1499900], $plans->map(fn ($p) => $p->priceFor('monthly'))->all());
         foreach ($plans as $plan) {
-            $this->assertSame('pending', $plan->price_status);
-            $this->assertCount(0, $plan->prices);
-            $this->assertFalse($plan->is_purchasable);
-            $this->assertFalse($plan->canBePurchased());
-            $this->assertTrue($plan->isComingSoon());
+            $this->assertSame('approved', $plan->price_status);
+            $this->assertTrue($plan->canBePurchased());
+            $this->assertFalse($plan->isComingSoon());
+            $this->assertSame($plan->priceFor('monthly') * 12, $plan->priceFor('yearly'));
+            $this->assertArrayHasKey('Monthly usage credit', $plan->comparison);
         }
+        $this->assertSame('$20', $plans[1]->comparison['Monthly usage credit']);
     }
 
-    public function test_seeder_is_create_only(): void
+    public function test_seeder_upgrades_only_untouched_drafts_and_never_overwrites_admin_edits(): void
     {
         Plan::where('slug', 'ai-access-team')->update(['name' => 'Renamed by admin']);
         $this->seed(AiAccessSeeder::class);
 
         $this->assertSame('Renamed by admin', Plan::where('slug', 'ai-access-team')->value('name'));
-        $this->assertSame(3, Plan::where('kind', 'ai_access')->count());
+        $this->assertSame(4, Plan::where('kind', 'ai_access')->count());
+        $this->assertSame(2, Plan::where('slug', 'ai-access-team')->first()->prices()->count(), 'Re-running adds no duplicate prices.');
     }
 
-    public function test_page_is_honest_about_status_byok_and_subscriptions(): void
+    public function test_page_shows_buyable_plans_models_and_tools_and_no_coming_soon(): void
     {
-        $html = $this->get('/ai-all-access')->assertOk()
-            ->assertSee('COMING SOON')
-            ->assertSee('not yet available to order')
-            ->assertSee('Pricing to be confirmed')
-            ->assertSee('bring your own key')
-            ->assertSee('Does it include ChatGPT Plus, Claude Pro, Gemini Advanced or Grok?')
-            ->assertSee('AI Access Starter')->assertSee('AI Access Team')->assertSee('AI Access Business')
-            ->assertSee('Request access')->assertSee('Contact Sales')
-            ->getContent();
-
-        $this->assertStringNotContainsString('₹', $html);
-        $this->assertStringNotContainsString('class="plan-add-to-cart"', $html);
-        $this->assertStringNotContainsString('data-plan-card', $html);
-        $this->assertSame(3, substr_count($html, 'class="plan-request"'));
-        // Capabilities are labelled planned, never available.
-        $this->assertSame(7, substr_count($html, 'class="dj-cap__status">Planned<'));
-        $this->assertStringNotContainsString('dj-cap__status">Available', $html);
+        $this->get('/ai-all-access')->assertOk()
+            ->assertSee('One API key for every top AI model.')
+            ->assertSee('₹999')->assertSee('₹14,999')->assertSee('AI Pro')
+            ->assertSee('Claude Code')->assertSee('DeepSeek')->assertSee('Monthly usage credit')
+            ->assertDontSee('coming soon')->assertDontSee('Request early access')->assertDontSee('Pricing to be confirmed');
     }
 
-    public function test_named_providers_are_shown_as_planned_official_api_integrations(): void
+    public function test_buying_creates_a_service_staff_deliver_the_key_and_the_customer_sees_it(): void
     {
-        $html = $this->get('/ai-all-access')->assertOk()
-            ->assertSeeInOrder(['ChatGPT', 'OpenAI'])->assertSee('Claude')->assertSee('Anthropic')
-            ->assertSee('Gemini')->assertSee('Google')->assertSee('Grok')->assertSee('xAI')
-            ->assertSee('Choosing a model')
-            ->assertSee('are not included and cannot be used in place of an API key')
-            ->getContent();
+        $user = $this->customer();
+        app(WalletService::class)->credit($user, 5_000_000, 'admin_adjustment', 'adjust:aa', 'Test funds');
+        $this->placeOrder($user, 'ai-access-pro', 'tok-aa', ['use_wallet' => 1]);
 
-        $this->assertStringNotContainsString('Provider A', $html);
-        $this->assertStringNotContainsString('Provider B', $html);
-        $this->assertSame(4, substr_count($html, 'class="dj-provider"'));
-        // No provider is claimed to be live, and no model quotas or API prices are displayed.
-        $this->assertStringNotContainsString('dj-cap__status">Available', $html);
-        $this->assertStringNotContainsString('₹', $html);
-        $this->assertStringNotContainsString('$', strip_tags(substr($html, strpos($html, 'id="providers"'), 6000)));
+        $service = Service::where('user_id', $user->id)->firstOrFail();
+        $this->assertSame('ai_access', $service->kind);
+        $this->assertSame('pending_provisioning', $service->status);
+        $this->assertNull($service->server_id);
+
+        // Before delivery the customer is told the key is being prepared.
+        $this->actingAs($user, 'web')->get(route('dashboard.services.show', $service))->assertOk()
+            ->assertSee('We are creating your API key')->assertDontSee(self::KEY);
+
+        // Staff deliver it from the order page.
+        $admin = $this->staff('admin');
+        $this->actingAs($admin)->get(route('admin.orders.show', $service->order_id))->assertOk()
+            ->assertSee('Deliver API access')->assertSee('ModelGo console')->assertDontSee('VPS IP address');
+        $this->post(route('admin.services.access', $service), ['base_url' => 'https://api.example-gateway.test/v1'])->assertSessionHasErrors('api_key');
+        $this->post(route('admin.services.access', $service), ['api_key' => self::KEY, 'base_url' => 'https://api.example-gateway.test/v1', 'credit' => '$20'])
+            ->assertSessionHas('success');
+
+        $service->refresh();
+        $this->assertSame('active', $service->status);
+        $this->assertSame('active', $service->order->fresh()->status);
+        $this->assertSame(self::KEY, $service->ai_api_key);
+        $this->assertStringNotContainsString(self::KEY, (string) $service->getRawOriginal('ai_api_key'), 'Encrypted at rest.');
+        $this->assertDatabaseHas('audit_logs', ['action' => 'service.ai_access_delivered']);
+        $this->assertDatabaseMissing('audit_logs', ['meta' => self::KEY]);
+
+        // Customer panel: base URL, key (masked until Show), setup snippets.
+        $page = $this->actingAs($user, 'web')->get(route('dashboard.services.show', $service))->assertOk()
+            ->assertSee('Your API access')->assertSee('https://api.example-gateway.test/v1')
+            ->assertSee('ANTHROPIC_BASE_URL')->assertSee('OPENAI_BASE_URL')->assertSee('$20');
+        $this->assertStringContainsString('type="password" value="'.self::KEY.'"', $page->getContent());
+
+        // Other customers never see it.
+        $this->actingAs($this->customer(), 'web')->get(route('dashboard.services.show', $service))->assertForbidden();
     }
 
-    public function test_cannot_be_added_to_cart_even_if_an_approved_price_is_forced(): void
+    public function test_key_can_be_replaced_and_access_suspended_by_staff_only(): void
     {
-        $plan = Plan::where('slug', 'ai-access-starter')->first();
-        $plan->prices()->create(['billing_interval' => 'monthly', 'amount_minor' => 99900, 'currency' => 'INR', 'is_active' => true]);
-        $plan->forceFill(['price_status' => 'approved', 'is_purchasable' => true])->save();
+        $user = $this->customer();
+        app(WalletService::class)->credit($user, 5_000_000, 'admin_adjustment', 'adjust:ab', 'Test funds');
+        $this->placeOrder($user, 'ai-access-starter', 'tok-ab', ['use_wallet' => 1]);
+        $service = Service::where('user_id', $user->id)->firstOrFail();
+        $admin = $this->staff('admin');
+        $this->actingAs($admin)->post(route('admin.services.access', $service), ['api_key' => self::KEY, 'base_url' => 'https://a.example.test/v1'])->assertSessionHas('success');
 
-        $this->assertFalse($plan->fresh()->canBePurchased());
-        $this->post('/cart', ['plan' => 'ai-access-starter', 'billing_interval' => 'monthly']);
-        $this->assertDatabaseMissing('cart_items', ['plan_id' => $plan->id]);
-        $this->get('/ai-all-access')->assertDontSee('₹999')->assertDontSee('class="plan-add-to-cart"', false);
+        // Replace the URL only: the key is kept.
+        $this->post(route('admin.services.access', $service), ['base_url' => 'https://b.example.test/v1'])->assertSessionHas('success');
+        $this->assertSame(self::KEY, $service->fresh()->ai_api_key);
+        $this->assertSame('https://b.example.test/v1', $service->fresh()->config['api_base_url']);
+
+        $this->post(route('admin.services.access-status', $service))->assertSessionHas('success');
+        $this->assertSame('suspended', $service->fresh()->status);
+        $this->actingAs($user, 'web')->get(route('dashboard.services.show', $service))->assertSee('This service is suspended.')->assertDontSee(self::KEY);
+
+        $this->actingAs($admin)->post(route('admin.services.access-status', $service));
+        $this->assertSame('active', $service->fresh()->status);
+
+        $this->actingAs($this->staff('billing-staff'))->post(route('admin.services.access', $service), ['base_url' => 'https://x.example.test'])->assertForbidden();
     }
 
-    public function test_request_access_requires_login_and_records_a_request_without_charging(): void
+    public function test_request_access_form_still_records_a_request_without_charging(): void
     {
         $plan = Plan::where('slug', 'ai-access-team')->first();
         $this->get(route('services.request.create', $plan))->assertRedirect(route('login'));
 
         $user = $this->customer();
-        $this->actingAs($user)->get(route('services.request.create', $plan))->assertOk()
-            ->assertSee('AI All-Access early-access request')->assertSee('nothing is charged')
-            ->assertDontSee('name="files[]"', false);
-
         $this->actingAs($user)->post(route('services.request.store', $plan), ['req' => [
-            'use_case' => 'Compare answers from two providers for research.', 'team_size' => '2_10', 'providers' => 'Two providers',
-        ]])->assertRedirect()->assertSessionHas('success', fn ($m) => str_contains($m, 'Nothing has been charged'));
+            'use_case' => 'Use several models in our support bot.', 'team_size' => '2_10', 'providers' => 'GPT and Claude',
+        ]])->assertRedirect();
 
         $sr = ServiceRequest::where('user_id', $user->id)->firstOrFail();
         $this->assertSame('ai_access', $sr->kind);
-        $this->assertSame('submitted', $sr->status);
-        $this->assertNull($sr->quote_minor);
         $this->assertDatabaseCount('orders', 0);
-
-        $this->actingAs($user)->get(route('dashboard.requests.show', $sr))->assertOk()->assertSee('We have recorded your request');
     }
 
-    public function test_staff_cannot_quote_an_access_request(): void
-    {
-        $plan = Plan::where('slug', 'ai-access-starter')->first();
-        $user = $this->customer();
-        $sr = ServiceRequest::create(['number' => 'QR90001', 'user_id' => $user->id, 'plan_id' => $plan->id, 'kind' => 'ai_access', 'requirements' => ['use_case' => 'x']]);
-
-        $admin = $this->staff();
-        $this->actingAs($admin)->get(route('admin.requests.show', $sr))->assertOk()->assertSee('Access request')->assertDontSee('Send quote');
-        $this->actingAs($admin)->post(route('admin.requests.quote', $sr), ['quote' => 100])->assertForbidden();
-        $this->assertNull($sr->fresh()->quote_minor);
-    }
-
-    public function test_admin_can_manage_plans_but_never_make_them_purchasable(): void
+    public function test_admin_can_edit_and_sell_the_plans(): void
     {
         $plan = Plan::where('slug', 'ai-access-business')->first();
         $admin = $this->staff();
 
-        $this->actingAs($admin)->get(route('admin.plans.edit', $plan))->assertOk()->assertSee('AI All-Access (BYOK workspace');
-
+        $this->actingAs($admin)->get(route('admin.plans.edit', $plan))->assertOk()->assertSee('AI All-Access (API key with monthly credit)');
         $this->actingAs($admin)->put(route('admin.plans.update', $plan), [
-            'product_category_id' => $plan->product_category_id, 'name' => 'AI Access Enterprise', 'slug' => $plan->slug,
+            'product_category_id' => $plan->product_category_id, 'name' => 'AI Enterprise', 'slug' => $plan->slug,
             'tax_class' => 'standard', 'visibility' => 'public', 'kind' => 'ai_access', 'fulfilment' => 'provisioned',
-            'price_status' => 'approved', 'monthly' => 999, 'is_active' => 1, 'is_purchasable' => 1,
+            'price_status' => 'approved', 'monthly' => 19999, 'is_active' => 1, 'is_purchasable' => 1,
         ])->assertRedirect();
 
         $plan->refresh();
-        $this->assertSame('AI Access Enterprise', $plan->name);
-        $this->assertFalse($plan->is_purchasable);
-        $this->assertFalse($plan->canBePurchased());
+        $this->assertSame('AI Enterprise', $plan->name);
+        $this->assertTrue($plan->canBePurchased());
     }
 
     public function test_product_appears_in_nav_home_plans_comparison_and_docs(): void
     {
         $this->get('/')->assertOk()->assertSee('<strong>AI All-Access</strong>', false)
-            ->assertSee('AI All-Access: your AI models in one workspace')->assertSee(route('ai-all-access'));
-        $this->get('/plans')->assertOk()->assertSee('id="cat-ai-all-access"', false)->assertSee('AI Access Starter');
-        $this->get('/hermes-workspace')->assertOk(); // matrix still renders with the new product key
-        $this->get('/ai-all-access')->assertSee('class="dj-table"', false)->assertSee('Your own API keys from each provider (BYOK)');
+            ->assertSee('One API key for every top AI model')->assertSee(route('ai-all-access'));
+        $this->get('/plans')->assertOk()->assertSee('id="cat-ai-all-access"', false)->assertSee('AI Starter');
+        $this->get('/hermes-workspace')->assertOk(); // matrix still renders with the product key
+        $this->get('/ai-all-access')->assertSee('class="dj-table"', false)->assertSee('Included — monthly usage credit');
 
         $this->assertTrue(DocArticle::where('slug', 'ai-all-access')->where('is_published', true)->exists());
-        $this->get('/docs/ai-all-access')->assertOk()->assertSee('does <strong>not</strong> include ChatGPT Plus', false);
+        $this->get('/docs/ai-all-access')->assertOk()->assertSee('does <strong>not</strong> include ChatGPT Plus', false)->assertSee('ANTHROPIC_BASE_URL');
     }
 }

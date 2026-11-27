@@ -196,6 +196,42 @@ class DeploymentController extends Controller
         return back()->with('success', 'Setup reset. Start again from step 1.');
     }
 
+    /** AI All-Access: deliver (or replace) the customer's API key and base URL. */
+    public function deliverAccess(Request $request, Service $service): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('deployments.deploy'), 403);
+        abort_unless($service->kind === 'ai_access', 404);
+        $data = $request->validate([
+            'api_key' => [in_array($service->status, ['pending_provisioning', 'failed'], true) ? 'required' : 'nullable', 'string', 'min:8', 'max:400', 'not_regex:/\s/'],
+            'base_url' => ['required', 'url:https', 'max:200'],
+            'anthropic_base_url' => ['nullable', 'url:https', 'max:200'],
+            'credit' => ['nullable', 'string', 'max:60'],
+        ], ['api_key.required' => 'Paste the API key you created for this customer.']);
+
+        try {
+            $first = $service->status !== 'active';
+            $this->deployments->deliverAccess($service, $request->user(), $data);
+        } catch (OrderException $e) {
+            return back()->withInput($request->except('api_key'))->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $first ? 'API access delivered. The customer has been emailed and sees the key in their dashboard.' : 'API access updated.');
+    }
+
+    /** AI All-Access: suspend / unsuspend in DeveloperJet (also disable or re-enable the key at the AI gateway). */
+    public function accessStatus(Request $request, Service $service): RedirectResponse
+    {
+        abort_unless($request->user()->hasPermission('deployments.deploy') && $request->user()->hasPermission('servers.edit'), 403);
+        abort_unless($service->kind === 'ai_access' && in_array($service->status, ['active', 'suspended'], true), 404);
+        $to = $service->status === 'active' ? 'suspended' : 'active';
+        $service->update(['status' => $to]);
+        Audit::log('service.ai_access_'.($to === 'active' ? 'unsuspended' : 'suspended'), $service, [], $request->user()->id);
+
+        return back()->with('success', $to === 'suspended'
+            ? 'Suspended in DeveloperJet. Also disable this key in the ModelGo console so it stops working.'
+            : 'Unsuspended. Re-enable the key in the ModelGo console if you disabled it.');
+    }
+
     /** One-click server actions on a delivered service: reboot, restart app, reset app login, suspend / unsuspend. */
     public function action(Request $request, Service $service, string $action, ServerActions $actions): RedirectResponse
     {

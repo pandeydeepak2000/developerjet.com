@@ -18,10 +18,10 @@ return [
         'categories' => ['hermes-cli', 'hermes-workspace'],
     ],
     'ai-all-access' => [
-        'name' => 'AI All-Access', 'icon' => 'spark', 'route' => ['ai-all-access', null], 'status' => 'coming_soon', 'home' => true,
-        'summary' => 'One workspace for the AI models you already have API access to. Bring your own keys.',
-        'audience' => 'People and teams who use more than one AI provider',
-        'capabilities' => ['Connect providers with your own API keys', 'Choose the provider and model for each chat', 'Organise conversations in one place'],
+        'name' => 'AI All-Access', 'icon' => 'spark', 'route' => ['ai-all-access', null], 'status' => 'available', 'home' => true,
+        'summary' => 'One API key for GPT, Claude, Gemini, DeepSeek and more, with a monthly usage credit.',
+        'audience' => 'Developers and teams using AI models in their tools',
+        'capabilities' => ['One OpenAI- and Anthropic-compatible API key', 'Works with Claude Code, Cursor, n8n and the OpenAI SDK', 'Monthly usage credit, key delivered to your dashboard'],
         'categories' => ['ai-all-access'],
     ],
     'claude-code' => [

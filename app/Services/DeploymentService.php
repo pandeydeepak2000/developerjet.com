@@ -67,6 +67,58 @@ class DeploymentService
         return $service->fresh();
     }
 
+    /**
+     * AI All-Access: staff paste the API key they created at the AI gateway (with the plan's spend cap) plus the base
+     * URL(s). First delivery activates the service and the order and emails the customer; later calls replace the key.
+     *
+     * @param  array{api_key?: ?string, base_url: string, anthropic_base_url?: ?string, credit?: ?string}  $data
+     */
+    public function deliverAccess(Service $service, User $actor, array $data): Service
+    {
+        if ($service->kind !== 'ai_access') {
+            throw new OrderException('This is not an AI All-Access service.');
+        }
+        $order = $service->order;
+        if (! $order || ! S::isPaidState($order->status)) {
+            throw new OrderException('The order has no verified payment.');
+        }
+        $first = in_array($service->status, ['pending_provisioning', 'failed'], true);
+        if ($first && empty($data['api_key'])) {
+            throw new OrderException('Paste the API key to deliver.');
+        }
+
+        DB::transaction(function () use ($service, $order, $actor, $data, $first) {
+            $attrs = ['config' => array_merge($service->config ?? [], array_filter([
+                'api_base_url' => $data['base_url'],
+                'anthropic_base_url' => $data['anthropic_base_url'] ?? null,
+                'credit' => $data['credit'] ?? null,
+            ], fn ($v) => $v !== null && $v !== ''))];
+            if (! empty($data['api_key'])) {
+                $attrs['ai_api_key'] = $data['api_key']; // encrypted cast, never logged
+                $attrs['ai_provider'] = 'modelgo';
+            }
+            if ($first) {
+                $attrs['status'] = 'active';
+            }
+            $service->update($attrs);
+            Audit::log($first ? 'service.ai_access_delivered' : 'service.ai_access_updated', $service, ['order_id' => $order->id], $actor->id);
+
+            if ($first && $order->services()->where('status', '!=', 'active')->doesntExist() && $order->status !== S::ACTIVE) {
+                if ($order->status === S::AWAITING_PROVISIONING) {
+                    $order = $this->orders->transition($order, S::PROVISIONING, $actor, 'API access prepared.');
+                }
+                $this->orders->transition($order->fresh(), S::ACTIVE, $actor, 'API access delivered. Your key is in your dashboard.');
+            }
+        });
+
+        if ($first) {
+            $this->notifier->customer('deployment_completed', "ai-access:{$service->id}", $service->user, 'deployment_completed',
+                ['service' => $service->label, 'url' => route('dashboard.services.show', $service)]);
+        }
+
+        return $service->fresh();
+    }
+
     /** Admin assigns a VPS to a paid service after compatibility validation. For plans with no resource profile
      *  (n8n, Docker VPS, Claude Code, bundle, OpenClaw), staff record the required size explicitly — nothing invented. */
     public function assign(Service $service, Server $server, User $actor, ?array $confirmed = null): Service

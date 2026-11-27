@@ -44,6 +44,10 @@ return [
             'intro' => 'Connect over SSH, then sign in with your Claude account or use your Anthropic API key:',
             'commands' => ['claude auth login', 'export ANTHROPIC_API_KEY=your-key-here', 'claude'],
         ],
+        'nodejs' => [
+            'intro' => 'Connect over SSH, put your app in /var/www/app and let PM2 keep it running. A starter app is already running on port 3000:',
+            'commands' => ['cd /var/www/app && git clone https://github.com/you/your-app.git .', 'npm ci && npm run build --if-present', 'pm2 delete app; PORT=3000 pm2 start npm --name app -- start && pm2 save'],
+        ],
         'n8n' => [
             'intro' => 'Open your n8n address, create the owner account, then add AI keys under Credentials (for example "OpenAI" or "OpenRouter").',
             'commands' => [],
@@ -73,6 +77,7 @@ return [
         'install_dependencies' => ['label' => 'Install required dependencies', 'command' => '@common/dependencies'],
         'install_docker' => ['label' => 'Install Docker Engine and Compose', 'command' => '@common/docker'],
         'open_web_ports' => ['label' => 'Open web ports 80/443 in the firewall', 'command' => '@common/web_ports'],
+        'install_nodejs' => ['label' => 'Install Node.js 22 LTS, PM2, Git and Caddy', 'command' => '@nodejs/install'],
         'install_hermes_cli' => ['label' => 'Install Hermes CLI (official installer, can take 10–20 minutes)', 'command' => '@hermes_cli/install'],
         'install_hermes_runtime_once' => ['label' => 'Install the shared Hermes runtime', 'command' => null],
         'install_hermes_workspace' => ['label' => 'Install Hermes Workspace', 'command' => null],
@@ -134,6 +139,11 @@ return [
             'commands' => ['health_check' => '@claude_code/health'],
             'actions' => ['wipe_app' => '@claude_code/wipe']],
         // Self-hosted developer VPS: Docker Engine + Compose only. A management UI is out of scope until one is approved.
+        // v1.0.0 tested in a clean Ubuntu 24.04 container (2026-11-27): Node.js v22.23.5, npm 10.9.9, PM2 7.1.2, Caddy v2.11.9.
+        'nodejs' => ['version' => '1.0.0', 'label' => 'Node.js Hosting', 'needs_domain' => false, 'access_model' => 'unmanaged',
+            'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'open_web_ports', 'install_nodejs', 'health_check', 'record_state'],
+            'commands' => ['health_check' => '@nodejs/health'],
+            'actions' => ['restart_app' => '@nodejs/restart', 'stop_app' => '@nodejs/stop', 'start_app' => '@nodejs/start', 'wipe_app' => '@nodejs/wipe']],
         'docker_vps' => ['version' => '1.0.0', 'label' => 'Docker Engine and Compose', 'needs_domain' => false, 'access_model' => 'unmanaged',
             'steps' => ['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies', 'install_docker', 'health_check', 'record_state'],
             'commands' => ['health_check' => '@docker/health']],

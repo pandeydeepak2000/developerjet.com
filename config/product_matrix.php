@@ -58,11 +58,17 @@ return [
             'ai_key' => 'Not required', 'domain' => 'You configure it',
             'best_for' => 'Developers who want full control',
         ],
+        'nodejs-hosting' => [
+            'name' => 'Node.js Hosting', 'route' => ['product.show', 'nodejs-hosting'], 'icon' => 'code',
+            'interface' => 'Your Node.js app over HTTPS, managed with PM2 over SSH', 'access' => 'Self-hosted', 'root' => 'Full SSH/root',
+            'ai_key' => 'Not required', 'domain' => 'Your domain, automatic HTTPS (Caddy)',
+            'best_for' => 'Deploying Node.js apps and APIs',
+        ],
         'ai-all-access' => [
-            'name' => 'AI All-Access', 'route' => ['ai-all-access', null], 'icon' => 'spark', 'status' => 'Coming soon',
-            'interface' => 'Web workspace (in development)', 'access' => 'Hosted service — no server to manage', 'root' => 'Not applicable',
-            'ai_key' => 'Your own API keys from each provider (BYOK)', 'domain' => 'Not needed',
-            'best_for' => 'Using several AI providers from one place',
+            'name' => 'AI All-Access', 'route' => ['ai-all-access', null], 'icon' => 'spark',
+            'interface' => 'One API key (OpenAI- and Anthropic-compatible)', 'access' => 'Hosted service — no server to manage', 'root' => 'Not applicable',
+            'ai_key' => 'Included — monthly usage credit', 'domain' => 'Not needed',
+            'best_for' => 'Using many AI models from your own tools',
         ],
     ],
 ];

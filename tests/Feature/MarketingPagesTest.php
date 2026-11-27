@@ -167,10 +167,12 @@ class MarketingPagesTest extends TestCase
 
     public function test_refund_policy_contains_required_statement(): void
     {
-        $this->get('/refund')
+        $response = $this->get('/refund')
             ->assertOk()
             ->assertSee('Activated digital services and VPS plans are non-refundable.')
-            ->assertSee('VPS has been provisioned and set up for your plan')
-            ->assertDontSee('hosting');
+            ->assertSee('VPS has been provisioned and set up for your plan');
+        // The policy text itself talks about VPS plans, not "hosting" (menu links such as /nodejs-hosting are not policy text).
+        preg_match('#<main[^>]*>(.*)</main>#s', $response->getContent(), $main);
+        $this->assertStringNotContainsString('hosting', strip_tags($main[1] ?? ''));
     }
 }

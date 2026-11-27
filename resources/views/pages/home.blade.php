@@ -66,26 +66,25 @@
         </div>
     </section>
 
-    {{-- C. AI All-Access spotlight (coming soon) --}}
+    {{-- C. AI All-Access spotlight --}}
     <section class="dj-section dj-section--surface" aria-labelledby="aa-home-title">
         <div class="dj-container dj-spot">
             <div class="dj-spot__copy">
-                <p class="dj-eyebrow"><span class="dj-eyebrow__icon"><x-icon name="spark" :size="16" /></span>New · coming soon</p>
-                <h2 id="aa-home-title">AI All-Access: your AI models in one workspace</h2>
-                <p class="dj-section-head__text">We are building a workspace where you connect API keys from your own AI provider accounts and choose the model for each conversation. Bring your own key — usage is billed by your provider, not by us.</p>
+                <p class="dj-eyebrow"><span class="dj-eyebrow__icon"><x-icon name="spark" :size="16" /></span>New · AI All-Access</p>
+                <h2 id="aa-home-title">One API key for every top AI model</h2>
+                <p class="dj-section-head__text">GPT, Claude, Gemini, DeepSeek, Qwen and more through a single OpenAI- and Anthropic-compatible key, with a monthly usage credit. Use it in Claude Code, Cursor, n8n or your own code.</p>
                 <ul class="dj-checks">
-                    <li><x-icon name="check" :size="18" /> Planned: one chat interface across the providers you connect</li>
-                    <li><x-icon name="check" :size="18" /> Planned: keys encrypted, write-only and never emailed</li>
-                    <li><x-icon name="check" :size="18" /> Draft Starter, Team and Business plans — pricing to be confirmed</li>
+                    <li><x-icon name="check" :size="18" /> No separate accounts with every AI provider</li>
+                    <li><x-icon name="check" :size="18" /> Monthly usage credit — key delivered to your dashboard</li>
+                    <li><x-icon name="check" :size="18" /> Works with the tools you already use</li>
                 </ul>
-                <p class="dj-spot__fine">Does not include ChatGPT Plus, Claude Pro, Gemini Advanced, Grok or any other AI subscription.</p>
                 <div class="dj-actions">
-                    <a class="dj-btn dj-btn--primary" href="{{ route('ai-all-access') }}">Explore AI All-Access <x-icon name="arrow-right" :size="16" /></a>
-                    <a class="dj-btn dj-btn--secondary" href="{{ route('ai-all-access') }}#plans">Request early access</a>
+                    <a class="dj-btn dj-btn--primary" href="{{ route('ai-all-access') }}#plans">See AI All-Access plans <x-icon name="arrow-right" :size="16" /></a>
+                    <a class="dj-btn dj-btn--secondary" href="{{ route('ai-all-access') }}">How it works</a>
                 </div>
             </div>
             <figure class="dj-spot__art">
-                @include('illustrations.ai-all-access', ['alt' => 'Your own API keys from several AI providers connect to one DeveloperJet workspace.'])
+                @include('illustrations.ai-all-access', ['alt' => 'One DeveloperJet API key connects your tools to models from many AI providers.'])
             </figure>
         </div>
     </section>

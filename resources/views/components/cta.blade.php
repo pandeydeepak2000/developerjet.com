@@ -1,7 +1,7 @@
 @props(['variant' => 'hosting', 'eyebrow' => null, 'title' => null, 'text' => null, 'primaryUrl' => null, 'primaryLabel' => null, 'secondaryUrl' => null, 'secondaryLabel' => null])
 @php
     // One CTA system for every public page. Copy per variant follows the owner brief:
-    // hosting → Explore Plans / Contact Sales · services → Request Quote · docs → Find Help / Contact Support · ai → Request Early Access.
+    // hosting → Explore Plans / Contact Sales · services → Request Quote · docs → Find Help / Contact Support · ai → Choose a plan.
     $defaults = [
         'hosting' => ['eyebrow' => 'Hosting', 'title' => 'Ready to choose a plan?', 'text' => 'Compare plans, then check out. Our team prepares your environment and your dashboard shows each step.',
             'primary' => [route('plans'), 'Explore Plans'], 'secondary' => [route('contact'), 'Contact Sales']],
@@ -9,8 +9,8 @@
             'primary' => [route('digital-services'), 'Request Quote'], 'secondary' => [route('contact'), 'Contact us']],
         'docs' => ['eyebrow' => 'Help', 'title' => 'Still need help?', 'text' => 'Search the documentation or open a support ticket — our team replies in your dashboard.',
             'primary' => [route('docs.index'), 'Find Help'], 'secondary' => [route('contact'), 'Contact Support']],
-        'ai' => ['eyebrow' => 'AI All-Access · coming soon', 'title' => 'Want early access?', 'text' => 'Request access and we will contact you when AI All-Access opens. Nothing is charged.',
-            'primary' => [route('ai-all-access').'#plans', 'Request Early Access'], 'secondary' => [route('contact'), 'Contact Sales']],
+        'ai' => ['eyebrow' => 'AI All-Access', 'title' => 'One key. Every top model.', 'text' => 'Pick a plan and get your API key in your dashboard — ready for Claude Code, Cursor and n8n.',
+            'primary' => [route('ai-all-access').'#plans', 'Choose a plan'], 'secondary' => [route('contact'), 'Contact Sales']],
         'general' => ['eyebrow' => 'Next step', 'title' => 'Ready when you are', 'text' => 'Explore plans or contact our team.',
             'primary' => [route('plans'), 'Explore Plans'], 'secondary' => [route('contact'), 'Contact Sales']],
     ];

@@ -10,6 +10,7 @@ use App\Services\WalletService;
 use App\Support\DeploymentProgress;
 use App\Support\OrderStatus;
 use App\Support\Setting;
+use Database\Seeders\AgentHostingCatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -52,6 +53,7 @@ class DeploymentAutomationTest extends TestCase
             'claude-code starter' => ['claude-code-a', 'claude_code', 'unmanaged', false],
             'docker-vps starter' => ['docker-vps-a', 'docker_vps', 'unmanaged', false],
             'docker-vps business' => ['docker-vps-c', 'docker_vps', 'unmanaged', false],
+            'nodejs-hosting starter' => ['nodejs-hosting-maple', 'nodejs', 'unmanaged', true],
         ];
     }
 
@@ -73,6 +75,9 @@ class DeploymentAutomationTest extends TestCase
 
     private function paidService(string $slug): Service
     {
+        if (str_starts_with($slug, 'nodejs-hosting-')) {
+            $this->seed(AgentHostingCatalogSeeder::class); // Node.js plans live in the owner catalogue seeder
+        }
         $this->approve($slug, 1000);
         $user = $this->customer();
         app(WalletService::class)->credit($user, 5000000, 'topup', 'seed-'.$slug);

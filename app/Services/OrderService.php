@@ -25,7 +25,8 @@ class OrderService
     public const KIND_BY_CATEGORY = [
         'hermes-cli' => 'hermes_cli', 'hermes-workspace' => 'hermes_workspace', 'n8n' => 'n8n',
         'ai-complete-bundle' => 'bundle', 'openclaw' => 'openclaw',
-        'claude-code' => 'claude_code', 'docker-vps' => 'docker_vps',
+        'claude-code' => 'claude_code', 'docker-vps' => 'docker_vps', 'nodejs-hosting' => 'nodejs',
+        'ai-all-access' => 'ai_access',
     ];
 
     public function __construct(
@@ -314,7 +315,7 @@ class OrderService
             $this->invoices->issueForOrder($order);
 
             if (! isset($order->snapshot['renewal_subscription_id']) && $order->services()->where('status', 'pending_provisioning')->exists()) {
-                $this->notifier->admin('vps_assignment_required', "order:{$order->id}", "Order {$order->number} is paid and needs a VPS assigned (awaiting VPS assignment).");
+                $this->notifier->admin('vps_assignment_required', "order:{$order->id}", "Order {$order->number} is paid and needs setup (a VPS, or an AI API key for AI All-Access).");
             }
         }
 
@@ -332,7 +333,8 @@ class OrderService
 
         foreach ($order->items()->whereNotNull('plan_id')->with('plan.category')->get() as $item) {
             $plan = $item->plan;
-            if ($plan->kind === 'hosting') {
+            // Hosting gets a VPS; AI All-Access gets an API key delivered by staff. Both are services with renewals.
+            if (in_array($plan->kind, ['hosting', 'ai_access'], true)) {
                 $service = Service::create([
                     'user_id' => $order->user_id, 'order_id' => $order->id, 'plan_id' => $plan->id,
                     'label' => $plan->name.' · '.$plan->category->name,

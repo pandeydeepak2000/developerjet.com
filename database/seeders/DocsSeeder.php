@@ -55,6 +55,8 @@ class DocsSeeder extends Seeder
         '591d963717b2e23e0af9c6a95017df9593ac50b2',
         // v0.6: ssh-and-security before the everyday-commands table and the UFW walkthrough were added.
         '07ab39eaa81800b113819b3b2b355979dcb1b42d',
+        // 2026-11-27: ai-all-access "coming soon / bring your own key" article, before the API-credit plans launched.
+        'a5b9fe25089a1f4ea158a736c432f9adb8a0c3f1',
     ];
 
     /** @var array{created: int, updated: int, kept: int} */

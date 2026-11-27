@@ -37,6 +37,10 @@
             $lastDeployment = \App\Models\Deployment::where('service_id', $service->id)->latest('id')->first();
             $step = $delivered ? 3 : ($srv && (! $askAddress || $service->appDomain()) ? 2 : 1);
         @endphp
+        @if ($service->kind === 'ai_access')
+            @include('admin.orders._ai_access')
+            @continue
+        @endif
         <section class="admin-card" @if ($loop->first) id="setup" @endif>
             <div class="dj-order-hero">
                 <div>

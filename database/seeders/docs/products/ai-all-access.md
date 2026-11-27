@@ -1,52 +1,56 @@
 ---
-title: AI All-Access (coming soon)
-excerpt: A planned bring-your-own-key workspace for supported AI models. Not orderable yet.
+title: AI All-Access
+excerpt: One API key for GPT, Claude, Gemini, DeepSeek and more, with a monthly usage credit.
 order: 7
 ---
-**Status: in development. It cannot be ordered yet and no plan has a confirmed price.**
-
-AI All-Access is a planned DeveloperJet web workspace for working with AI models from several providers in one place. It uses **bring your own key (BYOK)**: you connect API keys from your own provider accounts.
+AI All-Access gives you **one API key** that works with models from many AI providers — GPT, Claude, Gemini, DeepSeek, Qwen, Grok and more — with a **monthly usage credit** set by your plan. The key is OpenAI- and Anthropic-compatible, so it works in the tools you already use.
 
 ## What it does not include
 
-- It does **not** include ChatGPT Plus, Claude Pro, Gemini Advanced, Grok or any other consumer AI subscription.
-- It does **not** include model usage or credits. Each provider bills you directly, under its own pricing and terms.
-- You cannot sign in with a consumer chat account. Only official API keys are supported, and we will never ask for a provider password.
-
-## How bring-your-own-key will work
-
-1. Create an API key in your account with an AI provider that offers official API access.
-2. Add the key to your workspace. It is encrypted before it is stored and is write-only: it is never displayed again or emailed.
-3. Choose the provider and model for each conversation.
-4. The provider charges your own account for the usage.
-
-> **Tip:** Set a monthly spending limit in each provider's console before connecting a key, so usage can never exceed what you expect.
-
-## Planned features
-
-| Feature | Status |
-| --- | --- |
-| Unified chat | Planned |
-| Provider and model selection | Planned |
-| Conversation organisation | Planned |
-| Provider connection management | Planned |
-| Usage visibility (where a provider's API supports it) | Planned |
-| Team workspace foundation | Planned |
-| Side-by-side model comparison | Planned, later |
-
-**None of these are live yet.**
-
-## Supported providers
-
-Providers are listed only after each integration has been built and tested. There is no supported list yet.
+- It does **not** include ChatGPT Plus, Claude Pro, Gemini Advanced, Grok or any other consumer chat subscription. It is API access for tools and code.
+- It is **not unlimited**: requests stop when your monthly credit is used up. Ask us for a top-up or a bigger plan at any time.
+- It does not include a server. For an AI agent on your own VPS, choose a hosting product — the same key works there.
 
 ## Plans
 
-Three draft plans exist — *AI Access Starter*, *AI Access Team* and *AI Access Business*. Names, limits and prices are placeholders and show **Pricing to be confirmed**.
+| Plan | Price per month | Monthly usage credit | API keys |
+| --- | --- | --- | --- |
+| AI Starter | ₹999 | $8 | 1 |
+| AI Pro | ₹2,499 | $20 | 2 |
+| AI Team | ₹5,999 | $50 | 5 |
+| AI Business | ₹14,999 | $125 | 15 |
 
-## Requesting access
+Prices exclude GST. Yearly billing is 12 × the monthly price. Credit is shown in US dollars because model usage is priced in dollars; bigger models and longer answers use more credit.
 
-1. Sign in with a verified account.
-2. Open the **AI All-Access** page and choose **Request access** on a plan.
-3. Answer the short form and submit.
-4. Your request appears in **Dashboard → Requests**. It is not an order and nothing is charged. We will contact you when access opens.
+## Getting your key
+
+1. Choose a plan on the **AI All-Access** page and complete checkout.
+2. Our team creates your key with your plan's credit. This is not instant — usually within a few business hours.
+3. When it is ready we email you, and **Dashboard → My services → your AI plan** shows the **Base URL** and your **API key** (hidden until you press *Show*).
+
+> **Tip:** Treat the key like a password. Anyone who has it can use your credit. If it leaks, open a support ticket and we will replace it.
+
+## Using it in your tools
+
+**Claude Code**
+
+```
+export ANTHROPIC_BASE_URL=<Anthropic base URL from your dashboard>
+export ANTHROPIC_AUTH_TOKEN=<your key>
+claude
+```
+
+**OpenAI SDK, Cursor and other OpenAI-compatible apps**
+
+```
+export OPENAI_BASE_URL=<base URL from your dashboard>
+export OPENAI_API_KEY=<your key>
+```
+
+**n8n** — Credentials → Add credential → OpenAI → paste the key and set *Base URL* to the base URL from your dashboard.
+
+Your dashboard shows these steps with your own base URL filled in.
+
+## Renewals and cancellation
+
+Plans renew monthly or yearly like every DeveloperJet plan. You can cancel future renewals from your dashboard. Credit that has already been used is not refundable.

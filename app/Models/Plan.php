@@ -102,8 +102,11 @@ class Plan extends Model
         return array_values(array_filter(self::INTERVALS, fn ($i) => $this->listPrice($i) !== null));
     }
 
-    /** Service kinds whose backend does not exist yet: shown publicly, but never sold (request-access only). */
-    public const NOT_SELLABLE_KINDS = ['ai_access'];
+    /**
+     * Service kinds whose backend does not exist yet: shown publicly, but never sold (request-access only).
+     * Empty since 2026-11-27: AI All-Access is sold as monthly AI API credit plans (owner decision; key delivered by staff).
+     */
+    public const NOT_SELLABLE_KINDS = [];
 
     /** A plan can be added to a cart only when flagged purchasable and a monthly price exists. */
     public function canBePurchased(): bool
@@ -111,7 +114,7 @@ class Plan extends Model
         return $this->is_active && $this->is_purchasable && ! $this->isComingSoon() && $this->listPrice('monthly') !== null;
     }
 
-    /** AI All-Access (BYOK workspace) is in development: it can be requested, never bought. */
+    /** True for kinds listed in NOT_SELLABLE_KINDS (none at the moment): requestable, never buyable. */
     public function isComingSoon(): bool
     {
         return in_array($this->kind, self::NOT_SELLABLE_KINDS, true);

@@ -46,7 +46,7 @@ class NavigationStructureTest extends TestCase
             $this->assertStringContainsString($group, $nav);
         }
         foreach (['AI All-Access', 'Hermes CLI', 'Hermes Workspace', 'n8n Automation Hosting', 'OpenClaw', 'AI Complete Bundle',
-            'Claude Code Hosting', 'Docker VPS Hosting', 'AI Application Hosting', 'Compare Developer Products',
+            'Claude Code Hosting', 'Docker VPS Hosting', 'Node.js Hosting', 'Compare Developer Products',
             'WordPress Development', 'Laravel Development', 'Web Development', 'SEO Services', 'Website Maintenance', 'Business Automation',
             'Pricing', 'Documentation', 'Support'] as $label) {
             $this->assertStringContainsString($label, $nav, $label);

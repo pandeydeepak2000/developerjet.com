@@ -166,6 +166,40 @@ class AgentHostingCatalogSeeder extends Seeder
         }
 
         $this->bundle();
+        $this->nodejs();
+    }
+
+    /**
+     * Node.js Hosting (2026-11-27 owner request, "like Hostinger's Node.js hosting, 3 plans"): a self-hosted VPS with
+     * Node.js 22 LTS, PM2, Git and Caddy installed. Sold on three existing VPS tiers at the owner-provided tier prices.
+     * agent tier => [plan name, tagline]
+     */
+    public const NODE_PLANS = [
+        'maple' => ['Node Starter', 'One Node.js app or API with HTTPS'],
+        'edge' => ['Node Pro', 'Production apps, workers and a database'],
+        'boost' => ['Node Business', 'Several apps, heavier traffic and builds'],
+    ];
+
+    private function nodejs(): void
+    {
+        $category = ProductCategory::firstOrCreate(['slug' => 'nodejs-hosting'], [
+            'name' => 'Node.js Hosting', 'description' => 'A VPS with Node.js, PM2 and automatic HTTPS, ready for your app.',
+            'sort_order' => 6, 'is_active' => true,
+        ]);
+        $i = 0;
+        foreach (self::NODE_PLANS as $tier => [$name, $tagline]) {
+            [$tierName, , $vcpu, $ram, $disk, $diskType, $monthly] = self::AGENT_TIERS[$tier];
+            $profile = $this->profile("agent-{$tier}", $tierName, $vcpu, $ram, $disk, $diskType, null);
+            $this->plan($category, "nodejs-hosting-{$tier}", $name, [
+                'tagline' => $tagline,
+                'highlight' => $profile->summary(),
+                'features' => [],
+                'resource_profile_id' => $profile->id,
+                'is_featured' => $tier === 'edge',
+                'sort_order' => 10 + (++$i),
+                'kind' => 'hosting', 'fulfilment' => 'provisioned', 'access_model' => 'unmanaged',
+            ], $monthly);
+        }
     }
 
     /**

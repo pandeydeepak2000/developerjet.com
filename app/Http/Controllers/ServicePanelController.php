@@ -34,6 +34,10 @@ class ServicePanelController extends Controller
             ? $service->server->healthChecks()->where('status', '!=', 'simulated')->latest('id')->limit(5)->get()
             : collect();
 
+        if ($service->kind === 'ai_access') {
+            return view('dashboard.service-ai', ['service' => $service, 'invoices' => $invoices]);
+        }
+
         return view('dashboard.service-show', [
             'service' => $service,
             'latest' => $service->deployments->first(),

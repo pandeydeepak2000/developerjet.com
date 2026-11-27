@@ -123,8 +123,10 @@ class RedesignTest extends TestCase
 
         $this->assertSame(count(array_filter(config('product_families'), fn ($f) => $f['home'])), substr_count($html, 'class="dj-family"'));
         $this->assertStringNotContainsString('class="dj-plan"', $html);
-        // No illustrative/pending price ever appears on a family card.
-        $this->assertStringNotContainsString('₹', $html);
+        // Only an approved "From ₹…" starting price may appear (AI All-Access has approved prices since 2026-11-27);
+        // no other price — illustrative or pending — appears anywhere on the home page.
+        $this->assertStringContainsString('From <strong>₹999</strong>', $html);
+        $this->assertStringNotContainsString('₹', preg_replace('#From <strong>₹[\d,.]+</strong>#', '', $html));
     }
 
     public function test_family_card_shows_a_starting_price_only_when_approved(): void

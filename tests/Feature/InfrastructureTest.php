@@ -144,7 +144,7 @@ class InfrastructureTest extends TestCase
         $approved = collect(array_keys(config('provisioning.step_catalog')))->filter(fn ($s) => $registry->approved($s))->values()->all();
         // Tested on Ubuntu 24.04 on 2026-11-25 (owner-approved): the shared steps + n8n. Others stay unapproved.
         $this->assertSame(['check_ssh', 'check_os', 'check_arch', 'check_resources', 'security_baseline', 'install_dependencies',
-            'install_docker', 'open_web_ports', 'install_hermes_cli', 'install_n8n', 'install_claude_code', 'record_state'], $approved);
+            'install_docker', 'open_web_ports', 'install_nodejs', 'install_hermes_cli', 'install_n8n', 'install_claude_code', 'record_state'], $approved);
         $this->assertFalse($registry->approved('install_hermes_workspace'));
         $this->assertTrue($registry->approved('health_check', 'n8n'));
         $this->assertTrue($registry->approved('health_check', 'hermes_cli'));

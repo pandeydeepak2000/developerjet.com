@@ -16,7 +16,7 @@ return [
         'AI Products' => [
             'icon' => 'spark',
             'links' => [
-                ['AI All-Access', 'ai-all-access', null, 'Your AI models in one workspace · coming soon', 'layers', null],
+                ['AI All-Access', 'ai-all-access', null, 'One API key for GPT, Claude, Gemini & more', 'layers', null],
                 ['Hermes CLI', 'hermes.cli', null, 'Terminal AI agent on your own VPS', 'terminal', null],
                 ['Hermes Workspace', 'hermes.workspace', null, 'Browser workspace, installed with Docker', 'browser', null],
                 ['n8n Automation Hosting', 'n8n', null, 'Self-hosted workflow automation', 'workflow', null],
@@ -29,7 +29,7 @@ return [
             'links' => [
                 ['Claude Code Hosting', 'product.show', 'claude-code', 'Claude Code on an always-on server', 'code', null],
                 ['Docker VPS Hosting', 'product.show', 'docker-vps', 'Docker Engine + Compose with SSH/root access', 'container', null],
-                ['AI Application Hosting', 'ai-app-hosting', null, 'Custom requirements, scoped with our team', 'cpu', null],
+                ['Node.js Hosting', 'product.show', 'nodejs-hosting', 'Node.js, PM2 and HTTPS on your own VPS', 'cpu', null],
                 ['Compare Developer Products', 'compare.index', null, 'Plain-language product comparisons', 'grid', null],
             ],
         ],
