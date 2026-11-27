@@ -5,7 +5,9 @@ Supersedes: docs/MODULE_STATUS.md, docs/HANDOFF.md, docs/CHANGELOG_PROJECT.md, d
 
 ## Current verified baseline
 
-- Full suite 2026-11-27: 484 passed (Node.js Hosting + AI All-Access plans; earlier 2026-11-23 baseline 429 / 3894).
+- Full suite 2026-11-27 (customer VPS panel + own root password): 495 passed / 4571 assertions. Customers can type their own root password (12–64 printable characters, letters and digits) or generate one; it is sent base64-encoded to chpasswd and verified in a throwaway ubuntu:24.04 container with quotes, $, backticks and backslash (login hash check passed). Panel routes use named limiters `vps-stats` / `vps-sensitive`, so usage polling never uses up the password/reinstall allowance.
+- Earlier the same day (customer VPS panel): 493 passed / 4533 assertions. Earlier the same day: 484 (Node.js Hosting + AI All-Access plans); 2026-11-23 baseline 429 / 3894.
+- Customer VPS panel (2026-11-27): tabs (Overview, Login & SSH, Manage, Billing); live CPU/RAM/disk/network/uptime read over SSH by the read-only `common/stats.sh` (cached 55 s per server); customer root password reset (random 20-char, chpasswd, saved encrypted, password logins only); customer "Reinstall fresh" with typed REINSTALL. Verified: stats.sh on the test VPS (read only), chpasswd in a throwaway ubuntu:24.04 container (the VPS root password was not changed), panel screenshots at 1366 px and 390 px with live readings from the test VPS and no JS errors (CustomerVpsPanelTest, 9 tests). Not run live: root password reset and customer reinstall on a real server. Power off/on and a browser console need our own hypervisor (Proxmox, later).
 - Previous baselines: 149 passed / 858 assertions, 203 / 1314, 244 / 1876, 283 / 2201, 357 / 2942.
 - Commands run for verification in prior sessions: php artisan test, npm run build, vendor/bin/pint --test, composer audit with no advisories at the v0.4 and v0.5 checkpoints.
 - No commit, push, deploy, live payment, supplier API call, SSH or VPS contact, or production change was made in those sessions. SRS files untouched. No database was reset; migrations were additive only.

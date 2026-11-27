@@ -45,6 +45,11 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
+        // Customer VPS panel: own counters (a plain throttle:N,M shares one per-user counter across every route, so
+        // the once-a-minute usage polling would otherwise use up the password/reinstall allowance).
+        RateLimiter::for('vps-stats', fn (Request $request) => Limit::perMinute(30)->by('vps-stats|'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('vps-sensitive', fn (Request $request) => Limit::perMinutes(10, 8)->by('vps-sensitive|'.$request->route()?->getName().'|'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         // Named limiter for the whole admin area. A plain `throttle:N,M` shares ONE counter per user/IP across every
         // route, so a group-wide 240/min limit would also consume the 10/min budget of sensitive routes. A named
         // limiter keeps its own counter.

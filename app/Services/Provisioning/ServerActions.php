@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\DeploymentService;
 use App\Services\OrderException;
 use App\Support\Audit;
+use Illuminate\Support\Str;
 
 /**
  * One-click actions on a delivered server over SSH: reboot, restart app, reset app login, suspend (stop app),
@@ -104,6 +105,68 @@ class ServerActions
         $label = config('provisioning.server_actions.'.$action.'.label');
 
         return ['ok' => $ok, 'message' => $ok ? $label.' — done.' : $label.' failed (exit '.$result['exit'].').', 'output' => $tail];
+    }
+
+    /** Root password reset is offered for live, password-based root logins only (never for SSH-key servers). */
+    public function canResetRootPassword(Service $service): bool
+    {
+        $server = $service->server;
+        if (! $this->liveOn() || ! $server || $service->status !== 'active' || ($server->ssh_user ?: 'root') !== 'root') {
+            return false;
+        }
+        $secret = (string) $server->ssh_credential;
+
+        return $secret !== '' && ! str_contains($secret, 'PRIVATE KEY');
+    }
+
+    /**
+     * Set a new root password on the server (chpasswd) and save it, encrypted, as the panel's login: the customer's
+     * own choice, or a random 20-character one. The password travels base64-encoded (no shell quoting issues),
+     * is never logged and is redacted from any error text.
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function resetRootPassword(Service $service, User $actor, ?string $chosen = null): array
+    {
+        if (! $this->canResetRootPassword($service)) {
+            throw new OrderException('Root password reset is not available for this server.');
+        }
+        $server = $service->server;
+        $new = $chosen ?? Str::password(20, symbols: false);
+        $encoded = base64_encode($new);
+
+        try {
+            $fingerprint = $this->transport->connect($server, $server->ssh_host_fingerprint ?: null);
+            if (! $server->ssh_host_fingerprint) {
+                $server->forceFill(['ssh_host_fingerprint' => $fingerprint])->save();
+            }
+            $result = $this->transport->exec("set -e\nnew=\$(printf '%s' '{$encoded}' | base64 -d)\nprintf 'root:%s\\n' \"\$new\" | chpasswd\necho 'Root password changed.'");
+        } catch (TransportException $e) {
+            Audit::log('server.root_password_reset_failed', $service, ['reason' => mb_substr(str_replace($new, '••••', $e->getMessage()), 0, 200)], $actor->id);
+            throw new OrderException('Could not reach the server: '.$e->getMessage());
+        } finally {
+            $this->transport->disconnect();
+        }
+
+        if ($result['exit'] !== 0) {
+            Audit::log('server.root_password_reset_failed', $service, ['exit' => $result['exit']], $actor->id);
+
+            return ['ok' => false, 'message' => 'The server did not accept the new password (exit '.$result['exit'].'). Your old password still works.'];
+        }
+
+        $server->update(['ssh_credential' => $new]);
+        Audit::log('server.root_password_reset', $service, [], $actor->id);
+
+        return ['ok' => true, 'message' => $chosen !== null
+            ? 'Root password changed. Use your new password for SSH from now on.'
+            : 'New root password set. Press Show under Server login to see it.'];
+    }
+
+    /** "Reinstall fresh" needs a reviewed wipe script for this product. */
+    public function canReinstall(Service $service): bool
+    {
+        return $this->liveOn() && $service->server_id && $this->command($service, 'wipe_app') !== null
+            && in_array($service->status, ['active', 'suspended', 'failed'], true);
     }
 
     /** Reinstall fresh: delete the app and its data, then start a brand-new install (returns the deployment to watch). */

@@ -723,3 +723,130 @@ document.querySelectorAll('form[data-submit-once]').forEach((form) => {
         });
     });
 });
+
+// Customer VPS panel tabs: Overview / Login & SSH / Manage / Billing. Without JavaScript every section shows.
+const svcTabs = document.querySelector('[data-svc-tabs]');
+if (svcTabs) {
+    const links = [...svcTabs.querySelectorAll('[data-tab-link]')];
+    const panels = [...document.querySelectorAll('[data-tab-panel]')];
+    const storeKey = `svc-tab:${window.location.pathname}`;
+    const show = (name) => {
+        if (!panels.some((p) => p.dataset.tabPanel === name)) name = panels[0]?.dataset.tabPanel;
+        panels.forEach((p) => p.classList.toggle('is-active', p.dataset.tabPanel === name));
+        links.forEach((a) => a.setAttribute('aria-selected', a.dataset.tabLink === name ? 'true' : 'false'));
+        try { sessionStorage.setItem(storeKey, name); } catch (e) { /* private mode */ }
+    };
+    const fromHash = () => {
+        const id = decodeURIComponent(window.location.hash.slice(1));
+        if (!id) return null;
+        if (id.startsWith('tab-')) return id.slice(4);
+        return document.getElementById(id)?.closest('[data-tab-panel]')?.dataset.tabPanel || null;
+    };
+    let initial = document.querySelector('[data-tab-panel] .field-error')?.closest('[data-tab-panel]')?.dataset.tabPanel || fromHash();
+    if (!initial) { try { initial = sessionStorage.getItem(storeKey); } catch (e) { initial = null; } }
+    show(initial || 'overview');
+    links.forEach((a) => a.addEventListener('click', (event) => {
+        event.preventDefault();
+        show(a.dataset.tabLink);
+        history.replaceState(null, '', `#tab-${a.dataset.tabLink}`);
+    }));
+    window.addEventListener('hashchange', () => { const t = fromHash(); if (t) show(t); });
+}
+
+// Customer VPS panel live usage: real readings from the server, refreshed every minute while the page is visible.
+const usagePanel = document.querySelector('[data-stats-url]');
+if (usagePanel) {
+    const liveBadge = document.querySelector('[data-live-status]');
+    const samples = { cpu: [], mem: [] };
+    let lastAt = null;
+    const $ = (sel) => usagePanel.querySelector(sel);
+    const bytes = (b) => {
+        if (b === null || b === undefined) return '—';
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let v = b; let i = 0;
+        while (v >= 1024 && i < units.length - 1) { v /= 1024; i += 1; }
+        return `${v >= 100 || i === 0 ? v.toFixed(0) : v.toFixed(1)} ${units[i]}`;
+    };
+    const rate = (bps) => {
+        if (bps === null || bps === undefined) return '—';
+        const bits = bps * 8;
+        if (bits < 1e3) return `${bits.toFixed(0)} bit/s`;
+        if (bits < 1e6) return `${(bits / 1e3).toFixed(1)} kbit/s`;
+        if (bits < 1e9) return `${(bits / 1e6).toFixed(1)} Mbit/s`;
+        return `${(bits / 1e9).toFixed(2)} Gbit/s`;
+    };
+    const uptime = (s) => {
+        if (!s && s !== 0) return '—';
+        const d = Math.floor(s / 86400); const h = Math.floor((s % 86400) / 3600); const m = Math.floor((s % 3600) / 60);
+        return d ? `${d}d ${h}h` : (h ? `${h}h ${m}m` : `${m}m`);
+    };
+    const pct = (used, total) => (total ? (used / total) * 100 : null);
+    const gauge = (key, value, detail) => {
+        const card = $(`[data-gauge="${key}"]`);
+        if (!card) return;
+        const p = value === null ? 0 : Math.max(0, Math.min(100, value));
+        card.querySelector('.gauge-fill').setAttribute('stroke-dasharray', `${p.toFixed(1)} 100`);
+        card.querySelector('[data-gauge-pct]').textContent = value === null ? '—' : `${Math.round(value)}%`;
+        card.querySelector('[data-gauge-detail]').textContent = detail;
+        card.dataset.level = p >= 90 ? 'high' : (p >= 75 ? 'warn' : 'ok');
+    };
+    const spark = (key) => {
+        const line = $(`[data-spark="${key}"] polyline`);
+        const pts = samples[key];
+        if (!line || !pts.length) return;
+        const series = pts.length === 1 ? [pts[0], pts[0]] : pts;
+        const step = 300 / (series.length - 1);
+        line.setAttribute('points', series.map((v, i) => `${(i * step).toFixed(1)},${(57 - Math.min(100, v) * 0.54).toFixed(1)}`).join(' '));
+    };
+    const live = (state, text) => {
+        if (!liveBadge) return;
+        liveBadge.dataset.state = state;
+        liveBadge.querySelector('span').textContent = text;
+    };
+    const time = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const tick = async () => {
+        if (document.hidden) return;
+        usagePanel.classList.add('is-loading');
+        try {
+            const res = await fetch(usagePanel.dataset.statsUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+            if (!res.ok) throw new Error(String(res.status));
+            const d = await res.json();
+            const err = $('[data-stats-error]');
+            if (!d.ok) {
+                err.hidden = false;
+                err.textContent = d.message;
+                live('offline', 'Not reachable');
+                $('[data-stats-updated]').textContent = `Last check ${time(new Date())}`;
+                return;
+            }
+            err.hidden = true;
+            live('online', `Online · up ${uptime(d.uptime)}`);
+            const memPct = pct(d.mem.used, d.mem.total);
+            gauge('cpu', d.cpu.percent, `${d.cpu.cores ?? '?'} vCPU`);
+            gauge('mem', memPct, `${bytes(d.mem.used)} of ${bytes(d.mem.total)}`);
+            gauge('disk', pct(d.disk.used, d.disk.total), `${bytes(d.disk.used)} of ${bytes(d.disk.total)}`);
+            $('[data-net-rx]').textContent = rate(d.net.rx_rate);
+            $('[data-net-tx]').textContent = rate(d.net.tx_rate);
+            $('[data-net-total]').textContent = d.net.rx !== null ? `Since boot: ${bytes(d.net.rx)} in · ${bytes(d.net.tx)} out` : '';
+            $('[data-stat-uptime]').textContent = uptime(d.uptime);
+            $('[data-stat-load]').textContent = (d.cpu.load || []).map((n) => n.toFixed(2)).join(' / ') || '—';
+            $('[data-stat-hostname]').textContent = d.hostname || '—';
+            $('[data-stat-swap]').textContent = d.swap.total ? `${bytes(d.swap.used)} of ${bytes(d.swap.total)}` : 'None';
+            if (d.at !== lastAt) {
+                lastAt = d.at;
+                samples.cpu.push(d.cpu.percent ?? 0);
+                samples.mem.push(memPct ?? 0);
+                if (samples.cpu.length > 60) { samples.cpu.shift(); samples.mem.shift(); }
+                spark('cpu'); spark('mem');
+            }
+            $('[data-stats-updated]').textContent = `Updated ${time(new Date(d.at))}`;
+        } catch (e) {
+            $('[data-stats-updated]').textContent = 'Could not load usage — retrying';
+        } finally {
+            usagePanel.classList.remove('is-loading');
+        }
+    };
+    tick();
+    setInterval(tick, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+}

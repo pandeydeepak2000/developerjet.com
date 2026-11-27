@@ -109,6 +109,9 @@ Route::middleware(['auth', 'verified', 'impersonation.readonly'])->group(functio
         Route::post('/services/{service}/domain', [ServicePanelController::class, 'domain'])->middleware('throttle:20,1')->name('dashboard.services.domain');
         Route::post('/services/{service}/verify-domain', [ServicePanelController::class, 'verifyDomain'])->middleware('throttle:10,1')->name('dashboard.services.verify-domain');
         Route::post('/services/{service}/action/{action}', [ServicePanelController::class, 'action'])->whereIn('action', ['reboot', 'restart_app', 'reset_login'])->middleware('throttle:6,1')->name('dashboard.services.action');
+        Route::get('/services/{service}/stats', [ServicePanelController::class, 'stats'])->middleware('throttle:vps-stats')->name('dashboard.services.stats');
+        Route::post('/services/{service}/root-password', [ServicePanelController::class, 'rootPassword'])->middleware('throttle:vps-sensitive')->name('dashboard.services.root-password');
+        Route::post('/services/{service}/reinstall', [ServicePanelController::class, 'reinstall'])->middleware('throttle:vps-sensitive')->name('dashboard.services.reinstall');
 
         Route::get('/wallet', [DashboardController::class, 'wallet'])->name('dashboard.wallet');
         Route::post('/wallet/topup', [WalletTopupController::class, 'store'])->middleware('throttle:10,1')->name('dashboard.wallet.topup');

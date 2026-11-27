@@ -8,6 +8,7 @@ use App\Services\Infrastructure\ControlPanelCapabilities;
 use App\Services\OrderException;
 use App\Services\Provisioning\RecipeRegistry;
 use App\Services\Provisioning\ServerActions;
+use App\Services\Provisioning\ServerStats;
 use App\Support\Audit;
 use App\Support\DeploymentProgress;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +38,7 @@ class ServicePanelController extends Controller
         if ($service->kind === 'ai_access') {
             return view('dashboard.service-ai', ['service' => $service, 'invoices' => $invoices]);
         }
+        $serverActions = app(ServerActions::class);
 
         return view('dashboard.service-show', [
             'service' => $service,
@@ -48,7 +50,10 @@ class ServicePanelController extends Controller
             'progress' => DeploymentProgress::for($service),
             'invoices' => $invoices,
             'health' => $health,
-            'actions' => $service->status === 'active' ? app(ServerActions::class)->available($service, true) : [],
+            'actions' => $service->status === 'active' ? $serverActions->available($service, true) : [],
+            'canResetRoot' => $serverActions->canResetRootPassword($service),
+            'canReinstall' => $service->status === 'active' && $serverActions->canReinstall($service),
+            'liveStats' => app(ServerStats::class)->available($service) && $service->status === 'active',
         ]);
     }
 
@@ -65,6 +70,61 @@ class ServicePanelController extends Controller
         }
 
         return back()->with($result['ok'] ? 'success' : 'error', $result['message'].($result['ok'] && $action === 'reset_login' ? ' Open your app and create the owner account again — your workflows are kept.' : ''));
+    }
+
+    /** Live usage (CPU, RAM, disk, network, uptime) for the panel. Cached per server, so polling is cheap. */
+    public function stats(Service $service, ServerStats $stats): JsonResponse
+    {
+        $this->authorize('view', $service);
+        abort_unless($stats->available($service), 404);
+
+        return response()->json($stats->snapshot($service))->header('Cache-Control', 'no-store, private');
+    }
+
+    /**
+     * Customer changes the root password — to one they type, or a random strong one. The panel keeps working because
+     * the new password is saved (encrypted) for it.
+     */
+    public function rootPassword(Request $request, Service $service, ServerActions $actions): RedirectResponse
+    {
+        $this->authorize('view', $service);
+        abort_unless($actions->canResetRootPassword($service), 404);
+
+        $chosen = null;
+        if ($request->input('mode') === 'custom') {
+            $data = $request->validateWithBag('rootPassword', [
+                'root_password' => ['required', 'string', 'min:12', 'max:64', 'confirmed', 'regex:/^[\x21-\x7E]+$/', 'regex:/[A-Za-z]/', 'regex:/[0-9]/'],
+            ], [
+                'root_password.regex' => 'Use 12–64 characters with letters and numbers, and no spaces.',
+                'root_password.confirmed' => 'The two passwords do not match.',
+            ]);
+            $chosen = $data['root_password'];
+        }
+
+        try {
+            $result = $actions->resetRootPassword($service, $request->user(), $chosen);
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->to(route('dashboard.services.show', $service).'#access')->with($result['ok'] ? 'success' : 'error', $result['message']);
+    }
+
+    /** Customer "Reinstall fresh": deletes the app and its data, then installs it again. Must type REINSTALL. */
+    public function reinstall(Request $request, Service $service, ServerActions $actions): RedirectResponse
+    {
+        $this->authorize('view', $service);
+        abort_unless($service->status === 'active' && $actions->canReinstall($service), 404);
+        $request->validate(['confirm' => ['required', 'string', 'in:REINSTALL']], ['confirm.in' => 'Type REINSTALL in capitals to confirm.']);
+
+        try {
+            $actions->reinstall($service, $request->user());
+        } catch (OrderException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('dashboard.services.show', $service)
+            ->with('success', 'Reinstall started. Everything was deleted and a fresh install is running — follow the progress below.');
     }
 
     /** Polling endpoint for the setup timeline: owner-only, DB-derived, no internal diagnostics, never cached. */

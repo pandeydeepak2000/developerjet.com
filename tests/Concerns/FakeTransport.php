@@ -22,6 +22,12 @@ class FakeTransport implements RemoteTransport
 
     public bool $hostKeyMismatch = false;
 
+    /** @var array<string, string> command => output, for scripts whose output a test needs to control */
+    public array $outputs = [];
+
+    /** Simulate a dropped connection on the next exec(). */
+    public bool $failConnectAfterConnect = false;
+
     public string $os = "PRETTY_NAME=\"Ubuntu 24.04.5 LTS\"\nID=ubuntu\nVERSION_ID=\"24.04\"\n";
 
     public string $arch = 'x86_64';
@@ -43,7 +49,10 @@ class FakeTransport implements RemoteTransport
     public function exec(string $command, ?callable $onOutput = null): array
     {
         $this->commands[] = $command;
-        $out = match ($command) {
+        if ($this->failConnectAfterConnect) {
+            throw new TransportException('Connection reset by peer');
+        }
+        $out = $this->outputs[$command] ?? match ($command) {
             'cat /etc/os-release' => $this->os,
             'uname -m' => $this->arch,
             'df -Pk /' => $this->df,
