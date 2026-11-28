@@ -20,21 +20,30 @@ Ye guide admin panel ka **har section** samjhati hai: wo kis liye hai, usme kya 
 
 ### Sidebar
 
-Sidebar ke do hisse hain:
+Sidebar me sirf **9 section** hain. Kisi section ko kholne par usse jude saare page **upar tabs** me dikhte hain. Pehle ka koi page hataya nahi gaya; har page ab apne section ke andar hai.
 
-| Hissa | Kya hai |
+| Sidebar section | Upar ke tabs (us section ke pages) |
 |---|---|
-| **Daily** | Roz ka kaam: Dashboard, Orders, Servers, User Manager, Support tickets, Wallet, Payments, Invoices, Products & plans, Settings |
-| **More** (`+` dabaake khulta hai) | Kabhi-kabhi ka kaam: Deployments, Staff & roles, Billing, Infrastructure, Leads, Projects, SEO, Docs, Logs, Exports, aur baaki |
-| **Account** | My profile (naam, password), My security (2-step), Staff portal URL (sirf Super Admin) |
+| **Dashboard** | — |
+| **Orders** | Orders · Install logs |
+| **Customers** | Customers (pehle "User Manager") |
+| **Servers** | Servers · Infrastructure · Suppliers · Supplier offers · Server pools |
+| **Billing** | Payments · Invoices · Wallet · Renewals · Subscriptions · Billing checks |
+| **Support** | Tickets · Departments · Docs · Doc categories |
+| **Products** | Plans · Categories · Add-ons |
+| **Sales** | Leads · Quote requests · Projects · SEO |
+| **Settings** | Settings · Staff & roles · Notifications · Security logs · Exports |
 
-- Har staff ko sirf wahi menu dikhte hain jinki usse permission hai.
+- **Orders** aur **Support** ke saath laal number dikhta hai: kitne order setup ke intezaar me hain, aur kitne tickets khule hain.
+- Sabse neeche **aapka naam** hai. Us par click karne se **My profile**, **My security** (2-step) aur **Staff portal URL** (sirf Super Admin) khulte hain.
+- Har staff ko sirf wahi section aur tabs dikhte hain jinki usse permission hai.
 - Permission ki asli jaanch server par hoti hai, isliye seedha link khol ke bhi koi bina permission page nahi dekh sakta.
+- Chapter 5–16 me purane naam bhi likhe hain (jaise "Billing operations" = ab **Billing checks** tab, "Providers" = **Suppliers** tab).
 
 ### Upar ki bar
 
 - **Search users…:** kisi bhi customer ko naam, email ya phone se dhoondho. Keyboard par `/` dabaane se search box khul jaata hai.
-- **◐ button:** light aur dark theme badalta hai.
+- **Chaand / suraj button:** light (safed-neela) aur dark (navy) theme badalta hai. Aapki pasand isi browser me yaad rehti hai; kuch na chuno to computer ki setting follow hoti hai. Client dashboard me bhi yahi button hai.
 - **Ghanti (🔔) aur laal number:** jo kaam aapka intezaar kar raha hai, uski ginti:
 
 | Ghanti mein line | Kahan le jaati hai |
@@ -180,11 +189,11 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 - Jo server kisi client ko diya hua hai, wo delete nahi hota.
 - Aam taur par server yahan se add karne ki zaroorat nahi padti. Order page ka Step 1 khud server bana deta hai.
 
-## 6. User Manager (customers)
+## 6. Customers
 
 **Kis liye:** customers aur staff ki poori list, aur kisi customer ka poora record.
 
-![User Manager](screens/admin/06-users.jpg)
+![Customers](screens/admin/06-users.jpg)
 
 - **Tabs:** Customers, Staff, All users. Naam, email ya phone se search; status aur role se filter.
 - **+ Add customer:** naam, email, phone. Chaho to customer ko "password set karo" link email ho jaata hai. Staff kabhi customer ka password nahi dekhta ya rakhta.
@@ -236,7 +245,7 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 
 ![Invoices](screens/admin/10-invoices.jpg)
 
-**Subscriptions (More menu): har chalu plan ki renewal.** Status se filter. Asli kaam *Billing & renewals* page par hota hai.
+**Subscriptions (Billing → Subscriptions tab): har chalu plan ki renewal.** Status se filter. Asli kaam *Renewals* tab par hota hai.
 
 ![Subscriptions](screens/admin/20-subscriptions.jpg)
 
@@ -261,7 +270,7 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 - Jis plan ke orders hain, use delete karne par wo sirf band (deactivate) hota hai, mitta nahi.
 - Purane orders aur subscriptions apna purana daam hi rakhte hain.
 
-**Categories** aur **Add-ons** (More menu) bhi isi tarah edit hote hain. Add-on ka daam bhi sirf `plans.approve` wala set kar sakta hai.
+**Categories** aur **Add-ons** (Products section ke tabs) bhi isi tarah edit hote hain. Add-on ka daam bhi sirf `plans.approve` wala set kar sakta hai.
 
 ## 11. Settings
 
@@ -282,9 +291,9 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 - Password/secret wale fields **sirf likhne** ke liye hain. Khaali chhodo to purana value rehta hai, aur wo kabhi dikhta nahi.
 - SMTP, Telegram aur Security sirf **Super Admin** save kar sakta hai, wo bhi password dobara daal ke.
 
-## 12. Billing & renewals aur Billing operations (More menu)
+## 12. Renewals aur Billing checks (Billing section)
 
-### Billing & renewals
+### Renewals tab (pehle "Billing & renewals")
 
 **Kis liye:** kis client ki renewal kab hai, kaun late hai, kise suspend ya reactivate karna hai.
 
@@ -304,7 +313,7 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 - Supplier ki taraf VPS band/chalu karna abhi **staff ka kaam** hai, kyunki kisi supplier ka API juda nahi hai. Client ka app band karne ke liye order page ka **Suspend** button use karo.
 - Kuch bhi delete nahi hota. Proration (bache dino ka hisaab) apne aap nahi hota.
 
-### Billing operations
+### Billing checks tab (pehle "Billing operations")
 
 **Kis liye:** paise ka hisaab-kitaab check karna.
 
@@ -314,7 +323,7 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 - **Payment reconciliation:** 10 minute se atke payments, amount mismatch, verify hue par settle nahi hue, paid order bina invoice. **Run reconciliation now** (do baar chalane se kuch kharab nahi hota).
 - **Billing audit log:** billing mein kisne kya badla.
 
-## 13. Staff & roles (More menu)
+## 13. Staff & roles (Settings section)
 
 **Kis liye:** team banana aur kaun kya kar sakta hai, ye tay karna.
 
@@ -340,17 +349,17 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 | Developer | Projects, servers dekhna, **deploy** |
 | SEO Manager | SEO aur projects |
 
-**Departments** (More menu): General, Billing, Technical Support, Sales, Development, SEO. Har department ka alert email aur SLA ghante set hote hain.
+**Departments** (Support section ka tab): General, Billing, Technical Support, Sales, Development, SEO. Har department ka alert email aur SLA ghante set hote hain.
 
-## 14. Deployments aur Infrastructure (More menu)
+## 14. Install logs aur Infrastructure
 
-### Deployments
+### Install logs (Orders section ka tab, pehle "Deployments")
 
 **Kis liye:** ab tak ke saare install ki list: kaunsi service, kaunsa server, test run ya live, safal ya fail. **Open** se wahi live terminal khulta hai.
 
 ![Deployments](screens/admin/13-deployments.jpg)
 
-### Infrastructure
+### Infrastructure (Servers section ka tab)
 
 **Kis liye:** server kharidne aur supplier ka poora hisaab.
 
@@ -360,10 +369,10 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 - **Record a newly purchased VPS:** naya VPS inventory mein daalo.
 - **Provider capability matrix:** kis supplier ka API kya kar sakta hai. Abhi kisi ka API verify nahi hai, isliye sab manual hai.
 - **Supplier renewals:** kis VPS ka supplier bill kab aana hai. Iske liye roz subah 8:30 par alert bhi aata hai.
-- **Providers, Provider offers, Server pools** (More menu): suppliers ki list, unke plan aur aapki kharid ki keemat, aur server ke group.
+- **Suppliers, Supplier offers, Server pools** (Servers section ke tabs): suppliers ki list, unke plan aur aapki kharid ki keemat, aur server ke group.
 - Proxmox (apna dedicated server) aur automatic VPS kharidna abhi **band** hai. Dedicated server aane par chalu hoga.
 
-## 15. Sales: Leads, Quote requests, Projects, SEO (More menu)
+## 15. Sales: Leads, Quote requests, Projects, SEO
 
 **Automation leads:** Business Automation page se aaye sales lead.
 
@@ -382,14 +391,14 @@ AI plans mein server nahi hota. Order page par 3 step dikhte hain:
 
 **SEO services:** manual SEO audit, tasks, PDF report upload karke client ko publish karna. Search Console abhi juda nahi hai.
 
-## 16. Docs, Notifications, Security logs, Exports (More menu)
+## 16. Docs, Notifications, Security logs, Exports
 
 | Section | Kis liye |
 |---|---|
-| **Documentation / Doc categories** | Website ke `/docs` articles likhna aur badalna (Markdown). Publish ON/OFF |
-| **Notifications** | Har email/Telegram jo gaya ya fail hua. Fail Telegram aur Automation email par **Retry** |
-| **Security logs** | Audit log: kisne, kab, kya kiya, kis IP se. Sirf padhne ke liye |
-| **Exports** | CSV download: customers, orders, invoices, subscriptions, wallet, tickets, staff activity, deployments, leads. Tareekh aur status se filter |
+| **Docs / Doc categories** (Support section) | Website ke `/docs` articles likhna aur badalna (Markdown). Publish ON/OFF |
+| **Notifications** (Settings section) | Har email/Telegram jo gaya ya fail hua. Fail Telegram aur Automation email par **Retry** |
+| **Security logs** (Settings section) | Audit log: kisne, kab, kya kiya, kis IP se. Sirf padhne ke liye |
+| **Exports** (Settings section) | CSV download: customers, orders, invoices, subscriptions, wallet, tickets, staff activity, deployments, leads. Tareekh aur status se filter |
 
 ![Exports](screens/admin/19-exports.jpg)
 

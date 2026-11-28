@@ -188,8 +188,17 @@ class StaffManagementTest extends TestCase
 
     public function test_sidebar_reflects_permissions(): void
     {
+        // Sidebar = sections only; a section shows when at least one of its pages is allowed.
         $this->actingAs($this->staff('technical-support'))->get('/admin')->assertOk()
-            ->assertSee('Support tickets')->assertDontSee('Staff &amp; roles', false)->assertDontSee('Staff portal URL')->assertDontSee('Products &amp; plans', false);
-        $this->actingAs($this->staff('super-admin'))->get('/admin')->assertOk()->assertSee('Staff portal URL')->assertSee('Staff &amp; roles', false);
+            ->assertSee('<span>Support</span>', false)->assertDontSee('<span>Settings</span>', false)->assertDontSee('<span>Products</span>', false)
+            ->assertDontSee('Staff portal URL');
+        $this->get('/admin/tickets')->assertOk()->assertSee('class="admin-tabs"', false)->assertSee('>Tickets</a>', false)->assertSee('>Departments</a>', false);
+
+        $this->actingAs($this->staff('super-admin'))->get('/admin')->assertOk()->assertSee('Staff portal URL')
+            ->assertSee('<span>Settings</span>', false)->assertSee('<span>Products</span>', false)->assertDontSee('class="admin-tabs"', false);
+        // Related pages are tabs inside their section (nothing was removed).
+        $this->get('/admin/settings')->assertOk()->assertSeeInOrder(['class="admin-tabs"', '>Settings</a>', '>Staff &amp; roles</a>', '>Exports</a>'], false);
+        $this->get('/admin/tickets')->assertOk()->assertSeeInOrder(['>Tickets</a>', '>Departments</a>', '>Docs</a>'], false);
+        $this->get('/admin/r/payments')->assertOk()->assertSeeInOrder(['>Payments</a>', '>Invoices</a>', '>Wallet</a>', '>Renewals</a>'], false);
     }
 }

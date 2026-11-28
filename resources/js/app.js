@@ -281,11 +281,13 @@ if (adminMenuButton && adminSidebar) {
     window.addEventListener('pageshow', () => setAdminNav(false));
 }
 
-document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
+document.querySelectorAll('[data-theme-toggle]').forEach((btn) => btn.addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.classList.add('theme-switching');
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('dj-admin-theme', next); } catch (e) { /* storage unavailable */ }
-});
+    setTimeout(() => document.documentElement.classList.remove('theme-switching'), 400);
+    try { localStorage.setItem(btn.dataset.themeKey || 'dj-admin-theme', next); } catch (e) { /* storage unavailable */ }
+}));
 
 // Responsive tables: copy header text into data-label so CSS can render rows as cards on small screens.
 document.querySelectorAll('.data-table, .admin-table').forEach((table) => {

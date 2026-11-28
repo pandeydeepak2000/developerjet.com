@@ -7,12 +7,12 @@
     @php $u = auth()->user(); @endphp
     <div class="admin-kpis dj-kpis">
         {{-- Financial figures only for staff who may see payments (not e.g. Technical Support or Sales). --}}
-        @can('payments.view')<div class="admin-kpi dj-kpi"><span class="dj-kpi-icon" aria-hidden="true">Rs</span><span>Verified revenue</span><strong>{{ \App\Support\Money::inr($kpi['revenue']) }}</strong><small>Orders with verified payment</small></div>@endcan
-        <a class="admin-kpi dj-kpi" href="{{ route('admin.orders.index') }}"><span class="dj-kpi-icon" aria-hidden="true">#</span><span>Orders</span><strong>{{ $kpi['orders'] }}</strong><small>All time - View all</small></a>
-        <a class="admin-kpi dj-kpi" href="{{ route('admin.users.index') }}"><span class="dj-kpi-icon" aria-hidden="true">C</span><span>Customers</span><strong>{{ $kpi['customers'] }}</strong><small>Registered accounts</small></a>
-        <a class="admin-kpi dj-kpi" href="{{ route('admin.resource.index', 'invoices') }}"><span class="dj-kpi-icon" aria-hidden="true">I</span><span>Invoices issued</span><strong>{{ $kpi['invoices'] }}</strong><small>All invoices</small></a>
-        <a class="admin-kpi dj-kpi dj-kpi-alert" href="{{ route('admin.orders.index', ['status' => 'awaiting_provisioning']) }}"><span class="dj-kpi-icon" aria-hidden="true">!</span><span>Awaiting provisioning</span><strong>{{ $kpi['awaiting'] }}</strong><small>Needs a VPS or deployment</small></a>
-        <a class="admin-kpi dj-kpi dj-kpi-alert" href="{{ route('admin.tickets.index') }}"><span class="dj-kpi-icon" aria-hidden="true">?</span><span>Open tickets</span><strong>{{ $kpi['tickets'] }}</strong><small>Open or awaiting reply</small></a>
+        @can('payments.view')<div class="admin-kpi dj-kpi"><span class="dj-kpi-icon" aria-hidden="true"><x-icon name="card" :size="20" /></span><span>Verified revenue</span><strong>{{ \App\Support\Money::inr($kpi['revenue']) }}</strong><small>Orders with verified payment</small></div>@endcan
+        <a class="admin-kpi dj-kpi" href="{{ route('admin.orders.index') }}"><span class="dj-kpi-icon" aria-hidden="true"><x-icon name="cart" :size="20" /></span><span>Orders</span><strong>{{ $kpi['orders'] }}</strong><small>All time - View all</small></a>
+        <a class="admin-kpi dj-kpi" href="{{ route('admin.users.index') }}"><span class="dj-kpi-icon" aria-hidden="true"><x-icon name="user" :size="20" /></span><span>Customers</span><strong>{{ $kpi['customers'] }}</strong><small>Registered accounts</small></a>
+        <a class="admin-kpi dj-kpi" href="{{ route('admin.resource.index', 'invoices') }}"><span class="dj-kpi-icon" aria-hidden="true"><x-icon name="book" :size="20" /></span><span>Invoices issued</span><strong>{{ $kpi['invoices'] }}</strong><small>All invoices</small></a>
+        <a class="admin-kpi dj-kpi dj-kpi-alert" href="{{ route('admin.orders.index', ['status' => 'awaiting_provisioning']) }}"><span class="dj-kpi-icon" aria-hidden="true"><x-icon name="server" :size="20" /></span><span>Awaiting provisioning</span><strong>{{ $kpi['awaiting'] }}</strong><small>Needs a VPS or deployment</small></a>
+        <a class="admin-kpi dj-kpi dj-kpi-alert" href="{{ route('admin.tickets.index') }}"><span class="dj-kpi-icon" aria-hidden="true"><x-icon name="headset" :size="20" /></span><span>Open tickets</span><strong>{{ $kpi['tickets'] }}</strong><small>Open or awaiting reply</small></a>
     </div>
     <nav class="dj-quick-actions" aria-label="Quick actions">
         @can('plans.create')<a class="admin-btn admin-btn-quiet" href="{{ route('admin.plans.create') }}">+ New plan</a>@endcan

@@ -8,8 +8,8 @@
     <title>@yield('title', 'Dashboard') · DeveloperJet</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/logo-mark.png') }}">
-    @vite(['resources/css/app.css', 'resources/css/refine.css', 'resources/css/site.css', 'resources/js/app.js'])
-    <script>document.documentElement.classList.add('js');</script>
+    @vite(['resources/css/app.css', 'resources/css/refine.css', 'resources/css/site.css', 'resources/css/app-theme.css', 'resources/js/app.js'])
+    <script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('dj-theme');if(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)t='dark';if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
     @stack('head')
 </head>
 {{-- Customer area: its own app shell (full-height sidebar + slim top bar), separate from the marketing website. --}}
@@ -83,6 +83,7 @@
                 <a class="app-top__brand" href="{{ route('dashboard') }}" aria-label="DeveloperJet dashboard"><img src="{{ asset('images/logo-mark.png') }}" alt="" width="30" height="30"></a>
                 <nav class="app-top__crumbs" aria-label="Breadcrumb"><a href="{{ route('dashboard') }}">Dashboard</a>@unless (request()->routeIs('dashboard'))<span aria-hidden="true">/</span><span aria-current="page">@yield('title')</span>@endunless</nav>
                 <div class="app-top__actions">
+                    @include('partials.theme-toggle', ['key' => 'dj-theme'])
                     <a class="app-top__link app-hide-sm" href="{{ route('home') }}"><x-icon name="globe" :size="18" /><span>Website</span></a>
                     <a class="app-top__link" href="{{ route('cart.index') }}" aria-label="Cart, {{ $cartCount }} {{ \Illuminate\Support\Str::plural('item', $cartCount) }}"><x-icon name="cart" :size="18" /><span class="app-hide-sm">Cart</span>@if ($cartCount > 0)<em>{{ $cartCount }}</em>@endif</a>
                     <a class="app-top__avatar" href="{{ route('dashboard.profile') }}" title="{{ $me->name }}" aria-label="Profile & security">{{ $initials ?: '?' }}</a>
