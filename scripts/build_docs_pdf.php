@@ -15,6 +15,8 @@ $jobs = [
     ['docs/03_COMPLETE_WORKFLOW.md', 'docs/generated/DeveloperJet_Complete_Workflow.pdf', 'DeveloperJet Complete Workflow', 'Client to Admin - complete feature workflow, automation, manual and gated steps'],
     ['docs/05_EASY_GUIDE.md', 'docs/generated/DeveloperJet_Easy_Guide.pdf', 'DeveloperJet Aasaan Guide', 'Website, Client Dashboard aur Admin Panel - simple Hinglish mein poora workflow'],
     ['docs/06_SIMPLE_ROADMAP.md', 'docs/generated/DeveloperJet_Simple_Roadmap.pdf', 'Simple Delivery Roadmap', 'Order se delivery tak ka aasaan flow, Manual aur Automatic mode, aur kya banana baaki hai'],
+    ['docs/07_ADMIN_GUIDE.md', 'docs/generated/DeveloperJet_Admin_Guide.pdf', 'Admin Panel Guide', 'Admin dashboard ka har section: kis liye hai, kaun se button hain, aur roz ka workflow — screenshots ke saath',
+        'Screenshots ek local test database ke hain (naam, email aur IP sab nakli). Asli passwords, keys ya client data is document mein nahi hai. Jo cheez abhi band ya baad ke liye hai, wo saaf likhi hai.'],
 ];
 
 $css = <<<'CSS'
@@ -42,11 +44,24 @@ blockquote p { margin: 1mm 0; }
 .toc { page-break-after: always; } .toc h2 { margin-top: 0; } .toc ol { padding-left: 6mm; columns: 1; } .toc li { margin: 1mm 0; }
 ul, ol { padding-left: 6mm; }
 .footer-note { font-size: 8.5pt; color: #666; margin-top: 8mm; }
+.shot { margin: 4mm 0 5mm; page-break-inside: avoid; text-align: center; }
+.shot img { max-width: 100%; max-height: 205mm; border: 1px solid #d9d4f3; border-radius: 6px; box-shadow: 0 2px 6px rgba(43,33,102,.08); }
+.shot figcaption { font-size: 8.5pt; color: #50536a; margin-top: 1.5mm; }
 CSS;
 
 $converter = new GithubFlavoredMarkdownConverter(['html_input' => 'strip', 'allow_unsafe_links' => false]);
 
-foreach ($jobs as [$src, $out, $title, $subtitle]) {
+$defaultNote = 'This document separates what is <em>built and tested</em> from what is <em>planned or gated</em>. Automatic provisioning is not live. No real credentials appear in this document.';
+
+// Optional: build only the jobs whose source path contains this text, e.g. `php scripts/build_docs_pdf.php 07_`.
+$only = $argv[1] ?? null;
+
+foreach ($jobs as $job) {
+    [$src, $out, $title, $subtitle] = $job;
+    if ($only !== null && ! str_contains($src, $only)) {
+        continue;
+    }
+    $note = isset($job[4]) ? htmlspecialchars($job[4]) : $defaultNote;
     $md = file_get_contents("$root/$src");
     $html = (string) $converter->convert($md);
 
@@ -56,6 +71,13 @@ foreach ($jobs as [$src, $out, $title, $subtitle]) {
         $svg = preg_replace('/<\?xml.*?\?>/s', '', $svg);
 
         return '</p><div class="diagram">'.$svg.'<div class="caption">'.$m[2].'</div></div><p>';
+    }, $html);
+    // Inline screenshots: <img src="screens/admin/x.jpg" alt="caption"> (JPEG/PNG kept in docs/screens/).
+    $html = preg_replace_callback('/<img src="(screens\/[a-z0-9\/._-]+\.(jpg|png))" alt="([^"]*)"[^>]*>/', function ($m) use ($root) {
+        $data = base64_encode((string) file_get_contents("$root/docs/$m[1]"));
+        $mime = $m[2] === 'png' ? 'image/png' : 'image/jpeg';
+
+        return '</p><figure class="shot"><img src="data:'.$mime.';base64,'.$data.'" alt="'.$m[3].'"><figcaption>'.$m[3].'</figcaption></figure><p>';
     }, $html);
     $html = str_replace('<p></p>', '', $html);
 
@@ -71,7 +93,7 @@ foreach ($jobs as [$src, $out, $title, $subtitle]) {
 
     $doc = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>'.htmlspecialchars($title).'</title><style>'.$css.'</style></head><body>'
         .'<section class="cover"><div class="brand">DeveloperJet · AmbitionHost Pvt. Ltd.</div><h1>'.htmlspecialchars($title).'</h1><p>'.htmlspecialchars($subtitle).'</p>'
-        .'<div class="note"><strong>Honesty note.</strong> This document separates what is <em>built and tested</em> from what is <em>planned or gated</em>. Automatic provisioning is not live. No real credentials appear in this document. Generated '.date('d M Y').'.</div></section>'
+        .'<div class="note"><strong>Honesty note.</strong> '.$note.' Generated '.date('d M Y').'.</div></section>'
         .$tocHtml.$html.'</body></html>';
 
     $buildDir = "$root/storage/app/docs-build";
