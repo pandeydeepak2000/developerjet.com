@@ -220,8 +220,11 @@ class WalletBillingTest extends TestCase
         $order = $this->placeOrder($user, 'hermes-cli-launch', 'tx', ['use_wallet' => 1, 'gstin' => '27AAAAA0000A1Z5']);
         $invoice = Invoice::firstOrFail();
 
-        $pdf = app(InvoiceService::class)->pdf($invoice)->output();
+        $render = app(InvoiceService::class)->pdf($invoice);
+        $pdf = $render->output();
         $this->assertStringStartsWith('%PDF', $pdf);
+        $this->assertSame(1, $render->getDomPDF()->getCanvas()->get_page_count(), 'The invoice must fit on one A4 page.');
+        $this->assertLessThan(300 * 1024, strlen($pdf), 'Fonts are subset, so the emailed PDF stays small.');
         $this->assertNotNull($invoice->fresh()->emailed_at);
         Mail::assertQueued(TemplatedMail::class, fn ($m) => $m->template === 'invoice');
         $this->assertSame('29ABCDE1234F1Z5', $invoice->billing_snapshot['company']['gstin']);

@@ -218,7 +218,8 @@ class InvoiceService
     {
         $invoice->load('items', 'user', 'order');
 
-        return Pdf::loadView('invoices.pdf', ['invoice' => $invoice])->setPaper('a4');
+        // Font subsetting keeps the emailed PDF small (only the glyphs used are embedded).
+        return Pdf::loadView('invoices.pdf', ['invoice' => $invoice])->setPaper('a4')->setOption('isFontSubsettingEnabled', true);
     }
 
     public function email(Invoice $invoice): void
