@@ -57,6 +57,17 @@ class DocsSeeder extends Seeder
         '07ab39eaa81800b113819b3b2b355979dcb1b42d',
         // 2026-11-27: ai-all-access "coming soon / bring your own key" article, before the API-credit plans launched.
         'a5b9fe25089a1f4ea158a736c432f9adb8a0c3f1',
+        // 2026-11-28: billing-and-renewals, cart-and-checkout, invoices-and-wallet, payment-methods, plan-selection,
+        // customer-dashboard, getting-started, common-errors, api-provider-configuration, custom-domain-setup,
+        // how-orders-are-delivered, service-access, ssh-and-security, claude-code, docker-vps, hermes-cli,
+        // hermes-workspace, managed-vs-unmanaged, n8n, openclaw before the VPS panel / docs refresh.
+        '8962825e41ed56dc9fa9bf385dddf2573a163417', 'c9ab41d62eaf393c2384d0580b46604d11a8ed45', 'c49a1aab26bd73740b65523bc4d38813c473ba3c',
+        '0578e002c67151f2a786d4c145e096f91a8b733f', '3f4924a2efcaf10b9184ab28250c383f0017b9d3', '37a83702017bb9ab3842788e5c72a9a0fe8de02d',
+        'fae17a25f0e5f489e5b689142011b6c50fc116ae', '8674028ae1950512a04bcd77543387c76fc7f28a', '0eb59e9967c89652eff520bd05e2bb6c63f894a6',
+        '2cfed10282ff482e5e76c28c0e63b081301d2766', '7649287720f7c54faf5007bb7beb63af1e4898c6', 'ce6b1e815b8eaf443ef0f558c8fdc2542bbc4bee',
+        '3ba356fb530f62bde7ca31fcad67be00bf497d53', '51cb5b60f8ffba70749ddb7aad5524b7d36f4141', '20946efacd72b5ee3147c01f1662e31424b72fc5',
+        'a4f4b4ac566ed21e36507d073ec12348aaf4d2d2', '2cfbedc0b72a6c849c5946345b098ab428f25e6d', '1aa16eef15f4586797e414135d93cbc9a4288c84',
+        '16da55e489894e6cbf8ba2e0ca13b3e44ac907d9', '65f278b4282dd0802338083d0c650747ba760b84',
     ];
 
     /** @var array{created: int, updated: int, kept: int} */

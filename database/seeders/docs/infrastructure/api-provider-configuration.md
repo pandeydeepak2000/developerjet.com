@@ -1,42 +1,44 @@
 ---
 title: API Provider Configuration
-excerpt: Adding, replacing and protecting your own AI provider API key on supported services.
+excerpt: Adding, replacing and protecting your own AI provider API key on your server after delivery.
 order: 3
 legacy: ai-api-providers
 ---
-AI products on DeveloperJet use **your own AI provider account**. You add an API key to the service, and the provider bills your account directly for usage.
+AI products on DeveloperJet use **your own AI provider account** (for example OpenRouter, OpenAI or Anthropic). You add your key on your own server after delivery, and the provider bills your account directly for usage. We do not ask for your key at checkout.
 
-## Supported services and providers
+## Where to find the steps
 
-The **AI provider** panel appears on these services: Hermes CLI, Hermes Workspace, OpenClaw, AI Complete Bundle and Claude Code.
+1. Go to **Dashboard → My services** and open the service.
+2. On the **Overview** tab, find **Add your AI API key** (for n8n: **Getting started**).
+3. Connect to your server over SSH (see [Service access](/docs/service-access)) and run the commands shown. Each command has a **Copy** button. Replace `your-key-here` with your own key.
 
-You can choose one of: **OpenAI**, **Anthropic**, **Google Gemini** or **OpenRouter**.
+## Commands by product
 
-## Add a key
+| Product | What to run |
+| --- | --- |
+| Hermes CLI | `hermes config set OPENROUTER_API_KEY your-key-here`, or `hermes model` to pick another provider |
+| Hermes Workspace | The same two commands, then `hermes gateway restart` |
+| OpenClaw | `openclaw onboard --auth-choice openrouter-api-key` (it asks for the key), then `openclaw models status` |
+| Claude Code | `claude auth login` to sign in with your Claude account, or `export ANTHROPIC_API_KEY=your-key-here` |
+| AI Complete Bundle | The Hermes commands above; for n8n add keys in the n8n editor |
+| n8n | In n8n go to **Credentials → Add credential** and choose OpenAI, OpenRouter or another provider |
 
-1. Create an API key in your provider's console. Give it a recognisable name such as `developerjet-hermes`.
-2. Go to **Dashboard → Services** and open the service.
-3. In **AI provider**, choose the **Provider**.
-4. Paste the key into **API key (write-only)**.
-5. Press **Save securely**. The panel shows **Configured** with the provider name.
+The service page always shows the current commands for your product.
 
 ## How your key is protected
 
-- The key is **encrypted** before it is stored.
-- It is **write-only**: it is never displayed again, never emailed and never written to logs.
-- Only the provider name is recorded in the audit trail — never the key.
+- The key stays on **your** server. DeveloperJet does not see it.
+- The optional **AI API keys** page in your dashboard can keep a copy of your keys, encrypted. Only the last 4 characters are ever shown, and keys are never emailed.
 
-> **Warning:** Never paste API keys into a support ticket, chat or email. If a key may have been exposed, revoke it at the provider immediately, create a new one and save the new key here.
+> **Warning:** Never paste API keys into a support ticket, chat or email. If a key may have been exposed, revoke it at the provider immediately and add a new one.
 
 ## Replace or rotate a key
 
-Enter the new key in the same form and press **Save securely**. The new key replaces the old one. Then revoke the old key at the provider.
+Run the same command again with the new key, then revoke the old key at the provider.
 
-## Skip for now
+## Do not have a provider account?
 
-If you do not have a key yet, press **Skip for now**. The service is still delivered, but marked **Configuration incomplete** and cannot answer AI requests until you add a key.
-
-> **Note:** *Skip for now* also removes any key already saved on the service.
+[AI All-Access](/docs/ai-all-access) gives you one API key for many models with a monthly credit, delivered by our team.
 
 ## Controlling cost
 
@@ -45,6 +47,6 @@ If you do not have a key yet, press **Skip for now**. The service is still deliv
 
 ## Troubleshooting
 
-- **"The ai api key field must be at least 8 characters."** You pasted only part of the key. Copy it again from the provider.
-- **The service answers with an authentication error.** The key was revoked or is for a different provider than the one selected.
+- **The app says no provider is configured.** Run the command from the service Overview again and check for typos in the key.
+- **The app answers with an authentication error.** The key was revoked or belongs to a different provider.
 - **Requests fail with a quota or billing error.** Add credit or raise the limit at your provider.

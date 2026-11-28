@@ -17,13 +17,14 @@ Start with what you want to run:
 | Run an isolated personal AI assistant | [OpenClaw](/docs/openclaw) |
 | Run Claude Code on an always-on server | [Claude Code Hosting](/docs/claude-code) |
 | Run your own containers with full root access | [Docker VPS](/docs/docker-vps) |
-| Use several AI models in one workspace (coming soon) | [AI All-Access](/docs/ai-all-access) |
+| Host a Node.js app or API on your own server | [Node.js Hosting](/docs/nodejs-hosting) |
+| Use one API key for many AI models, with monthly credit | [AI All-Access](/docs/ai-all-access) |
 
 Not sure? The **Compare** pages explain the differences in plain language, and [Self-hosted: who does what](/docs/managed-vs-unmanaged) explains who looks after the server.
 
 ## 2. Read the plan card
 
-Each plan card shows, in the same order:
+Products with more than three plans show them in a row you can move through with the arrows. Each plan card shows, in the same order:
 
 1. **Name and short description.**
 2. **Price**, or one of these labels:
@@ -46,7 +47,7 @@ Some plans support optional add-ons. Add-ons are shown with their own price and 
 
 ## Which plans can be bought online?
 
-A plan can be added to the cart only when it is active, marked purchasable and has an approved monthly price. Plans that are coming soon — such as AI All-Access — can never be bought online; use **Request access** instead.
+A plan can be added to the cart only when it is active, marked purchasable and has an approved price. Professional services and Business Automation are quoted individually; use *Get a quote* or *Contact Sales* for those.
 
 ## Troubleshooting
 

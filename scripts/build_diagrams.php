@@ -106,23 +106,23 @@ $legend = ['auto' => 'Automatic (system)', 'manual' => 'Manual (admin / human)',
 
 diagram('customer-journey.svg', 'Customer journey (order to renewal)', [
     'a' => [0, 0, '1. Choose product', 'step'], 'b' => [1, 0, '2-3. Select plan, configuration, add-ons', 'step'], 'c' => [2, 0, '4. Add to cart', 'step'], 'd' => [3, 0, '5. Checkout', 'step'],
-    'e' => [3, 1, '6. Log in or register', 'step'], 'f' => [2, 1, '7. Email OTP verification (new accounts)', 'auto'], 'g' => [1, 1, '8. Review order, resources, tax, limits', 'step'], 'h' => [0, 1, '9. Choose payment: Razorpay / wallet (PTSure gated)', 'step'],
-    'i' => [0, 2, '10. Server-side payment verification', 'auto'], 'j' => [1, 2, '11. Order paid + notifications', 'auto'], 'k' => [2, 2, '12. Awaiting VPS assignment', 'manual'], 'l' => [3, 2, '13-14. Admin buys / assigns VPS', 'manual'],
-    'm' => [3, 3, '15-17. Auto-install + health checks', 'auto'], 'n' => [2, 3, '18. Access delivered in dashboard', 'auto'], 'o' => [1, 3, '19. Customer manages service', 'step'], 'p' => [0, 3, '20. Renewal + support', 'step'],
+    'e' => [3, 1, '6. Log in or register', 'step'], 'f' => [2, 1, '7. Email OTP verification (new accounts)', 'auto'], 'g' => [1, 1, '8. Review order, billing details, app address', 'step'], 'h' => [0, 1, '9. Pay: Razorpay (+GST) or wallet (no GST)', 'step'],
+    'i' => [0, 2, '10. Server-side payment verification', 'auto'], 'j' => [1, 2, '11. Order paid + admin alert', 'auto'], 'k' => [2, 2, '12. Waiting for server setup', 'manual'], 'l' => [3, 2, '13. Admin buys VPS, enters IP + root password', 'manual'],
+    'm' => [3, 3, '14. Deploy: live install over SSH + health check', 'auto'], 'n' => [2, 3, '15. Active: login details in the dashboard', 'auto'], 'o' => [1, 3, '16. Customer panel: usage, reboot, password', 'step'], 'p' => [0, 3, '17. Renewal + support', 'step'],
 ], [['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e'], ['e', 'f'], ['f', 'g'], ['g', 'h'], ['h', 'i'], ['i', 'j'], ['j', 'k'], ['k', 'l'], ['l', 'm'], ['m', 'n'], ['n', 'o'], ['o', 'p']], 4, 4, $legend);
 
 diagram('admin-provisioning.svg', 'Admin provisioning flow (new paid hosting order)', [
-    'a' => [0, 0, 'Alert: VPS assignment required', 'auto'], 'b' => [1, 0, 'Open order: confirm payment verified', 'manual'], 'c' => [2, 0, 'Check plan: resources, managed / unmanaged', 'manual'],
-    'd' => [2, 1, 'Existing unallocated server fits?', 'gate'], 'e' => [1, 1, 'Yes: assign server', 'manual'], 'f' => [3, 1, 'No: buy VPS from approved supplier', 'manual'],
-    'g' => [3, 2, 'Record server in inventory (cost, renewal, host key)', 'manual'], 'h' => [1, 2, 'System validates fit, access model, cost limits', 'auto'], 'i' => [0, 2, 'Rejected: fix and retry', 'bad'],
-    'j' => [1, 3, 'Dry run (simulation)', 'manual'], 'k' => [2, 3, 'Start deployment (live: gated)', 'manual'], 'l' => [3, 3, 'Watch progress and logs', 'manual'],
-    'm' => [3, 4, 'Success: service active, customer notified', 'auto'], 'n' => [2, 4, 'Failure: service stays inactive', 'bad'], 'o' => [1, 4, 'Fix cause, retry (resumes at failed step)', 'manual'], 'p' => [0, 4, 'Escalate per runbook', 'manual'],
-], [['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e', 'yes'], ['d', 'f', 'no'], ['f', 'g'], ['g', 'h'], ['e', 'h'], ['h', 'i', 'fails'], ['h', 'j', 'passes'], ['j', 'k'], ['k', 'l'], ['l', 'm', 'ok'], ['l', 'n', 'error'], ['n', 'o'], ['o', 'k', 'retry', [[1, 3.5], [2, 3.5]]], ['o', 'p']], 4, 5, $legend);
+    'a' => [0, 0, 'Alert: order waiting for server setup', 'auto'], 'b' => [1, 0, 'Open order: payment verified, plan size shown', 'manual'], 'c' => [2, 0, 'Server already in Servers list?', 'gate'],
+    'e' => [1, 1, 'Yes: pick it in the Server dropdown', 'manual'], 'f' => [3, 1, 'No: buy VPS, enter IP + root password', 'manual'],
+    'g' => [3, 2, 'Web app: set the app subdomain', 'manual'], 'h' => [1, 2, 'System checks size, IP not reused, cost limits', 'auto'], 'i' => [0, 2, 'Rejected: fix and save again', 'bad'],
+    'k' => [2, 3, 'Press Deploy: live terminal opens', 'manual'], 'l' => [3, 3, 'SSH install, step by step (host key pinned)', 'auto'],
+    'm' => [3, 4, 'Success: service + order Active, customer emailed', 'auto'], 'n' => [2, 4, 'Failure: red step, service stays inactive', 'bad'], 'o' => [1, 4, 'Fix cause, Deploy again (resumes)', 'manual'], 'p' => [0, 4, 'Start over: Reset setup', 'manual'],
+], [['a', 'b'], ['b', 'c'], ['c', 'e', 'yes'], ['c', 'f', 'no'], ['f', 'g'], ['e', 'h'], ['g', 'h'], ['h', 'i', 'fails'], ['h', 'k', 'passes'], ['k', 'l'], ['l', 'm', 'ok'], ['l', 'n', 'error'], ['n', 'o'], ['o', 'k', 'retry', [[1, 3.5], [2, 3.5]]], ['o', 'p']], 4, 5, $legend);
 
 diagram('hybrid-architecture.svg', 'Hybrid KVM infrastructure', [
-    'web' => [0, 0, 'Customer website + dashboard (Laravel)', 'step'], 'adm' => [1, 0, 'Admin console (RBAC, 2FA foundation)', 'manual'], 'pay' => [2, 0, 'Razorpay (sandbox first); PTSure gated', 'gate'],
+    'web' => [0, 0, 'Customer website + dashboard (Laravel)', 'step'], 'adm' => [1, 0, 'Admin console (RBAC, staff 2FA)', 'manual'], 'pay' => [2, 0, 'Razorpay + wallet', 'auto'],
     'core' => [0, 1, 'DeveloperJet core: orders, wallet, invoices, inventory, recipes', 'auto', 2], 'ntf' => [2, 1, 'Telegram + Email + admin centre', 'auto'],
-    'q' => [0, 2, 'Queue worker (separate from web requests)', 'auto'], 'w' => [1, 2, 'Deployment worker: fixed recipe commands only', 'auto'], 'adp' => [2, 2, 'Provider adapters (capability-gated)', 'auto'],
+    'q' => [0, 2, 'Runs after the response / queue worker', 'auto'], 'w' => [1, 2, 'SshWorker: reviewed scripts only, password redacted', 'auto'], 'adp' => [2, 2, 'Provider adapters (capability-gated)', 'gate'],
     'man' => [1, 3, 'NOW: manual suppliers (DesiVPS, EricHost, Contabo, Server Broker)', 'manual'], 'api' => [2, 3, 'LATER: supplier APIs (only if verified)', 'gate'], 'pve' => [3, 3, 'FUTURE: OVH dedicated + Proxmox KVM (disabled)', 'gate'],
 ], [['web', 'core'], ['adm', 'core'], ['pay', 'core'], ['core', 'ntf'], ['core', 'q'], ['q', 'w'], ['w', 'adp'], ['w', 'man', 'SSH after assign'], ['adp', 'api'], ['adp', 'pve']], 4, 4, $legend);
 
@@ -134,5 +134,5 @@ diagram('payment-states.svg', 'Order and payment states', [
 
 diagram('deployment-states.svg', 'Deployment states and safe retry', [
     'q' => [0, 0, 'queued', 'step'], 'pf' => [1, 0, 'preflight (resources, host key, OS, arch, disk)', 'auto'], 'r' => [2, 0, 'running recipe steps', 'auto'], 's' => [3, 0, 'succeeded: service active', 'end'],
-    'dr' => [0, 1, 'dry_run_ok (simulation only)', 'gate'], 'f' => [2, 1, 'failed at step X (service inactive)', 'bad'], 'rt' => [1, 1, 'admin retry: new attempt resumes after confirmed steps', 'manual'],
+    'dr' => [0, 1, 'test run only (when live install is off)', 'gate'], 'f' => [2, 1, 'failed at step X (service inactive)', 'bad'], 'rt' => [1, 1, 'admin retry: new attempt resumes after confirmed steps', 'manual'],
 ], [['q', 'pf'], ['pf', 'r', 'pass'], ['r', 's', 'all steps ok'], ['q', 'dr', 'dry run'], ['pf', 'f', 'fail'], ['r', 'f', 'step fails'], ['f', 'rt'], ['rt', 'q', 'new attempt', [[1, 0.5], [0, 0.5]]]], 4, 2, ['auto' => 'System', 'manual' => 'Admin action', 'bad' => 'Failure', 'gate' => 'Not an install']);

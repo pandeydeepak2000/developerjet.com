@@ -9,28 +9,30 @@ Claude Code Hosting gives you a VPS of your own with the Claude Code CLI install
 
 ## Who it is for
 
-Developers comfortable with a terminal, SSH keys and basic Git. You do not need to administer the server.
+Developers comfortable with a terminal, SSH and basic Git. After handover the server is yours to look after — see [Self-hosted: who does what](/docs/managed-vs-unmanaged).
 
 ## What is included
 
-- A VPS assigned to your order (size depends on the plan once confirmed).
-- Claude Code CLI installed by the deployment process.
+- A VPS dedicated to you, sized by your plan.
+- Claude Code CLI installed with the official installer.
 - A security baseline applied during setup.
-- Access instructions delivered through your dashboard.
+- Full root access, with your login, live usage and a Reboot button in the service panel.
 
-**Not included:** a Claude subscription or API credits, help writing or reviewing your code, and unrestricted root access — for full root access see [Docker VPS](/docs/docker-vps).
+**Not included:** a Claude subscription or API credits, help writing or reviewing your code, and backups.
 
 ## Getting started
 
 1. Order a Claude Code plan and wait for the service to become **Active**.
-2. Connect over SSH using the access instructions on the service page. See [Service access](/docs/service-access).
-3. Sign in to Claude Code with your own account, or provide your API credentials — either on the service page (**AI provider** → Anthropic) or as described in your access instructions.
+2. Connect over SSH with the login from **Login & SSH**. See [Service access](/docs/service-access).
+3. Sign in to Claude Code with your own account (`claude auth login`), or set your Anthropic API key.
 4. Clone your repository and start working.
 
 ```bash
-ssh your-username@your-server-ip
+ssh root@your-server-ip
+claude auth login                          # or: export ANTHROPIC_API_KEY=your-key-here
 git clone git@github.com:your-org/your-repo.git
 cd your-repo
+claude
 ```
 
 ## Keeping sessions running
@@ -53,3 +55,4 @@ tmux attach -t work   # reconnect later
 - **Claude Code says you are not signed in.** Sign in again with your own account or check your API credentials.
 - **Git asks for a password.** Use SSH keys or a token; see [SSH and security](/docs/ssh-and-security).
 - **The plan shows Pricing to be confirmed.** Plan sizes and prices are published only after they are approved.
+- **You want a clean start.** **Reinstall fresh** on the Manage tab removes Claude Code and its files, then installs it again.

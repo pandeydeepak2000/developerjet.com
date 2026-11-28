@@ -7,18 +7,18 @@ order: 3
 
 Checkout lists only the payment methods that are switched on at the time you order. The methods DeveloperJet supports are:
 
-| Method | What it covers | Notes |
+| Method | What it covers | GST |
 | --- | --- | --- |
-| **Razorpay** | UPI, cards and netbanking | Shown when enabled by DeveloperJet. |
-| **Wallet balance** | Funds already in your DeveloperJet wallet | Tick *Apply wallet balance* at checkout. |
+| **Razorpay** | UPI, cards and netbanking | 18% GST is added |
+| **Wallet balance** | Funds already in your DeveloperJet wallet | No GST |
 
-If no online method is enabled, checkout tells you so. The order can still be placed and paid later.
+The **Review** panel at checkout shows the total for the method you pick. If no online method is enabled, checkout tells you so; you can pay from your wallet or place the order and pay later.
 
 ## Paying with the wallet
 
-- If your wallet covers the full total, the order is paid immediately.
-- If it covers only part, that amount is reserved for the order and you pay the rest with an online method.
-- If you cancel an unpaid order, the reserved wallet funds return to your wallet.
+- Choose **Wallet balance** at checkout. It can be selected when your balance covers the whole order.
+- The order is paid immediately and no GST is added.
+- To top up first, see [Invoices and wallet](/docs/invoices-and-wallet).
 
 See [Invoices and wallet](/docs/invoices-and-wallet) to add funds.
 

@@ -13,9 +13,7 @@ $root = dirname(__DIR__);
 $browser = getenv('BROWSER_BIN') ?: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 $jobs = [
     ['docs/03_COMPLETE_WORKFLOW.md', 'docs/generated/DeveloperJet_Complete_Workflow.pdf', 'DeveloperJet Complete Workflow', 'Client to Admin - complete feature workflow, automation, manual and gated steps'],
-    ['docs/05_EASY_GUIDE.md', 'docs/generated/DeveloperJet_Easy_Guide.pdf', 'DeveloperJet Aasaan Guide', 'Website, Client Dashboard aur Admin Panel - simple Hinglish mein poora workflow'],
-    ['docs/06_SIMPLE_ROADMAP.md', 'docs/generated/DeveloperJet_Simple_Roadmap.pdf', 'Simple Delivery Roadmap', 'Order se delivery tak ka aasaan flow, Manual aur Automatic mode, aur kya banana baaki hai'],
-    ['docs/07_ADMIN_GUIDE.md', 'docs/generated/DeveloperJet_Admin_Guide.pdf', 'Admin Panel Guide', 'Admin dashboard ka har section: kis liye hai, kaun se button hain, aur roz ka workflow — screenshots ke saath',
+    ['docs/06_ADMIN_GUIDE.md', 'docs/generated/DeveloperJet_Admin_Guide.pdf', 'Admin Panel Guide', 'Admin dashboard ka har section: kis liye hai, kaun se button hain, aur roz ka workflow — screenshots ke saath',
         'Screenshots ek local test database ke hain (naam, email aur IP sab nakli). Asli passwords, keys ya client data is document mein nahi hai. Jo cheez abhi band ya baad ke liye hai, wo saaf likhi hai.'],
 ];
 
@@ -53,7 +51,7 @@ $converter = new GithubFlavoredMarkdownConverter(['html_input' => 'strip', 'allo
 
 $defaultNote = 'This document separates what is <em>built and tested</em> from what is <em>planned or gated</em>. Automatic provisioning is not live. No real credentials appear in this document.';
 
-// Optional: build only the jobs whose source path contains this text, e.g. `php scripts/build_docs_pdf.php 07_`.
+// Optional: build only the jobs whose source path contains this text, e.g. `php scripts/build_docs_pdf.php 06_`.
 $only = $argv[1] ?? null;
 
 foreach ($jobs as $job) {

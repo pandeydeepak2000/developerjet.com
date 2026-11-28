@@ -18,11 +18,11 @@ You can also open an order and see its invoices in the **Invoices** panel.
 
 ### What appears on an invoice
 
-- The **billing name**, **billing address** and optional **GSTIN** you entered at checkout.
+- The **company or name**, **billing address** and optional **GSTIN** saved in **Profile & security → Billing details**.
 - Each plan and add-on, the billing period, any discount, tax (when configured) and the total.
 - DeveloperJet's company details.
 
-> **Tip:** Enter your billing details carefully at checkout. To correct an issued invoice, open a **Billing** ticket — invoices are corrected with a credit note rather than edited.
+> **Tip:** Add your billing details once in your profile before you order. To correct an issued invoice, open a **Billing** ticket — invoices are corrected with a credit note rather than edited.
 
 ## Wallet
 
@@ -47,7 +47,7 @@ Top-ups are verified by our team before funds are credited:
 
 ### Using the wallet at checkout
 
-Tick **Apply wallet balance** on the checkout page. See [Payment methods](/docs/payment-methods) for how full and partial wallet payments work.
+Choose **Wallet balance** as the payment method at checkout. It is available when your balance covers the whole order, and no GST is added. See [Payment methods](/docs/payment-methods).
 
 ## Troubleshooting
 

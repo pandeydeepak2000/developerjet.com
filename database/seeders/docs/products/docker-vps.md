@@ -15,15 +15,15 @@ You are comfortable with Linux, SSH, Docker and Compose, and you accept responsi
 
 - A VPS assigned to your order (size depends on the plan once confirmed).
 - Docker Engine and Docker Compose installed.
-- SSH/root access details delivered securely.
+- SSH/root login shown in your service panel after delivery.
 
-**Not included:** server management, updates or hardening after handover; a hosted control panel, web console or one-click app catalogue; backups or snapshots until such a feature has been verified and announced; help with your containers or code.
+**Not included:** server management, updates or hardening after handover; a web console or one-click app catalogue; backups or snapshots; help with your containers or code.
 
 ## First steps after handover
 
 1. Connect as described in [Service access](/docs/service-access).
 2. Update the operating system packages.
-3. Add your SSH key and disable password login. See [SSH and security](/docs/ssh-and-security).
+3. Add your SSH key. See [SSH and security](/docs/ssh-and-security). If you also turn off password login, the panel can no longer show usage, reboot the server or change the root password.
 4. Turn on a firewall that allows only the ports you need.
 5. Deploy your first stack.
 
@@ -66,9 +66,9 @@ docker compose logs -f web
 
 Backups are your responsibility (they are not included; ask our sales team for a backup plan). Copy volumes and databases off the server regularly and test restoring them.
 
-## Server controls
+## Your server panel
 
-The **Controls** panel on your service page lists power, console, snapshots and other actions. Each is enabled only after it has been verified for your server; until then it shows *Unavailable* with a reason. Open a ticket if you need a restart.
+Your service panel shows live CPU, memory, disk and network usage, your root login and a **Reboot** button. You can change the root password on the **Login & SSH** tab. See [Customer dashboard](/docs/customer-dashboard).
 
 ## Troubleshooting
 

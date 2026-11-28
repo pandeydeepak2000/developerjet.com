@@ -14,17 +14,16 @@ Anyone who prefers a graphical workspace to a terminal. No server skills are nee
 - A VPS assigned to your order, sized by your plan.
 - Hermes installed with Docker and the Workspace configured.
 - Domain verification for a domain you already own (DNS TXT record).
-- Access details delivered through your dashboard.
+- Your root login, live usage and a Reboot button in the service panel.
 
-**Not included:** AI model usage (bring your own key), unrestricted root access, custom development or integrations, and domain registration — DeveloperJet does not sell domains.
+**Not included:** AI model usage (bring your own key), custom development or integrations, backups, and domain registration — DeveloperJet does not sell domains.
 
 ## Getting started
 
 1. Order a Hermes Workspace plan and wait for the service to become **Active**.
-2. Open **Dashboard → Services → your Workspace service**.
-3. Add your AI provider key in **AI provider**. See [API provider configuration](/docs/api-provider-configuration).
-4. Open the **Service URL** shown in the Overview panel in a modern browser.
-5. Sign in to the Workspace using the access details on the service page.
+2. Open **Dashboard → My services → your Workspace service**.
+3. Add your AI key: connect over SSH with the login from **Login & SSH** and run the commands under **Add your AI API key** on the Overview. See [API provider configuration](/docs/api-provider-configuration).
+4. Press **Open** at the top of the service panel to open the Workspace in a modern browser.
 
 ## Using your own domain
 
@@ -38,12 +37,12 @@ The full walkthrough, with a diagram of the records, is in [Custom domain setup]
 
 ## Good practice
 
-- Bookmark the Service URL rather than searching for it.
+- Bookmark the Workspace address rather than searching for it.
 - Sign out of the Workspace on shared computers.
 - Keep your provider key's spending limits set at the provider.
 
 ## Troubleshooting
 
-- **The Service URL says "Available once your service is active".** Setup is still in progress — see [How orders are delivered](/docs/how-orders-are-delivered).
+- **There is no Open button yet.** Setup is still in progress — see [How orders are delivered](/docs/how-orders-are-delivered).
 - **The browser shows a certificate warning on my domain.** HTTPS for a custom domain is configured after verification. Use the default address until our team confirms the domain is live.
-- **Replies fail or say no provider is set.** Add or replace the key on the service page.
+- **Replies fail or say no provider is set.** Run the key commands again over SSH, then `hermes gateway restart`.

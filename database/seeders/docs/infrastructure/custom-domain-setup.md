@@ -30,8 +30,8 @@ Supported applications can be served from a domain you already own instead of th
 
 ## Step 1 — Save the domain
 
-1. Go to **Dashboard → Services** and open the service.
-2. In the **Domain** panel, enter the domain in **Custom domain**, for example `ai.example.com`.
+1. Go to **Dashboard → My services**, open the service and select the **Manage** tab.
+2. In the **Domain** panel, enter the domain in **Your own domain**, for example `ai.example.com`.
 3. Press **Save domain**. The panel now shows **Status: pending** and the TXT record to create.
 
 ## Step 2 — Add the verification TXT record

@@ -1,46 +1,50 @@
 # DeveloperJet
 
-A Laravel 12 and Blade marketing site with a standalone homepage and dedicated Hermes and n8n product pages. The responsive interface uses Tailwind CSS, a custom neumorphic visual system, and minimal vanilla JavaScript for the mobile menu and monthly/yearly pricing switch.
+DeveloperJet (powered by AmbitionHost) sells self-hosted AI and developer hosting (Hermes CLI, Hermes Workspace, n8n, OpenClaw, AI Complete Bundle, Claude Code, Docker VPS, Node.js Hosting), AI All-Access API credit plans and quote-based digital services. It is one Laravel 12 app with three parts:
+
+- **Website**: product pages, pricing, cart and checkout (Razorpay or wallet), help centre at `/docs`.
+- **Customer dashboard** (`/dashboard`): services with a server panel (live usage, root login, password change, reboot, reinstall), orders, invoices, wallet, subscriptions, tickets, quotes and projects.
+- **Admin panel** (`/staff/{slug}/login` → `/admin`): orders with server setup and live install over SSH, customers, servers, billing, support, products, sales and settings, with role-based permissions.
 
 ## Run locally
 
-Requirements: PHP 8.2+, Composer, and Node.js/npm.
+Requirements: PHP 8.2+, Composer, Node.js/npm, MySQL (tests use SQLite in memory).
 
 ```powershell
 composer install
 Copy-Item .env.example .env
 php artisan key:generate
+php artisan migrate
+php artisan db:seed
 npm install
 npm run build
-php artisan serve
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Open `http://127.0.0.1:8000`.
+Open `http://127.0.0.1:8000`. Local mail uses the `log` mailer: verification codes appear in `storage/logs/laravel.log`. The first staff account is created with `php artisan staff:create-super <email> "Name"` (interactive).
 
-## Pages
-
-- `/` — standalone DeveloperJet homepage and product links
-- `/hermes` — Hermes CLI and Workspace overview
-- `/hermes-cli` — Hermes CLI installed on a VPS for SSH or PuTTY access
-- `/hermes-workspace` — Hermes Workspace installed with Docker on a VPS
-- `/n8n` — n8n plans installed on a managed VPS
-- `/login` and `/register` — visual-only account screens that direct users to sales on WhatsApp
-- `/forgot-password` — visual-only password help screen; no reset email is sent
-- `/about` — company story and principles
-- `/contact` — phone and WhatsApp contact options
-- `/terms` — terms of service
-- `/privacy` — privacy policy
-- `/refund` — refund policy
-
-Prices shown on the product pages are illustrative INR amounts; confirm final pricing, plan inclusions, VPS configuration, and applicable taxes with sales at **+91 76888 55600**. Activated digital services and provisioned VPS plans are non-refundable.
-
-## Tests and production assets
+## Tests and assets
 
 ```powershell
 php artisan test
+vendor/bin/pint --test
 npm run build
 ```
 
-## Local development notes
+`public/build` is committed, because the production server has no npm.
 
-See `PROJECT_CONTEXT.md`, `CLAUDE.md` and `docs/02_PROJECT_STATUS.md`. Local mail uses the `log` mailer (OTP codes appear in `storage/logs/laravel.log`); SMTP is not configured yet.
+## Documentation
+
+| File | For | What it covers |
+|---|---|---|
+| `CLAUDE.md` | AI sessions | Rules and owner decisions that must not be broken |
+| `DeveloperJet_SRS_v0.1.md` / `.pdf` | Everyone | Original requirements (later owner decisions win) |
+| `docs/01_DEVELOPER_GUIDE.md` | Developers | Stack, rules, folder map, core patterns, change guide, decisions |
+| `docs/02_PROJECT_STATUS.md` | Everyone | What is built, what was verified, what is pending |
+| `docs/03_COMPLETE_WORKFLOW.md` | Developers, owner | Customer to admin workflow end to end (PDF in `docs/generated/`) |
+| `docs/04_STAFF_ACCESS.md` | Owner, admins | Staff login, roles, permissions, login troubleshooting |
+| `docs/05_CPANEL_DEPLOYMENT.md` | Owner / DevOps | First deploy, `.env`, cron, SMTP, updates, health checks, go-live checklist |
+| `docs/06_ADMIN_GUIDE.md` | Owner, staff | Hinglish admin panel guide with screenshots (PDF in `docs/generated/`) |
+| `database/seeders/docs/` | Customers | Help-centre articles shown at `/docs` |
+
+After editing `docs/*.md`, rebuild the PDFs: `php scripts/build_diagrams.php && php scripts/build_docs_pdf.php`.

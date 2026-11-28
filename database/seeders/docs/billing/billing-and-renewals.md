@@ -4,7 +4,7 @@ excerpt: How subscriptions renew, when reminders are sent, and what happens if a
 order: 5
 legacy: renewals
 ---
-Each active service has a subscription with a **billing period** (monthly or yearly) and a **next due date**. You can see the renewal date on the service page.
+Each active service has a subscription with a **billing period** (monthly or yearly) and a **next due date**. You can see the renewal date on the service panel's **Billing** tab and under **Dashboard → Subscriptions & renewals**.
 
 ## How renewal works
 
@@ -12,7 +12,7 @@ Each active service has a subscription with a **billing period** (monthly or yea
 
 1. **Reminder.** Before the due date we email you a renewal reminder. The reminder window is set by DeveloperJet (currently 7 days).
 2. **Renewal order.** A renewal order for the next period is created in **Dashboard → Orders**. Only one renewal order is created per billing period.
-3. **You pay.** Pay the renewal order with any available method or your wallet balance.
+3. **You pay.** Press **Renew now** in **Subscriptions & renewals**, or pay the renewal order with any available method or your wallet balance.
 4. **Service continues.** Once payment is verified, the next due date moves forward by one billing period and an invoice is issued.
 
 > **Important:** DeveloperJet never charges stored payment details automatically. If you do not pay the renewal order, it stays unpaid.
@@ -25,16 +25,16 @@ Each active service has a subscription with a **billing period** (monthly or yea
 
 ## Renewal price
 
-The renewal is created at the plan's current approved price for your billing period. Plans that do not have an approved price do not generate renewal orders; our team contacts you instead.
+The renewal uses the **agreed price** of your subscription — the price you signed up at, shown on the subscription's details page — not today's list price. A one-time setup fee is never charged again on renewal.
 
 ## Changing or cancelling
 
 - **Switching between monthly and yearly**, or **changing plan**: open a Billing ticket and we will arrange it.
-- **Not renewing**: let the renewal order go unpaid or open a ticket so we can close the service cleanly and help you take a copy of your data first.
+- **Not renewing**: open the subscription in **Subscriptions & renewals** → **Details** → **Cancellation**, choose when it should end and press **Request cancellation**. Our team reviews it; you can withdraw the request with *Keep my subscription* until then. Your data is not deleted when you submit the form.
 
 > **Warning:** When a service is closed, its server is reclaimed. Download anything you need before the end of your paid period.
 
 ## Troubleshooting
 
-- **I did not get a reminder.** Check spam and that your account email is current. The renewal date is always visible on the service page.
+- **I did not get a reminder.** Check spam and that your account email is current. The renewal date is always visible in **Subscriptions & renewals**.
 - **There are two unpaid orders.** One is probably your original order and the other a renewal. Open each from **Dashboard → Orders**; cancel the one you do not need if it is unpaid.

@@ -30,11 +30,13 @@ Find your problem below. Each fix links to the full guide.
 
 | Problem | Fix |
 | --- | --- |
-| Order stuck at *Awaiting VPS assignment* | This step is manual. If it is taking longer than expected, open a ticket. [How orders are delivered](/docs/how-orders-are-delivered) |
-| Service shows *Configuration incomplete* | Add your AI provider key on the service page. [API provider configuration](/docs/api-provider-configuration) |
-| "Permission denied (publickey)" | Your public key is not on the server or SSH uses another key. [SSH and security](/docs/ssh-and-security) |
+| Order stuck at *Awaiting VPS assignment* | Our team is adding your server. If it is taking longer than expected, open a ticket. [How orders are delivered](/docs/how-orders-are-delivered) |
+| AI app says no provider or key is set | Add your key on the server with the command under **Add your AI API key** on the service Overview. [API provider configuration](/docs/api-provider-configuration) |
+| "Permission denied (publickey)" | The server expects a key your computer is not offering, or password login was turned off. [SSH and security](/docs/ssh-and-security) |
 | Connection timed out | Check the IP and that the service is *Active*; try another network. |
-| A control shows *Unavailable* | It has not been verified for your server yet. Open a ticket for help. |
+| Usage says "We could not reach your server just now" | The server may be rebooting; wait a minute. If it stays, the root password may have been changed on the server — open a ticket. [Service access](/docs/service-access) |
+| Root password does not work | Copy it again from **Login & SSH**, or set a new one in the **Root password** box. |
+| App is stuck or not loading | Use **Restart** on the **Manage** tab, or **Reboot** the server. |
 
 ## Domains
 
@@ -42,7 +44,7 @@ Find your problem below. Each fix links to the full guide.
 | --- | --- |
 | "We could not find the TXT record yet." | Check the record name and value and wait for DNS propagation. [Custom domain setup](/docs/custom-domain-setup) |
 | Want to buy or transfer a domain | DeveloperJet does not sell or transfer domains. Use any registrar, then connect the domain. |
-| Certificate warning | HTTPS for a custom domain is configured after verification. Use the default address until confirmed. |
+| Certificate warning | HTTPS for your own domain is set up after verification. Use the DeveloperJet address until our team confirms it. |
 
 ## Billing and renewals
 

@@ -21,9 +21,15 @@ cat ~/.ssh/id_ed25519.pub
 
 > **Warning:** Never share the private key (`id_ed25519` without `.pub`) with anyone, including DeveloperJet staff.
 
-## Give us your public key
+## Put your public key on the server
 
-Open a ticket for the service and paste the contents of your `.pub` file. Our team adds it to the server as part of the secure handover.
+Log in once with the root password from **Login & SSH** in your service panel, then copy your key to the server:
+
+```bash
+ssh-copy-id root@your-server-ip
+```
+
+From then on SSH uses your key. If you cannot do this yourself, open a ticket for the service and paste the contents of your `.pub` file — never the private key.
 
 ## Connect
 
@@ -32,7 +38,7 @@ Open a ticket for the service and paste the contents of your `.pub` file. Our te
 ssh your-username@your-server-ip
 ```
 
-On first connection you are asked to confirm the server's fingerprint. Compare it with the fingerprint given in your access instructions if one was provided, then type `yes`.
+On first connection you are asked to confirm the server's fingerprint. Type `yes` to continue. If the warning appears again later, see Troubleshooting below.
 
 ## Everyday commands on your server
 
@@ -69,7 +75,7 @@ Commands that **change** things need more care:
 
 ## Harden SSH on your server
 
-On a Docker VPS you are responsible for SSH settings. After confirming key login works **in a second terminal**:
+After handover you are responsible for SSH settings. After confirming key login works **in a second terminal**:
 
 ```bash
 sudo nano /etc/ssh/sshd_config
@@ -80,6 +86,8 @@ sudo systemctl reload ssh   # the service may be called sshd on some systems
 ```
 
 > **Warning:** Keep your current session open until you have tested a new login. A mistake in `sshd_config` can lock you out.
+
+> **Note:** The service panel logs in with your root password to show usage, reboot the server and change the root password. If you turn off password login, those panel tools stop working. That is your choice to make — everything else on the server keeps working.
 
 ## Firewall
 
@@ -119,7 +127,8 @@ docker image prune            # free disk space from unused images
 
 - Use a unique, long password for your DeveloperJet account.
 - Never share one-time codes, reset links, passwords or private keys.
-- Store API keys only in the service page's **AI provider** form.
+- Keep AI API keys on your server or in the dashboard's **AI API keys** page — never in tickets or chat.
+- Change your root password in the service panel (**Login & SSH → Root password**), not with `passwd`.
 - DeveloperJet staff will never ask for your password, OTP or private key.
 - Report anything suspicious in a ticket straight away.
 

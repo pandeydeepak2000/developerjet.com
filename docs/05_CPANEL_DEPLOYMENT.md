@@ -3,7 +3,7 @@
 For the owner/operator running DeveloperJet on cPanel shared hosting. This is an **internal** guide — customers
 never see it. Customer-facing help lives in the Documentation centre at `/docs` (source: `database/seeders/docs/`).
 
-Verified against a live cPanel account: PHP 8.2.36, Laravel 12.70.2, MySQL, `~/developerjet.com`.
+Last updated: 2026-11-28. Verified against the live cPanel account: PHP 8.2.36, Laravel 12, MySQL, `~/developerjet.com`.
 
 ---
 
@@ -11,9 +11,10 @@ Verified against a live cPanel account: PHP 8.2.36, Laravel 12.70.2, MySQL, `~/d
 
 | Audience | Location | How to read it |
 |---|---|---|
-| **Customers** | `database/seeders/docs/**/*.md` → seeded into the DB | On the site at `/docs` (25 articles, searchable) |
-| **Support / Sales staff** | `docs/ADMIN_OPERATIONS_GUIDE.md`, `docs/SALES_TEAM_OPERATIONS.md`, `docs/STAFF_*.md` | In the repo |
-| **You (owner / DevOps)** | `docs/CPANEL_DEPLOYMENT_GUIDE.md` (this file), `docs/PRODUCTION_READINESS_CHECKLIST.md`, `docs/01_DEVELOPER_GUIDE.md` | In the repo |
+| **Customers** | `database/seeders/docs/**/*.md` → seeded into the DB | On the site at `/docs` (searchable) |
+| **Owner and staff** | `docs/06_ADMIN_GUIDE.md` → `docs/generated/DeveloperJet_Admin_Guide.pdf` (Hinglish, screenshots), `docs/04_STAFF_ACCESS.md` | PDF or in the repo |
+| **Owner / DevOps** | `docs/05_CPANEL_DEPLOYMENT.md` (this file), `docs/02_PROJECT_STATUS.md` | In the repo |
+| **Developers** | `docs/01_DEVELOPER_GUIDE.md`, `docs/03_COMPLETE_WORKFLOW.md` | In the repo |
 
 Customer docs are edited in **Admin → Documentation** or by changing the `.md` files and re-running
 `php artisan db:seed --class=DocsSeeder`. The seeder never overwrites an article a staff member edited in Admin.
@@ -93,9 +94,13 @@ MAIL_ENCRYPTION=ssl
 MAIL_FROM_ADDRESS=support@yourdomain.com
 MAIL_FROM_NAME="DeveloperJet"
 
-# Provisioning safety switches - LEAVE THESE OFF
-PROVISIONING_WORKER=dry_run
-PROVISIONING_LIVE_ENABLED=false
+# Live install over SSH (owner-approved 2026-11-25; needs phpseclib from composer install
+# and outbound port 22 from this host). Set both back to dry_run / false to stop live installs.
+PROVISIONING_WORKER=ssh
+PROVISIONING_LIVE_ENABLED=true
+
+# Optional: GST rate for Razorpay orders (wallet-paid orders have none). Admin → Settings → Tax overrides it.
+GST_PERCENT=18
 ```
 
 After any `.env` change: `php artisan config:cache` (config is cached, so edits are ignored until you re-cache).
@@ -155,26 +160,24 @@ Run in cPanel → Terminal, inside `~/developerjet.com`:
 
 ```bash
 cd ~/developerjet.com
-php artisan down --render="errors::503"   # optional for bigger updates
+git fetch origin && git merge origin/main   # .env is not tracked, so it is kept
+git log --oneline -1                        # check the commit you expect
 
-git fetch origin main
-git reset --hard origin/main              # server has no local code edits; .env is NOT tracked so it is kept
-
-composer install --no-dev --optimize-autoloader
-php artisan migrate --force               # safe: migrations are additive
-php artisan db:seed --class=DocsSeeder    # only when docs changed - never overwrites Admin edits
+# Only when the release notes say so:
+composer install --no-dev --optimize-autoloader     # new PHP packages
+php artisan migrate --force                         # new migrations (additive only)
+php artisan db:seed --class=DocsSeeder --force      # customer help articles changed (never overwrites Admin edits)
 
 php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan config:cache && php artisan route:cache && php artisan view:cache
 php artisan queue:restart
-
-php artisan up
 ```
 
+Then hard-refresh the browser (Ctrl+F5). For a bigger update you can wrap this in `php artisan down` / `php artisan up`.
+
 `public/build/` is committed to Git, so **npm is not needed on the server**. If assets look stale, confirm
-`public/build/manifest.json` came with the pull.
+`public/build/manifest.json` came with the pull. A 500 on one admin page right after a pull is usually a stale
+route cache: run `php artisan optimize:clear` and the cache commands again.
 
 ---
 
@@ -204,11 +207,30 @@ in `.env` (database password, SMTP password, gateway keys) and re-run `php artis
 
 ## 9. What stays OFF until explicitly approved
 
-- Live provisioning (`PROVISIONING_LIVE_ENABLED=false`) — SSH transport is inert by design; deployment tests
-  run against a fake transport only.
-- Supplier APIs and Proxmox — no verified credentials exist.
-- n8n resale (`n8n.resale_verified`) and OpenClaw spec (`openclaw.spec_approved`) — owner decisions.
-- Automatic suspension (`billing.live_suspension_enabled`) — staff tasks are created instead.
+- Install scripts that were not run on a test VPS (Hermes Workspace, OpenClaw, AI Complete Bundle): Deploy stops
+  safely at that step and the order page offers "mark delivered" instead.
+- Supplier APIs and Proxmox: no verified credentials exist.
+- Automatic suspension through a supplier (`billing.live_suspension_enabled`): staff tasks are created instead.
+  Staff can still stop the app over SSH with Suspend on the order page.
 
-See `docs/PRODUCTION_READINESS_CHECKLIST.md` for the full owner-decision list.
+## 10. Go-live checklist
+
+| # | Item | Status (2026-11-28) |
+|---|---|---|
+| 1 | Super Admin created with `staff:create-super`, authenticator enrolled, recovery codes stored offline | Done by the owner on the server |
+| 2 | Production staff login slug chosen and shared with staff | Owner to confirm (default `developerjet`) |
+| 3 | `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, `SESSION_SECURE_COOKIE=true` | Owner to confirm with `php artisan about` |
+| 4 | Real SMTP: Settings → Email → Send test; verify codes, resets and invitations arrive | Owner to confirm (server once showed `Mail: log`) |
+| 5 | Queue + scheduler cron jobs (section 4) | Owner to confirm (server once showed `Queue: sync`) |
+| 6 | `php artisan storage:link` (invoice PDFs, attachments) | Owner to confirm |
+| 7 | Catalogue seeders run (`php artisan db:seed --force`) so Products & plans is not empty | Owner to confirm |
+| 8 | Razorpay live keys + webhook secret; one small real payment end to end | Not verified |
+| 9 | Telegram bot token + chat ID, then Send test | Not verified |
+| 10 | Company legal details, GSTIN, invoice prefix and start number | Owner decision |
+| 11 | Live install switches (section 2), outbound port 22 | Done (owner confirmed 2026-11-25) |
+| 12 | Database and `storage/app/private` backups (section 8) | Owner |
+
+Also decide: billing defaults (renewal invoice 7 days before, reminders, 3 grace days, auto-suspend off),
+SLA targets per priority (blank = no SLA promised), and which existing roles get newer permissions
+(`customers.impersonate`, `tickets.reply`, exports).
 

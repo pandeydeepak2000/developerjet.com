@@ -1,6 +1,6 @@
 # CLAUDE.md — instructions for AI sessions
 
-Read first: `PROJECT_CONTEXT.md`, `DeveloperJet_SRS_v0.1.md`, `docs/01_DEVELOPER_GUIDE.md`, `docs/02_PROJECT_STATUS.md`, `docs/03_COMPLETE_WORKFLOW.md`.
+Read first: `README.md` (documentation map), `docs/01_DEVELOPER_GUIDE.md`, `docs/02_PROJECT_STATUS.md`, `docs/03_COMPLETE_WORKFLOW.md`. Requirements: `DeveloperJet_SRS_v0.1.md` (later owner decisions win).
 
 ## Rules
 - WHMCS must never be integrated.
@@ -30,6 +30,7 @@ Read first: `PROJECT_CONTEXT.md`, `DeveloperJet_SRS_v0.1.md`, `docs/01_DEVELOPER
 - Separate managed and unmanaged access models. No WHMCS. Never store plaintext root passwords.
 - Live install commands, supplier adapters and Proxmox stay gated until explicitly approved. Do not claim full automation is live.
 - Docs: rebuild PDFs with `php scripts/build_diagrams.php && php scripts/build_docs_pdf.php` after editing `docs/*.md`.
+- Doc set (cleaned 2026-11-28): `docs/01`–`06` plus the table in `README.md`. Update an existing doc instead of adding a new one; customer help articles live in `database/seeders/docs/` (add the old body sha1 to `DocsSeeder::SHIPPED_BODY_HASHES` when changing one).
 - Shell tip: very large heredocs can fail in this environment; create big files with the editor tools.
 
 
@@ -42,8 +43,7 @@ Read first: `PROJECT_CONTEXT.md`, `DeveloperJet_SRS_v0.1.md`, `docs/01_DEVELOPER
 
 ## v0.5 notes (Business Automation)
 - Business Automation is implemented and tested (391 passed / 3310 assertions): /business-automation, 3 draft quote-only plans, requirement form, queued ack/sales/Telegram notifications (fakes only), 10-status quotation lifecycle, lead ownership permissions. See docs/03_COMPLETE_WORKFLOW.md.
-- Super Admin onboarding is verified on a disposable test database only. Do not create the real Super Admin account without the owner running staff:create-super interactively; check first with the read-only php artisan staff:status command (live MySQL check was blocked on 2026-11-21: connection refused on 127.0.0.1:3306).
-- Browser QA at 320-1440px was not re-run in this session.
+- The owner created the real Super Admin on the server with `staff:create-super`. Never create or promote Super Admins yourself; diagnose logins with the read-only `php artisan staff:status <email>` (see docs/04_STAFF_ACCESS.md).
 
 ## v0.4 notes (completion sprint)
 - Staff sign in at `/staff/{slug}/login` (DB setting `staff_portal.slug`, default `developerjet`) on the separate `staff` guard. `/admin/login` no longer exists; `/admin` is 404 for outsiders. Recovery: `php artisan staff:portal --show|--set=|--reset`.
